@@ -1,0 +1,58 @@
+{
+  "name": "tokpet",
+  "version": "0.1.0",
+  "description": "Desktop pet that surfaces your real-time AI usage / quota / balance across providers.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "tokpet": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "format": "prettier --write \"**/*.{ts,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md,yml,yaml}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "eslint": "^9.10.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.6.0",
+    "vitest": "^2.1.0"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "tokpet",
+    "claude",
+    "anthropic",
+    "ai",
+    "usage",
+    "esp32",
+    "lvgl"
+  ]
+}

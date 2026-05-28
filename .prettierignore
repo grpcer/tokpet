@@ -1,0 +1,7 @@
+dist
+node_modules
+coverage
+package-lock.json
+LICENSE
+NOTICE
+CODE_OF_CONDUCT.md

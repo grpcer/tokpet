@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+*.tsbuildinfo
+.env
+.env.local
+.tokpet/
+.DS_Store

@@ -1,0 +1,53 @@
+name: New provider request
+description: Propose adding a new AI vendor to Tokpet.
+title: 'provider: add <vendor-name>'
+labels: ['provider']
+body:
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor / product name
+      placeholder: e.g. OpenAI Plus, OpenRouter, DeepSeek API
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Access mode
+      options:
+        - subscription
+        - api-key
+        - relay
+    validations:
+      required: true
+
+  - type: input
+    id: provider-id
+    attributes:
+      label: Proposed provider id (lowercase-kebab)
+      placeholder: e.g. openai-plus, openrouter
+    validations:
+      required: true
+
+  - type: textarea
+    id: data-source
+    attributes:
+      label: How is usage data fetched?
+      description: Document the endpoint, credential source, and any rate limits.
+    validations:
+      required: true
+
+  - type: textarea
+    id: data-shape
+    attributes:
+      label: Expected Usage shape
+      description: Which fields of SubscriptionUsage / ApiKeyUsage / RelayUsage map from the upstream response?
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else maintainers should know (auth quirks, terms of service, etc.).
