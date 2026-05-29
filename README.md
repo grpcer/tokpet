@@ -18,12 +18,21 @@ Each provider implements the `Provider` interface in [`src/protocol/provider.ts`
 
 ## Status
 
-🚧 Early development. Currently wired up:
+🚧 Early development. Working today:
 
-- ✅ `subscription/claude` — reads OAuth token from macOS Keychain, calls undocumented `GET /api/oauth/usage`, returns 5 h + 7 d utilization
-- 🚧 Server + aggregator + TTL cache + `/state` JSON contract
+- ✅ Setup page + config store — pick an access mode and provider in the browser, test the connection, and the provider is activated and persisted to `~/.tokpet/config.json` (restored on restart).
+- ✅ `subscription/claude` — reuses your local Claude Code login, calls the undocumented `GET /api/oauth/usage`, returns 5 h + 7 d utilization.
+- ✅ Server + aggregator + TTL cache + `/state` JSON contract.
+
+`api-key` and `relay` modes are scaffolded but have no providers wired up yet.
 
 The only public stability guarantee is the `/state` JSON schema — see [`src/protocol/state.ts`](src/protocol/state.ts).
+
+## Setup
+
+Start the service (`npm run dev` below, or `npx tokpet` once published). Tokpet opens a setup page in your browser: pick how the provider exposes usage (subscription / API key / relay), choose a provider, and hit **Test** — on success it activates automatically and starts appearing in `GET /state`. Your choices are saved to `~/.tokpet/config.json` and restored on the next launch.
+
+The setup and configuration API is bound to loopback only; `GET /state` stays reachable on your LAN so the device (or any client) can poll it.
 
 ## Develop
 
@@ -42,4 +51,4 @@ npm start
 
 ## License
 
-MIT
+[Apache-2.0](LICENSE)
