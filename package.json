@@ -12,6 +12,7 @@
   },
   "files": [
     "dist",
+    "public",
     "LICENSE",
     "NOTICE",
     "README.md"
