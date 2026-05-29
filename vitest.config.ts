@@ -11,7 +11,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.d.ts', 'src/index.ts', 'src/providers/_template/**'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/index.ts',
+        'src/server/open-browser.ts',
+        'src/providers/_template/**',
+      ],
     },
   },
 });
