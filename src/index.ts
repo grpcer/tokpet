@@ -1,29 +1,37 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 //
-// Tokpet CLI entry point. Starts the local HTTP service that exposes
-// `GET /state` for the Tokpet device or any other compatible client.
-//
-// MVP behaviour: every registered provider is enabled with its schema
-// defaults. A configuration store + companion web UI will be added later.
+// Tokpet CLI entry point. Restores activated providers from the config store,
+// starts the local HTTP service (GET /state + the setup page) and opens the
+// browser to the setup page.
 
 import { Aggregator } from './aggregator/state.js';
-import { ALL_PROVIDERS } from './providers/registry.js';
+import { findProvider } from './providers/registry.js';
 import { startServer } from './server/http.js';
+import { loadConfig } from './config/store.js';
+import { openBrowser } from './server/open-browser.js';
 
 const PORT = Number(process.env.PORT) || 4717;
 
 async function main() {
   const agg = new Aggregator();
 
-  for (const p of ALL_PROVIDERS) {
-    const defaultCfg: unknown = p.configSchema.parse({});
-    agg.register(p, defaultCfg);
-    console.log(`[tokpet] registered ${p.mode}/${p.id}`);
+  const config = await loadConfig();
+  for (const [id, providerConfig] of Object.entries(config.providers)) {
+    const provider = findProvider(id);
+    if (!provider) {
+      console.warn(`[tokpet] skipping unknown provider '${id}' from config`);
+      continue;
+    }
+    agg.register(provider, providerConfig);
+    console.log(`[tokpet] restored ${provider.mode}/${provider.id}`);
   }
 
   await startServer(agg, PORT);
-  console.log(`[tokpet] listening at http://localhost:${PORT}/state`);
+  const url = `http://localhost:${PORT}/`;
+  console.log(`[tokpet] setup page:  ${url}`);
+  console.log(`[tokpet] state JSON:  ${url}state`);
+  if (!process.env.TOKPET_NO_OPEN) openBrowser(url);
 }
 
 main().catch((e) => {
