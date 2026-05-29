@@ -18,6 +18,9 @@ function isLoopback(ip: string | undefined): boolean {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
 }
 
+// Bound each upstream usage fetch so a hung provider can't hang the request.
+const FETCH_TIMEOUT_MS = 15_000;
+
 export function registerConfigRoutes(
   app: FastifyInstance,
   agg: Aggregator,
@@ -59,9 +62,9 @@ export function registerConfigRoutes(
         return reply.code(400).send({ ok: false, error: 'invalid config' });
       }
 
-      const ac = new AbortController();
-      req.raw.on('close', () => ac.abort());
-      const result = await provider.fetch(config, { signal: ac.signal });
+      const result = await provider.fetch(config, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       return isUsageError(result) ? { ok: false, error: result } : { ok: true, usage: result };
     });
 
@@ -79,8 +82,9 @@ export function registerConfigRoutes(
 
       // Confirm the credentials work before persisting, so activation can't
       // leave a broken provider enabled.
-      const ac = new AbortController();
-      const result = await provider.fetch(config, { signal: ac.signal });
+      const result = await provider.fetch(config, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       if (isUsageError(result)) return { ok: false, error: result };
 
       await saveProvider(id, config);
