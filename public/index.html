@@ -1659,10 +1659,14 @@
       var bad = result.code === "auth-expired" || result.code === "not-configured";
       return { pillClass: bad ? "pill--bad" : "pill--warn", label: info.title, kind: "error", info: info };
     }
-    // Healthy / cached / live
+    // Healthy / cached / stale / live
     var source = result.source || "live";
     var fetched = result.fetchedAt ? new Date(result.fetchedAt).getTime() : null;
     var ageSec = fetched ? (Date.now() - fetched) / 1000 : null;
+    if (source === "stale") {
+      var staleAgeLabel = relativeTime(result.staleSince || result.fetchedAt) || "moments ago";
+      return { pillClass: "pill--warn", label: "Stale · " + staleAgeLabel, kind: "stale" };
+    }
     if (source === "cached" || (ageSec != null && ageSec > 300)) {
       var ageLabel = relativeTime(result.fetchedAt) || "stale";
       return { pillClass: "pill--warn", label: "Cached · " + ageLabel, kind: "cached" };
