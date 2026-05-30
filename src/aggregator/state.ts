@@ -62,9 +62,31 @@ export class Aggregator {
     return this.entries.some((e) => e.provider.id === id);
   }
 
-  /** The currently registered providers, in registration order. */
+  /** The currently registered providers, in current display order. */
   list(): { id: string; mode: ProviderMode }[] {
     return this.entries.map((e) => ({ id: e.provider.id, mode: e.provider.mode }));
+  }
+
+  /** Reorder registered providers to match `ids`. Unknown ids are ignored;
+   *  registered providers missing from `ids` keep their relative order and
+   *  trail the listed ones. The TTL caches and `lastSuccess` snapshots are
+   *  preserved — reordering must not invalidate fresh data. */
+  reorder(ids: readonly string[]): void {
+    const byId = new Map<string, ProviderEntry>();
+    for (const e of this.entries) byId.set(e.provider.id, e);
+
+    const next: ProviderEntry[] = [];
+    const seen = new Set<string>();
+    for (const id of ids) {
+      const entry = byId.get(id);
+      if (entry && !seen.has(id)) {
+        next.push(entry);
+        seen.add(id);
+      }
+    }
+    for (const e of this.entries) if (!seen.has(e.provider.id)) next.push(e);
+
+    this.entries.splice(0, this.entries.length, ...next);
   }
 
   async snapshot(signal: AbortSignal): Promise<State> {

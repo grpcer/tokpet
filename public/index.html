@@ -6,6 +6,11 @@
 <meta name="color-scheme" content="light" />
 <title>Tokpet Console</title>
 <style>
+  /* HTML5 [hidden] tie-breaks at the same specificity as our author rules
+     (e.g. .source-line { display: grid }), so the UA fallback loses and a
+     supposedly-hidden node still renders. Force it to win. */
+  [hidden] { display: none !important; }
+
   :root {
     /* Brand */
     --brand-1: #6e54f0;
@@ -545,6 +550,15 @@
     margin-bottom: var(--s-3);
   }
   .provider-head > div:first-child, .device-head > div:first-child { min-width: 0; flex: 1; }
+  .provider-head-right { display: flex; align-items: center; gap: var(--s-2); flex: none; }
+  .order-controls { display: inline-flex; align-items: center; gap: 2px; }
+  .order-controls .order-btn {
+    padding: 4px 6px;
+    line-height: 1;
+    min-width: auto;
+  }
+  .order-controls .order-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+  .order-controls .order-btn svg { width: 14px; height: 14px; }
 
   .source-main {
     display: flex;
@@ -567,6 +581,19 @@
     position: relative;
   }
   .source-mark svg { width: 22px; height: 22px; }
+  /* simple-icons official SVG rendered via CSS mask so it picks up the
+     container's `color` (set per-vendor by [data-tone]) and inherits any
+     size override on its parent. Black alpha in the source SVG becomes
+     opaque, so any official single-color logo just works. */
+  .source-mark .logo-glyph,
+  .opt-mark .logo-glyph {
+    display: block;
+    background-color: currentColor;
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+  }
+  .source-mark .logo-glyph { width: 22px; height: 22px; }
+  .opt-mark .logo-glyph { width: 30px; height: 30px; }
   .source-mark--initial { font-family: var(--font); }
   [data-tone="claude"]     { background: linear-gradient(135deg, #fff1e1, #ffd9b8) !important; color: #b04a12 !important; }
   [data-tone="codex"]      { background: linear-gradient(135deg, #e6f4ff, #c7e1ff) !important; color: #1d4f9a !important; }
@@ -1115,7 +1142,21 @@
     background: var(--field);
     border-bottom: 1px solid var(--line);
   }
-  .connect-card .ck-hd .opt-mark { width: 56px; height: 56px; font-size: var(--fs-xl); }
+  /* connect-card opt-mark didn't inherit the .provider-option centering rules,
+     so .logo-glyph fell to top-left and the whale ended up huddled in a corner.
+     Mirror the same flex/grid centering and rounded-square chrome here. */
+  .connect-card .ck-hd .opt-mark {
+    width: 56px;
+    height: 56px;
+    font-size: var(--fs-xl);
+    border-radius: var(--r-sm);
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: var(--neutral-soft);
+    color: var(--brand-1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
+  }
   .connect-card .ck-hd .opt-mark svg { width: 30px; height: 30px; }
   .connect-card .ck-title { font-size: var(--fs-xl); font-weight: var(--fw-x); margin: 0 0 2px; letter-spacing: -.01em; }
   .connect-card .ck-sub { font-size: var(--fs-md); color: var(--ink-soft); margin: 0; line-height: 1.5; }
@@ -1611,6 +1652,8 @@
     <symbol id="i-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v15"/><path d="M5 12a7 7 0 0 0 14 0"/><path d="M3 12h4M17 12h4"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
     <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c4 0 6 2 6 6-1 6-7 10-7 10s-6-4-7-10c0-4 2-6 6-6 1-1 1-1 2-1z"/><circle cx="13" cy="10" r="1.8"/><path d="M9 17l-3 3 1 1 3-3"/></symbol>
     <!-- Provider marks: single-color glyphs tinted via .source-mark[data-tone] -->
@@ -1621,7 +1664,9 @@
     <symbol id="m-windsurf" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4l10 22-10-5-10 5L16 4z"/></symbol>
     <symbol id="m-anthropic" viewBox="0 0 32 32"><path fill="currentColor" d="M9.8 4h4l8.4 24h-4l-1.7-5.4H10l-1.7 5.4h-4L9.8 4zm.9 14.9h6.6L14 8.3l-3.3 10.6z"/></symbol>
     <symbol id="m-gemini" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4c0 6 4 10 10 12-6 2-10 6-10 12 0-6-4-10-10-12 6-2 10-6 10-12z"/></symbol>
-    <symbol id="m-deepseek" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="16" r="3.5" fill="currentColor"/></symbol>
+    <!-- m-deepseek 的 inline path 已被 /brand-logos/deepseek.svg + .logo-glyph CSS mask 取代，
+         claude / anthropic / cursor / gemini / openrouter / windsurf 同理。inline sprite 只为
+         simple-icons 未提供官方版的 vendor 保留（codex / openai / openai-plus）。 -->
     <symbol id="m-openrouter" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M5 12h12a5 5 0 1 1 0 10H5M22 12l5-3M22 12l5 3"/></symbol>
     <symbol id="m-generic" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h16v16H8z"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 14h8M12 18h5"/></symbol>
 
@@ -2032,6 +2077,7 @@
     claude: {
       tone: "claude",
       mark: "claude",
+      logoUrl: "/brand-logos/claude.svg",
       blurb: "Plan quota, weekly rolling window and Opus limit fed straight from your Claude Code login.",
       sourceHint: "Reuses your Claude Code login (macOS Keychain or ~/.claude/.credentials.json).",
       readList: "Plan name, 5-hour window, this-week window and Opus usage percentage.",
@@ -2052,16 +2098,19 @@
     },
     cursor: {
       tone: "cursor", mark: "cursor",
+      logoUrl: "/brand-logos/cursor.svg",
       blurb: "Cursor Pro completions and fast-request balance.",
       readList: "Fast / slow request balance, refresh date."
     },
     windsurf: {
       tone: "windsurf", mark: "windsurf",
+      logoUrl: "/brand-logos/windsurf.svg",
       blurb: "Windsurf Flow credits and plan quota.",
       readList: "Flow credits, plan tier, reset schedule."
     },
     "anthropic-api": {
       tone: "anthropic", mark: "anthropic",
+      logoUrl: "/brand-logos/anthropic.svg",
       blurb: "Anthropic API balance and credit burn.",
       readList: "Workspace balance, recent spend, hourly throughput."
     },
@@ -2072,11 +2121,13 @@
     },
     "gemini-api": {
       tone: "gemini", mark: "gemini",
+      logoUrl: "/brand-logos/gemini.svg",
       blurb: "Gemini API quotas and rate windows.",
       readList: "Per-minute and per-day request quota."
     },
     deepseek: {
       tone: "deepseek", mark: "deepseek",
+      logoUrl: "/brand-logos/deepseek.svg",
       blurb: "DeepSeek API wallet balance — pre-paid credits, read from /user/balance only.",
       readList: "Remaining wallet balance and currency.",
       dashboardUrl: "https://platform.deepseek.com/usage",
@@ -2086,6 +2137,7 @@
     },
     openrouter: {
       tone: "openrouter", mark: "openrouter",
+      logoUrl: "/brand-logos/openrouter.svg",
       blurb: "OpenRouter wallet and per-model spend.",
       readList: "Wallet balance, recent spend, throttling state."
     }
@@ -2510,21 +2562,35 @@
         '</div>';
       return;
     }
-    list.innerHTML = active.map(renderProviderCard).join("");
+    list.innerHTML = active.map(function (p, i) { return renderProviderCard(p, i, active.length); }).join("");
   }
 
   function brandMarkSmall(providerId, tone) {
     var meta = PROVIDER_META[providerId] || {};
+    var dataTone = esc(tone || meta.tone || '');
+    if (meta.logoUrl) {
+      return '<span class="source-mark" data-tone="' + dataTone + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none">' +
+             '<span class="logo-glyph" style="width:14px;height:14px;--logo:url(' + esc(meta.logoUrl) + ')"></span>' +
+             '</span>';
+    }
     var mk = meta.mark;
     var sym = mk ? '#m-' + mk : '#m-generic';
-    return '<span class="source-mark" data-tone="' + esc(tone || meta.tone || '') + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none"><svg style="width:14px;height:14px"><use href="' + sym + '"></use></svg></span>';
+    return '<span class="source-mark" data-tone="' + dataTone + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none"><svg style="width:14px;height:14px"><use href="' + sym + '"></use></svg></span>';
   }
 
   function brandMark(providerId, displayName, cls) {
     var meta = PROVIDER_META[providerId] || {};
     var tone = meta.tone || '';
-    var mk = meta.mark;
     var rootCls = cls || "source-mark";
+    // Prefer the official simple-icons SVG copied to public/brand-logos/.
+    // Rendered via CSS mask so the glyph picks up the tone color (a flat
+    // <img> would force the source SVG's black, ignoring [data-tone]).
+    if (meta.logoUrl) {
+      return '<div class="' + rootCls + '" data-tone="' + esc(tone) + '">' +
+             '<span class="logo-glyph" style="--logo:url(' + esc(meta.logoUrl) + ')"></span>' +
+             '</div>';
+    }
+    var mk = meta.mark;
     if (mk) {
       var sym = '#m-' + mk;
       return '<div class="' + rootCls + '" data-tone="' + esc(tone) + '"><svg><use href="' + sym + '"></use></svg></div>';
@@ -2567,7 +2633,7 @@
     return { pillClass: "pill--ok", label: "Healthy", kind: "ok" };
   }
 
-  function renderProviderCard(provider) {
+  function renderProviderCard(provider, index, total) {
     var sp = stateProvider(provider.id);
     var result = sp && sp.result;
     var status = providerStatus(provider, sp);
@@ -2611,6 +2677,27 @@
       ? relativeTime(result.fetchedAt)
       : (app.snapshot ? relativeTime(app.snapshot.fetchedAt) : null);
 
+    // Display order controls. We render them when there are 2+ cards so a
+    // single-provider console doesn't grow disabled chrome.
+    var orderControls = "";
+    if (typeof total === "number" && total > 1) {
+      var atTop = index <= 0;
+      var atBot = index >= total - 1;
+      orderControls =
+        '<div class="order-controls" role="group" aria-label="Reorder provider">' +
+          '<button class="btn btn--sm order-btn" title="Move up"' +
+            (atTop ? ' disabled' : '') +
+            ' onclick="moveProvider(\'' + esc(provider.id) + '\', -1)">' +
+            icon("arrow-up", "sm") +
+          '</button>' +
+          '<button class="btn btn--sm order-btn" title="Move down"' +
+            (atBot ? ' disabled' : '') +
+            ' onclick="moveProvider(\'' + esc(provider.id) + '\', 1)">' +
+            icon("arrow-down", "sm") +
+          '</button>' +
+        '</div>';
+    }
+
     return '<article class="provider">' +
       '<div class="provider-head">' +
         '<div><div class="source-main">' +
@@ -2620,7 +2707,10 @@
             '<div class="meta">' + esc(modeLabel(provider.mode)) + (lastUpdate ? ' · updated ' + esc(lastUpdate) : '') + '</div>' +
           '</div>' +
         '</div></div>' +
-        '<span class="pill ' + status.pillClass + '">' + esc(status.label) + '</span>' +
+        '<div class="provider-head-right">' +
+          orderControls +
+          '<span class="pill ' + status.pillClass + '">' + esc(status.label) + '</span>' +
+        '</div>' +
       '</div>' +
       body +
       '<div class="provider-actions">' +
@@ -2629,6 +2719,39 @@
         '<button class="btn btn--sm btn--danger" onclick="openRemove(\'' + esc(provider.id) + '\')">' + icon("trash", "sm") + 'Remove</button>' +
       '</div>' +
     '</article>';
+  }
+
+  // Reorder the activated providers by ±1 step. Persists the new order via
+  // POST /api/providers/reorder; the next /state poll reflects the change on
+  // both the console and the device tiles.
+  function moveProvider(id, delta) {
+    var active = activeProviders();
+    var idx = active.findIndex(function (p) { return p.id === id; });
+    if (idx < 0) return;
+    var target = idx + delta;
+    if (target < 0 || target >= active.length) return;
+    var ids = active.map(function (p) { return p.id; });
+    var tmp = ids[idx]; ids[idx] = ids[target]; ids[target] = tmp;
+    // Optimistically reorder the local list so the cards animate immediately;
+    // we re-sync from the next refreshAll().
+    var moved = app.providers.slice();
+    moved.sort(function (a, b) {
+      var ia = ids.indexOf(a.id); var ib = ids.indexOf(b.id);
+      if (ia < 0 && ib < 0) return 0;
+      if (ia < 0) return 1;
+      if (ib < 0) return -1;
+      return ia - ib;
+    });
+    app.providers = moved;
+    renderDashboard();
+    api("POST", "/api/providers/reorder", { order: ids }).then(function (result) {
+      if (!result || !result.ok) {
+        // Snapshot drift will get re-synced on the next poll.
+        refreshAll(false);
+      } else {
+        refreshAll(false);
+      }
+    });
   }
 
   function renderDevices() {

@@ -41,6 +41,32 @@ describe('Aggregator registry ops', () => {
     agg.register(mockProvider('a'), {});
     expect(agg.list()).toEqual([{ id: 'a', mode: 'subscription' }]);
   });
+
+  it('reorders registered providers to match the given id sequence', () => {
+    const agg = new Aggregator();
+    agg.register(mockProvider('a'), {});
+    agg.register(mockProvider('b'), {});
+    agg.register(mockProvider('c'), {});
+    agg.reorder(['c', 'a', 'b']);
+    expect(agg.list().map((e) => e.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('reorder appends registered providers missing from the order list', () => {
+    const agg = new Aggregator();
+    agg.register(mockProvider('a'), {});
+    agg.register(mockProvider('b'), {});
+    agg.register(mockProvider('c'), {});
+    agg.reorder(['c']);
+    // a and b kept their relative order behind the listed provider.
+    expect(agg.list().map((e) => e.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('reorder silently drops unknown ids', () => {
+    const agg = new Aggregator();
+    agg.register(mockProvider('a'), {});
+    agg.reorder(['ghost', 'a']);
+    expect(agg.list().map((e) => e.id)).toEqual(['a']);
+  });
 });
 
 interface StubProvider {

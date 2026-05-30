@@ -8,7 +8,7 @@
 import { Aggregator } from './aggregator/state.js';
 import { findProvider } from './providers/registry.js';
 import { startServer } from './server/http.js';
-import { loadConfig } from './config/store.js';
+import { loadConfig, orderedProviderIds } from './config/store.js';
 import { openBrowser } from './server/open-browser.js';
 import { publishMdns } from './server/mdns.js';
 import { createRuntimeState, markMdnsPublished } from './server/runtime.js';
@@ -20,13 +20,15 @@ async function main() {
   const runtime = createRuntimeState(PORT);
 
   const config = await loadConfig();
-  for (const [id, providerConfig] of Object.entries(config.providers)) {
+  // Restore in the user-chosen display order so the very first /state poll
+  // already lines up with the console and the device tiles.
+  for (const id of orderedProviderIds(config)) {
     const provider = findProvider(id);
     if (!provider) {
       console.warn(`[tokpet] skipping unknown provider '${id}' from config`);
       continue;
     }
-    agg.register(provider, providerConfig);
+    agg.register(provider, config.providers[id]);
     console.log(`[tokpet] restored ${provider.mode}/${provider.id}`);
   }
 
