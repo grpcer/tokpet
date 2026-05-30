@@ -1555,6 +1555,32 @@
   }
   .field-input:focus { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 3px rgba(110, 84, 240, .14); }
   .field-help { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.45; }
+
+  /* Eye toggle for password-style fields (API key). Lives inside a wrapper
+     so the icon sits inside the input's right edge without breaking the
+     :focus ring on the input. */
+  .field-input-wrap { position: relative; }
+  .field-input-wrap .field-input { padding-right: 44px; }
+  .field-input-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: var(--r-xs, 6px);
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 0;
+  }
+  .field-input-toggle:hover { color: var(--ink); background: rgba(0,0,0,.04); }
+  .field-input-toggle:focus { outline: 2px solid var(--brand-1); outline-offset: 1px; }
+  .field-input-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; }
+  .field-input-toggle.is-on { color: var(--brand-1); }
   .field-help a { color: var(--brand-1); }
   details.ck-advanced {
     border: 1px dashed var(--line-strong);
@@ -1961,7 +1987,12 @@
                       <span>API Key</span>
                       <span class="req">*</span>
                     </label>
-                    <input id="connectApiKey" class="field-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" oninput="onConnectFieldInput()">
+                    <div class="field-input-wrap">
+                      <input id="connectApiKey" class="field-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" oninput="onConnectFieldInput()">
+                      <button type="button" class="field-input-toggle" id="connectApiKeyToggle" onclick="toggleApiKeyVisibility()" aria-label="Show key" title="Show key">
+                        <svg aria-hidden="true"><use href="#i-eye"></use></svg>
+                      </button>
+                    </div>
                     <div class="field-help" id="connectApiKeyHelp">Paste the API key from the provider dashboard. Stored locally in <span class="mono">~/.tokpet/config.json</span>.</div>
                   </div>
                   <details class="ck-advanced" id="connectAdvanced">
@@ -3200,6 +3231,7 @@
         baseInput.value = "";
         baseInput.placeholder = providerBaseUrlPlaceholder(p.id);
         $("connectAdvanced").open = false;
+        resetApiKeyVisibility(); // every (re)entry into step 3 starts masked
         btn.disabled = true; // require API key before activating
       } else {
         fields.setAttribute("hidden", "");
@@ -3222,6 +3254,31 @@
     var btn = $("connectBtn");
     var key = ($("connectApiKey").value || "").trim();
     btn.disabled = !key;
+  }
+
+  // Show / hide the API key so users can verify what's currently stored
+  // (during Update key) or what they're about to submit (during Add).
+  function toggleApiKeyVisibility() {
+    var input = $("connectApiKey");
+    var toggle = $("connectApiKeyToggle");
+    if (!input || !toggle) return;
+    var showing = input.type === "text";
+    input.type = showing ? "password" : "text";
+    var label = showing ? "Show key" : "Hide key";
+    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("title", label);
+    toggle.classList.toggle("is-on", !showing);
+  }
+
+  function resetApiKeyVisibility() {
+    var input = $("connectApiKey");
+    var toggle = $("connectApiKeyToggle");
+    if (input) input.type = "password";
+    if (toggle) {
+      toggle.setAttribute("aria-label", "Show key");
+      toggle.setAttribute("title", "Show key");
+      toggle.classList.remove("is-on");
+    }
   }
 
   function collectConnectBody() {
