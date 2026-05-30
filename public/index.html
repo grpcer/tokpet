@@ -22,9 +22,11 @@
     /* Surfaces */
     --bg: #f4f1ec;
     --card: #ffffff;
-    --line: #ece7f6;
-    --line-strong: #ddd4f0;
+    --line: #e6dff5;
+    --line-strong: #cfc1ec;
     --field: #faf8fe;
+    --field-strong: #f4eefd;
+    --ink-faint: #948cb5;
 
     /* Semantic */
     --ok: #16a06c;
@@ -148,6 +150,15 @@
     color: var(--on-brand);
     overflow: hidden;
   }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(40% 60% at 86% 18%, rgba(255, 255, 255, .18), transparent 70%),
+      radial-gradient(48% 78% at -5% 110%, rgba(255, 255, 255, .12), transparent 70%);
+    pointer-events: none;
+  }
   .hero::after {
     content: "";
     position: absolute;
@@ -215,7 +226,7 @@
     place-items: center;
     background: conic-gradient(#fff 0deg, rgba(255, 255, 255, .22) 0deg);
     transition: background var(--dur-slow) var(--ease);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, .10), inset 0 0 0 1px rgba(255, 255, 255, .20);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .10), inset 0 0 0 1px rgba(255, 255, 255, .28);
   }
   .ring::after {
     content: "";
@@ -223,22 +234,44 @@
     inset: 10px;
     border-radius: 50%;
     background: var(--brand-grad);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), inset 0 2px 10px rgba(255, 255, 255, .18);
   }
   .ring-value {
     position: relative;
     z-index: 1;
-    font-size: var(--fs-3xl);
-    font-weight: var(--fw-x);
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     padding: 0 var(--s-2);
     max-width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: center;
+    text-shadow: 0 1px 6px rgba(36, 29, 58, .22);
   }
-  .ring-value.is-empty {
+  .ring-value .num {
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-x);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .ring-value .cap {
+    margin-top: 4px;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-s);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--on-brand-muted);
+    text-shadow: none;
+  }
+  .ring-value.is-empty .num {
     font-size: var(--fs-2xl);
-    color: rgba(255, 255, 255, .8);
+    color: rgba(255, 255, 255, .82);
     font-weight: var(--fw-s);
   }
 
@@ -263,18 +296,27 @@
   .mood {
     display: inline-flex;
     align-items: center;
-    gap: var(--s-1);
+    gap: var(--s-2);
     margin-top: var(--s-3);
-    padding: var(--s-1) var(--s-3);
+    padding: 5px var(--s-3) 5px var(--s-2);
     border-radius: var(--r-pill);
-    background: rgba(255, 255, 255, .22);
-    border: 1px solid rgba(255, 255, 255, .28);
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .32);
     font-size: var(--fs-sm);
     font-weight: var(--fw-s);
     letter-spacing: .04em;
-    text-transform: uppercase;
+    backdrop-filter: blur(6px);
   }
   .mood[title] { cursor: help; }
+  .mood .mood-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .85);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
+  }
+  .mood .mood-name { text-transform: capitalize; font-weight: var(--fw-b); }
+  .mood .mood-sub { color: var(--on-brand-soft); }
 
   /* ---------------- Buttons ---------------- */
 
@@ -363,25 +405,26 @@
   /* ---------------- Status strip ---------------- */
 
   .status-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-3);
     padding: var(--s-4) var(--s-6);
     background: var(--field);
     border-bottom: 1px solid var(--line);
   }
   .status {
     min-width: 0;
-    flex: 1 1 200px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--r-pill);
-    padding: var(--s-2) var(--s-4);
+    border-radius: var(--r-md);
+    padding: var(--s-3) var(--s-4);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s-3);
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
+    cursor: default;
   }
+  .status[title]:hover { border-color: var(--line-strong); transform: translateY(-1px); }
   .status .label {
     font-size: var(--fs-xs);
     text-transform: uppercase;
@@ -398,6 +441,20 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .status .sub {
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    font-weight: var(--fw-m);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 900px) {
+    .status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 500px) {
+    .status-strip { grid-template-columns: 1fr; }
   }
 
   .dot {
@@ -496,17 +553,30 @@
     min-width: 0;
   }
   .source-mark {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: var(--r-sm);
     display: grid;
     place-items: center;
-    flex: 0 0 36px;
+    flex: 0 0 40px;
     background: var(--neutral-soft);
     color: var(--brand-1);
     font-weight: var(--fw-x);
     font-size: var(--fs-lg);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45);
+    position: relative;
   }
+  .source-mark svg { width: 22px; height: 22px; }
+  .source-mark--initial { font-family: var(--font); }
+  [data-tone="claude"]     { background: linear-gradient(135deg, #fff1e1, #ffd9b8) !important; color: #b04a12 !important; }
+  [data-tone="codex"]      { background: linear-gradient(135deg, #e6f4ff, #c7e1ff) !important; color: #1d4f9a !important; }
+  [data-tone="openai"]     { background: linear-gradient(135deg, #e6f7ee, #c9eedb) !important; color: #0a7a4a !important; }
+  [data-tone="cursor"]     { background: linear-gradient(135deg, #efeaff, #d8cdff) !important; color: #4a32b2 !important; }
+  [data-tone="windsurf"]   { background: linear-gradient(135deg, #e6f5f1, #c7eadf) !important; color: #0d6f55 !important; }
+  [data-tone="anthropic"]  { background: linear-gradient(135deg, #ffe7d6, #f9c8a4) !important; color: #95371a !important; }
+  [data-tone="gemini"]     { background: linear-gradient(135deg, #e0ecff, #c0d4f8) !important; color: #1b4caf !important; }
+  [data-tone="deepseek"]   { background: linear-gradient(135deg, #e0ecff, #c2d1f5) !important; color: #1a3a8a !important; }
+  [data-tone="openrouter"] { background: linear-gradient(135deg, #f3eafe, #e1cdfb) !important; color: #5a258e !important; }
   .name {
     font-weight: var(--fw-x);
     font-size: var(--fs-base);
@@ -609,6 +679,13 @@
     gap: var(--s-2);
     flex-wrap: wrap;
     margin-top: var(--s-4);
+    padding-top: var(--s-3);
+    border-top: 1px dashed var(--line);
+  }
+  .provider-actions .spacer { flex: 1; }
+  .provider-actions .btn--danger { margin-left: auto; }
+  @media (max-width: 560px) {
+    .provider-actions .btn--danger { margin-left: 0; }
   }
 
   /* ---------------- Empty / error ---------------- */
@@ -636,6 +713,67 @@
     place-items: center;
   }
   .empty-title { color: var(--ink); font-weight: var(--fw-b); margin-bottom: 2px; }
+
+  .empty-hero {
+    border: 1px dashed var(--line-strong);
+    background: linear-gradient(180deg, var(--field) 0%, var(--card) 100%);
+    border-radius: var(--r-md);
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+    display: grid;
+    gap: var(--s-4);
+    justify-items: center;
+  }
+  .empty-hero .illus {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--brand-grad);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 12px 30px -10px rgba(110, 84, 240, .45);
+  }
+  .empty-hero .illus svg {
+    width: 52px;
+    height: 52px;
+    opacity: .96;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .empty-hero h3 { margin: 0; font-size: var(--fs-xl); font-weight: var(--fw-x); color: var(--ink); letter-spacing: -.01em; }
+  .empty-hero p { margin: 0; max-width: 380px; color: var(--ink-soft); font-size: var(--fs-base); line-height: 1.55; }
+  .empty-hero .empty-actions { display: inline-flex; gap: var(--s-2); flex-wrap: wrap; justify-content: center; }
+  .empty-hero .chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    justify-content: center;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 4px var(--s-3);
+    border-radius: var(--r-pill);
+    background: var(--neutral-soft);
+    color: var(--neutral-fg);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-s);
+    border: 1px solid transparent;
+  }
+  .chip svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 
   .error-banner {
     border: 1px solid #f5c0cc;
@@ -839,49 +977,340 @@
     padding: var(--s-4);
     background: var(--field);
     text-align: left;
-    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
-    display: grid;
-    gap: var(--s-1);
+    transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease);
+    position: relative;
   }
-  .mode:hover:not(:disabled), .provider-option:hover { border-color: var(--brand-1); background: var(--card); transform: translateY(-1px); }
-  .mode.sel, .provider-option.sel { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 4px rgba(110, 84, 240, .12); }
-  .mode:disabled { opacity: .68; cursor: not-allowed; }
-  .mode .mode-title { font-weight: var(--fw-x); font-size: var(--fs-base); display: flex; align-items: center; gap: var(--s-2); }
-  .mode .mode-desc { font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.4; }
-  .mode .mode-tag { font-size: var(--fs-xs); color: var(--brand-1); font-weight: var(--fw-b); text-transform: uppercase; letter-spacing: .06em; margin-top: var(--s-1); }
-  .mode:disabled .mode-tag { color: var(--ink-soft); }
+  .mode {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    min-height: 100%;
+  }
+  .mode:hover:not(:disabled), .provider-option:hover { border-color: var(--brand-1); background: var(--card); transform: translateY(-1px); box-shadow: var(--elev-1); }
+  .mode.sel, .provider-option.sel { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 4px rgba(110, 84, 240, .14), var(--elev-1); }
+  .mode:disabled { opacity: .7; cursor: not-allowed; }
+  .mode .mode-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-sm);
+    background: var(--neutral-soft);
+    color: var(--brand-1);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .mode .mode-icon--ok { background: var(--ok-soft); color: var(--ok); }
+  .mode .mode-icon--warn { background: var(--warn-soft); color: var(--warn); }
+  .mode .mode-text { display: flex; flex-direction: column; gap: 4px; }
+  .mode .mode-title { font-weight: var(--fw-x); font-size: var(--fs-lg); letter-spacing: -.01em; line-height: 1.2; margin: 0; }
+  .mode .mode-desc { font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.5; margin: 0; }
+  .mode .mode-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-s);
+    color: var(--brand-1);
+    background: var(--neutral-soft);
+    padding: 4px var(--s-3);
+    border-radius: var(--r-pill);
+    align-self: flex-start;
+    white-space: nowrap;
+    max-width: 100%;
+    line-height: 1.2;
+  }
+  .mode .mode-tag.tag--ok { color: var(--ok); background: var(--ok-soft); }
+  .mode .mode-tag.tag--muted { color: var(--ink-soft); background: var(--field-strong); }
+  .mode:disabled .mode-tag { color: var(--ink-soft); background: var(--field-strong); }
+  .mode .mode-example {
+    font-size: var(--fs-sm);
+    color: var(--ink-faint);
+    line-height: 1.5;
+    margin-top: auto;
+    padding-top: var(--s-2);
+    border-top: 1px dashed var(--line);
+  }
+  .mode .ribbon {
+    position: absolute;
+    top: var(--s-3);
+    right: var(--s-3);
+    font-size: 10px;
+    font-weight: var(--fw-b);
+    color: var(--brand-1);
+    background: #fff;
+    border: 1px solid rgba(110, 84, 240, .25);
+    padding: 2px var(--s-2);
+    border-radius: var(--r-pill);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px -2px rgba(110, 84, 240, .25);
+  }
 
   .option-list { display: grid; gap: var(--s-3); }
 
-  .connect-box {
-    border: 1.5px solid var(--line);
-    border-radius: var(--r-md);
-    padding: var(--s-4);
-    background: var(--field);
+  .provider-option {
     display: grid;
-    gap: var(--s-2);
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s-3) var(--s-3);
+    padding: var(--s-3) var(--s-4);
   }
-  .connect-box h3 { margin: 0; font-size: var(--fs-lg); }
-  .connect-box p { margin: 0; color: var(--ink-soft); font-size: var(--fs-md); line-height: 1.5; }
-  .connect-box .source-hint {
+  .provider-option .opt-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-sm);
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: var(--neutral-soft);
+    color: var(--brand-1);
+    font-weight: var(--fw-x);
+    font-size: var(--fs-lg);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
+  }
+  .provider-option .opt-mark svg { width: 24px; height: 24px; }
+  .provider-option .opt-body { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+  .provider-option .opt-name { font-weight: var(--fw-x); font-size: var(--fs-base); color: var(--ink); }
+  .provider-option .opt-sub { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.4; }
+  .provider-option .opt-arrow {
+    color: var(--ink-faint);
+    display: grid;
+    place-items: center;
+    transition: transform var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .provider-option:hover .opt-arrow, .provider-option.sel .opt-arrow {
+    color: var(--brand-1);
+    transform: translateX(4px);
+  }
+  .provider-option:disabled, .provider-option[aria-disabled="true"] {
+    opacity: .62;
+    cursor: not-allowed;
+    background: var(--field);
+  }
+  .provider-option:disabled:hover, .provider-option[aria-disabled="true"]:hover {
+    border-color: var(--line);
+    transform: none;
+    box-shadow: none;
+  }
+  .provider-option .opt-name {
     display: inline-flex;
     align-items: center;
     gap: var(--s-2);
-    margin-top: var(--s-2);
-    padding: var(--s-2) var(--s-3);
+    flex-wrap: wrap;
+  }
+
+  .connect-card {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
     background: var(--card);
+    box-shadow: var(--elev-1);
+    overflow: hidden;
+  }
+  .connect-card .ck-hd {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: var(--s-4);
+    align-items: center;
+    padding: var(--s-5);
+    background: var(--field);
+    border-bottom: 1px solid var(--line);
+  }
+  .connect-card .ck-hd .opt-mark { width: 56px; height: 56px; font-size: var(--fs-xl); }
+  .connect-card .ck-hd .opt-mark svg { width: 30px; height: 30px; }
+  .connect-card .ck-title { font-size: var(--fs-xl); font-weight: var(--fw-x); margin: 0 0 2px; letter-spacing: -.01em; }
+  .connect-card .ck-sub { font-size: var(--fs-md); color: var(--ink-soft); margin: 0; line-height: 1.5; }
+  .connect-card .ck-body { padding: var(--s-5); display: grid; gap: var(--s-4); }
+
+  .trust {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .trust-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: var(--s-3);
+    align-items: flex-start;
+    font-size: var(--fs-base);
+    line-height: 1.5;
+  }
+  .trust-row .tic {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex: none;
+    margin-top: 1px;
+  }
+  .trust-row .tic--ok { background: var(--ok-soft); color: var(--ok); }
+  .trust-row .tic--no { background: var(--bad-soft); color: var(--bad); }
+  .trust-row .tic svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .trust-row .tt { color: var(--ink); font-weight: var(--fw-s); }
+  .trust-row .ts { color: var(--ink-soft); font-size: var(--fs-md); line-height: 1.45; margin-top: 2px; }
+
+  .source-line {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: var(--s-3);
+    align-items: flex-start;
+    padding: var(--s-3) var(--s-4);
+    background: var(--field);
     border: 1px dashed var(--line-strong);
-    border-radius: var(--r-xs);
-    font-family: var(--font-mono);
+    border-radius: var(--r-sm);
     font-size: var(--fs-sm);
     color: var(--ink-soft);
+    line-height: 1.5;
   }
+  .source-line svg {
+    width: 18px;
+    height: 18px;
+    color: var(--brand-1);
+    margin-top: 1px;
+    flex: none;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ck-docs {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--brand-1);
+    text-decoration: none;
+    font-weight: var(--fw-s);
+    font-size: var(--fs-md);
+    align-self: start;
+  }
+  .ck-docs:hover { text-decoration: underline; }
+  .ck-docs svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .footer-actions {
     display: flex;
     justify-content: space-between;
     gap: var(--s-3);
     margin-top: var(--s-5);
   }
+
+  .wizard-done {
+    text-align: center;
+    padding: var(--s-5) var(--s-2);
+    display: grid;
+    gap: var(--s-4);
+    justify-items: center;
+  }
+  .wizard-done .illus {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--ok-soft);
+    color: var(--ok);
+    display: grid;
+    place-items: center;
+  }
+  .wizard-done .illus svg {
+    width: 56px;
+    height: 56px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .wizard-done h2 { margin: 0; font-size: var(--fs-2xl); }
+  .wizard-done p { margin: 0; color: var(--ink-soft); max-width: 420px; line-height: 1.55; }
+
+  /* ---------------- Tips / Help ---------------- */
+
+  .tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--s-3);
+  }
+  .tip {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-4);
+    background: var(--field);
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: var(--s-3);
+    align-items: flex-start;
+  }
+  .tip-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--brand-grad);
+    color: #fff;
+    font-weight: var(--fw-x);
+    font-size: var(--fs-sm);
+    display: grid;
+    place-items: center;
+    margin-top: 2px;
+    box-shadow: 0 4px 10px -3px rgba(110, 84, 240, .45);
+  }
+  .tip-body { display: grid; gap: 4px; }
+  .tip-title { font-weight: var(--fw-b); color: var(--ink); font-size: var(--fs-base); }
+  .tip-text { font-size: var(--fs-md); color: var(--ink-soft); line-height: 1.5; }
+  .tip-text a { color: var(--brand-1); text-decoration: none; }
+  .tip-text a:hover { text-decoration: underline; }
+
+  /* ---------------- Network actions ---------------- */
+
+  .net-section-head .btn { flex: none; }
+  .url-line.url-line--actions {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: var(--s-2);
+  }
+
+  /* ---------------- Tabs (diagnostics) ---------------- */
+
+  .tabs {
+    display: inline-flex;
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    padding: 3px;
+    gap: 2px;
+  }
+  .tabs button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+    font-weight: var(--fw-s);
+    padding: 4px var(--s-3);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .tabs button.on {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--elev-1);
+  }
+  .tabs button:hover:not(.on) { color: var(--ink); }
 
   /* ---------------- Toasts ---------------- */
 
@@ -894,6 +1323,15 @@
     z-index: 50;
     pointer-events: none;
     max-width: calc(100vw - var(--s-7));
+  }
+  @media (max-width: 560px) {
+    .toast-stack {
+      right: var(--s-3);
+      left: var(--s-3);
+      bottom: var(--s-3);
+      justify-items: stretch;
+    }
+    .toast { min-width: 0; }
   }
   .toast {
     pointer-events: auto;
@@ -1022,7 +1460,11 @@
     .content { padding: var(--s-4) var(--s-3); gap: var(--s-4); }
     .panel { padding: var(--s-4); border-radius: var(--r-md); }
     .provider-head, .device-head { flex-direction: column; align-items: stretch; }
-    .provider-actions .btn { flex: 1 1 auto; }
+    .provider-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .provider-actions .btn { width: 100%; min-width: 0; }
+    .provider-actions .btn--danger { grid-column: 1 / -1; }
+    .panel-head { grid-template-columns: 1fr; gap: var(--s-3); }
+    .panel-head .btn { justify-self: start; }
     .diagnostics { padding: 0 var(--s-3) var(--s-4); }
     .diag-body { padding: 0 var(--s-4) var(--s-4); }
     .wizard-body { padding: var(--s-5); }
@@ -1063,6 +1505,29 @@
     <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 17H2L12 3z"/><path d="M12 10v5M12 18h.01"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h10a4 4 0 0 1 4 4v12"/><path d="M4 4v15a1 1 0 0 0 1 1h13"/><path d="M8 8h6M8 12h5"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7L11.5 7"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 1 0 5.7 5.7L12.5 17"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 4.4 1.6c-.9.8-1.9 1.4-1.9 2.4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v15"/><path d="M5 12a7 7 0 0 0 14 0"/><path d="M3 12h4M17 12h4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c4 0 6 2 6 6-1 6-7 10-7 10s-6-4-7-10c0-4 2-6 6-6 1-1 1-1 2-1z"/><circle cx="13" cy="10" r="1.8"/><path d="M9 17l-3 3 1 1 3-3"/></symbol>
+    <!-- Provider marks: single-color glyphs tinted via .source-mark[data-tone] -->
+    <symbol id="m-claude" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4l2 6 6 2-6 2-2 6-2-6-6-2 6-2zM6 22l1.2 3 3 1.2-3 1.2L6 30.6 4.8 27.4l-3-1.2 3-1.2zM24 22l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/></symbol>
+    <symbol id="m-codex" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 11l-5 5 5 5M20 11l5 5-5 5"/></symbol>
+    <symbol id="m-openai" viewBox="0 0 32 32"><path fill="currentColor" d="M22.3 14.1a5 5 0 0 0-.4-4.3 5.1 5.1 0 0 0-5.6-2.4 5.1 5.1 0 0 0-8.6 1.8 5 5 0 0 0-3.3 2.4 5.1 5.1 0 0 0 .6 6 5 5 0 0 0 .4 4.3 5.1 5.1 0 0 0 5.6 2.4 5.1 5.1 0 0 0 8.6-1.8 5 5 0 0 0 3.3-2.4 5.1 5.1 0 0 0-.6-6zM17 24.6a3.8 3.8 0 0 1-2.4-.9l.1-.1 4.1-2.4a.7.7 0 0 0 .3-.6V15l1.7 1v4.9a3.8 3.8 0 0 1-3.8 3.8zM8.7 21A3.8 3.8 0 0 1 8.3 19v-.2l4.1 2.4a.7.7 0 0 0 .7 0l5-2.9v2L13.9 23a3.8 3.8 0 0 1-5.2-2zm-1.1-9a3.8 3.8 0 0 1 2-1.7v5a.7.7 0 0 0 .3.6l5 2.9-1.7 1L9 17.4a3.8 3.8 0 0 1-1.4-5.2zm14.2 3.3l-5-2.9 1.7-1 4.2 2.4a3.8 3.8 0 0 1-.6 6.9v-5a.7.7 0 0 0-.3-.6zm1.7-2.6l-.1-.1-4.1-2.4a.7.7 0 0 0-.7 0L13.6 13v-2l4.2-2.4a3.8 3.8 0 0 1 5.6 4zm-10.8 3.5l-1.7-1v-4.9a3.8 3.8 0 0 1 6.2-2.9l-.1.1-4.1 2.4a.7.7 0 0 0-.3.6zm.9-2l2.2-1.3 2.2 1.3v2.6l-2.2 1.3-2.2-1.3z"/></symbol>
+    <symbol id="m-cursor" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4l12 7v10L16 28 4 21V11L16 4zm0 2.3L6 12.2 16 18l10-5.8L16 6.3zm-10 7v6.4l9 5.3v-6.4l-9-5.3zm20 0l-9 5.3v6.4l9-5.3v-6.4z"/></symbol>
+    <symbol id="m-windsurf" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4l10 22-10-5-10 5L16 4z"/></symbol>
+    <symbol id="m-anthropic" viewBox="0 0 32 32"><path fill="currentColor" d="M9.8 4h4l8.4 24h-4l-1.7-5.4H10l-1.7 5.4h-4L9.8 4zm.9 14.9h6.6L14 8.3l-3.3 10.6z"/></symbol>
+    <symbol id="m-gemini" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4c0 6 4 10 10 12-6 2-10 6-10 12 0-6-4-10-10-12 6-2 10-6 10-12z"/></symbol>
+    <symbol id="m-deepseek" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="16" r="3.5" fill="currentColor"/></symbol>
+    <symbol id="m-openrouter" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M5 12h12a5 5 0 1 1 0 10H5M22 12l5-3M22 12l5 3"/></symbol>
+    <symbol id="m-generic" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h16v16H8z"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 14h8M12 18h5"/></symbol>
 
     <symbol id="cat" viewBox="0 0 64 64">
       <!-- ears -->
@@ -1122,21 +1587,46 @@
             </div>
           </div>
           <div class="hero-meter">
-            <div class="ring" id="nowRing"><div class="ring-value" id="nowMetric">—</div></div>
+            <div class="ring" id="nowRing">
+              <div class="ring-value is-empty" id="nowMetric">
+                <span class="num">—</span>
+                <span class="cap">no data</span>
+              </div>
+            </div>
             <div>
               <div class="metric-title">Now showing</div>
               <div class="metric-label" id="nowLabel">No data yet.</div>
               <div class="metric-sub" id="nowSub"></div>
-              <span class="mood" id="nowMood" title="">idle</span>
+              <span class="mood" id="nowMood" title="">
+                <span class="mood-dot"></span>
+                <span class="mood-name">idle</span>
+                <span class="mood-sub" id="nowMoodSub">waiting</span>
+              </span>
             </div>
           </div>
         </section>
 
         <section class="status-strip" aria-label="Runtime status">
-          <div class="status"><span class="label">Companion</span><span class="value" id="serviceStatus"><span class="dot dot--ok"></span>Running</span></div>
-          <div class="status"><span class="label">State feed</span><span class="value" id="stateStatus"><span class="dot"></span>Idle</span></div>
-          <div class="status"><span class="label">Device</span><span class="value" id="deviceStatus"><span class="dot"></span>Checking</span></div>
-          <div class="status"><span class="label">Providers</span><span class="value" id="providerStatus"><span class="dot"></span>0 active</span></div>
+          <div class="status" id="serviceCell" title="Local companion process serving /state on port 4717.">
+            <span class="label">Companion</span>
+            <span class="value" id="serviceStatus"><span class="dot dot--ok"></span>Running</span>
+            <span class="sub" id="serviceSub">port 4717</span>
+          </div>
+          <div class="status" id="stateCell" title="Latest unified usage snapshot served at /state.">
+            <span class="label">State feed</span>
+            <span class="value" id="stateStatus"><span class="dot"></span>Idle</span>
+            <span class="sub" id="stateSub">no fetch yet</span>
+          </div>
+          <div class="status" id="deviceCell" title="Tokpet hardware polling /state from this LAN.">
+            <span class="label">Devices</span>
+            <span class="value" id="deviceStatus"><span class="dot"></span>Checking</span>
+            <span class="sub" id="deviceSub">scanning</span>
+          </div>
+          <div class="status" id="providerCell" title="Vendors wired up on this machine.">
+            <span class="label">Providers</span>
+            <span class="value" id="providerStatus"><span class="dot"></span>0 active</span>
+            <span class="sub" id="providerSub">none connected</span>
+          </div>
         </section>
 
         <div class="content">
@@ -1189,10 +1679,47 @@
         </div>
 
         <div class="diagnostics">
-          <details class="panel" id="diagPanel">
+          <details class="panel" id="tipsPanel" open>
             <summary>
               <div class="panel-title">
-                <div class="icon-bubble icon-bubble--pink"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-diagnostics"></use></svg></div>
+                <div class="icon-bubble icon-bubble--pink"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-rocket"></use></svg></div>
+                <div class="title-stack">
+                  <h2>Get started</h2>
+                  <p class="hint">Three steps to put a usage ring on your desk.</p>
+                </div>
+              </div>
+            </summary>
+            <div class="diag-body">
+              <div class="tips" id="tipsList">
+                <div class="tip">
+                  <div class="tip-num">1</div>
+                  <div class="tip-body">
+                    <div class="tip-title">Connect a provider</div>
+                    <div class="tip-text">Click <strong>Add provider</strong> and pick a vendor. Tokpet only reads what's already on this Mac — it never asks for new passwords.</div>
+                  </div>
+                </div>
+                <div class="tip">
+                  <div class="tip-num">2</div>
+                  <div class="tip-body">
+                    <div class="tip-title">Power the device</div>
+                    <div class="tip-text">Plug a Tokpet into USB. On first boot, join the <span class="mono">tokpet-setup</span> Wi-Fi and follow the captive portal.</div>
+                  </div>
+                </div>
+                <div class="tip">
+                  <div class="tip-num">3</div>
+                  <div class="tip-body">
+                    <div class="tip-title">Stay on the same LAN</div>
+                    <div class="tip-text">Devices reach the companion over mDNS — no port forwarding, no cloud account. Sleep is fine; the cat goes idle and wakes back up.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details class="panel" id="diagPanel" style="margin-top:var(--s-4)">
+            <summary>
+              <div class="panel-title">
+                <div class="icon-bubble"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-diagnostics"></use></svg></div>
                 <div class="title-stack">
                   <h2>Advanced diagnostics</h2>
                   <p class="hint">Raw <span class="mono">/state</span> JSON, schema info, copy snippets for third-party clients.</p>
@@ -1205,10 +1732,17 @@
                 <div class="kv"><span class="k">Last fetch</span><span class="v" id="diagFetched">—</span></div>
                 <div class="kv"><span class="k">Providers</span><span class="v" id="diagProviderCount">0</span></div>
               </div>
+              <div class="diag-toolbar">
+                <div class="tabs" role="tablist" aria-label="Snippet language">
+                  <button type="button" class="on" data-snippet="curl" onclick="pickSnippet('curl')">curl</button>
+                  <button type="button" data-snippet="httpie" onclick="pickSnippet('httpie')">HTTPie</button>
+                  <button type="button" data-snippet="fetch" onclick="pickSnippet('fetch')">fetch()</button>
+                </div>
+              </div>
               <div class="url-list">
                 <div class="url-line">
-                  <code id="diagCurl">curl http://localhost:4717/state</code>
-                  <button class="btn btn--icon" type="button" aria-label="Copy curl example" onclick="copyText(document.getElementById('diagCurl').textContent, 'curl example')">
+                  <code id="diagSnippet">curl http://localhost:4717/state</code>
+                  <button class="btn btn--icon" type="button" aria-label="Copy snippet" onclick="copyText(document.getElementById('diagSnippet').textContent, 'snippet')">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>
                   </button>
                 </div>
@@ -1226,9 +1760,12 @@
         <header class="wizard-hd">
           <div>
             <h1 id="wizardTitle">Add provider</h1>
-            <p class="hero-sub" id="wizardSub">Connect a data source, then return to Tokpet Console.</p>
+            <p class="hero-sub" id="wizardSub">Three quick steps — Tokpet only reads what's already on this Mac.</p>
           </div>
-          <button class="btn btn--ghost btn--sm" onclick="showDashboard()">Back to console</button>
+          <button class="btn btn--ghost btn--sm" onclick="showDashboard()" aria-label="Close add provider">
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-x"></use></svg>
+            <span>Close</span>
+          </button>
         </header>
         <div class="wizard-body">
           <div class="steps" id="wizardSteps">
@@ -1238,28 +1775,73 @@
           </div>
 
           <div id="step1">
-            <div class="step-head"><h2>Access mode</h2><p class="hint">How does this provider expose usage?</p></div>
+            <div class="step-head"><h2>How does this vendor share usage?</h2><p class="hint">Pick the way you already access this provider — Tokpet matches it.</p></div>
             <div class="modes" id="modes"></div>
-            <div class="footer-actions"><span></span><button class="btn btn--primary" id="next1" disabled onclick="goStep(2)">Continue</button></div>
+            <div class="footer-actions"><span></span><button class="btn btn--primary" id="next1" disabled onclick="goStep(2)">Continue<svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button></div>
           </div>
 
           <div id="step2" hidden>
-            <div class="step-head"><h2 id="step2Title">Provider</h2><p class="hint">Pick a vendor to connect.</p></div>
+            <div class="step-head"><h2 id="step2Title">Pick a vendor</h2><p class="hint">Connected and ready-to-connect vendors are tappable. Planned ones preview the roadmap.</p></div>
             <div class="option-list" id="providerOptions"></div>
-            <div class="footer-actions"><button class="btn" onclick="goStep(1)">Back</button><button class="btn btn--primary" id="next2" disabled onclick="goStep(3)">Continue</button></div>
+            <div class="footer-actions"><button class="btn" onclick="goStep(1)">Back</button><button class="btn btn--primary" id="next2" disabled onclick="goStep(3)">Continue<svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button></div>
           </div>
 
           <div id="step3" hidden>
-            <div class="step-head"><h2 id="connectTitle">Connect</h2><p class="hint">Tokpet tests the credentials before activating the provider.</p></div>
-            <div class="connect-box">
-              <h3 id="connectMethod">Local credential reuse</h3>
-              <p id="connectCopy">This provider uses credentials already stored on this machine.</p>
-              <span class="source-hint" id="connectSourceHint" hidden></span>
+            <div class="step-head"><h2 id="connectTitle">Review &amp; connect</h2><p class="hint">Tokpet tests the credentials before activating, so a broken provider can't get enabled.</p></div>
+            <div class="connect-card">
+              <div class="ck-hd">
+                <div class="opt-mark" id="connectMark" data-tone="">?</div>
+                <div>
+                  <h3 class="ck-title" id="connectMethod">Local credential reuse</h3>
+                  <p class="ck-sub" id="connectCopy">Tokpet will reuse credentials already stored on this machine.</p>
+                </div>
+              </div>
+              <div class="ck-body">
+                <div class="trust">
+                  <div class="trust-row">
+                    <div class="tic tic--ok"><svg aria-hidden="true"><use href="#i-check"></use></svg></div>
+                    <div>
+                      <div class="tt">What Tokpet reads</div>
+                      <div class="ts" id="connectReadList">Plan windows, used percentage, reset times.</div>
+                    </div>
+                  </div>
+                  <div class="trust-row">
+                    <div class="tic tic--no"><svg aria-hidden="true"><use href="#i-x"></use></svg></div>
+                    <div>
+                      <div class="tt">What Tokpet doesn't do</div>
+                      <div class="ts">No new password prompt. No outbound telemetry. Credentials stay where the vendor put them.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="source-line" id="connectSourceHint" hidden>
+                  <svg aria-hidden="true"><use href="#i-anchor"></use></svg>
+                  <span id="connectSourceText"></span>
+                </div>
+                <a class="ck-docs" id="connectDocs" href="#" target="_blank" rel="noopener" hidden>
+                  <svg aria-hidden="true"><use href="#i-book"></use></svg>
+                  <span id="connectDocsLabel">Provider docs</span>
+                </a>
+              </div>
             </div>
             <div class="error-banner" id="connectError" style="display:none"></div>
             <div class="footer-actions">
               <button class="btn" id="step3Back" onclick="goStep(2)">Back</button>
-              <button class="btn btn--primary" id="connectBtn" onclick="activateProvider()">Connect</button>
+              <button class="btn btn--primary" id="connectBtn" onclick="activateProvider()">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-zap"></use></svg>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="stepDone" hidden>
+            <div class="wizard-done">
+              <div class="illus"><svg aria-hidden="true"><use href="#i-check"></use></svg></div>
+              <h2>All vendors connected</h2>
+              <p>Tokpet has wired up every provider it can detect on this Mac. As soon as new vendors arrive — Codex, OpenAI API, Cursor and friends — they'll appear here.</p>
+              <div class="footer-actions" style="margin-top:0">
+                <span></span>
+                <button class="btn btn--primary" onclick="showDashboard()">Back to console</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1299,27 +1881,120 @@
 <script>
   // -------- Static data --------
   var MODE_META = {
-    subscription: { title: "Subscription", desc: "Plan quota, rolling windows, vendor limits." },
-    "api-key": { title: "Direct API key", desc: "Balance, spend, remaining credit." },
-    relay: { title: "Relay / proxy", desc: "Balance or quota from a third-party gateway." }
+    subscription: {
+      title: "Subscription",
+      desc: "Plan quota, rolling windows, vendor limits.",
+      example: "Claude Code · Codex · ChatGPT Plus",
+      icon: "shield",
+      tone: "ok",
+      recommended: true
+    },
+    "api-key": {
+      title: "Balance lookup",
+      desc: "Direct API key — wallet, spend and remaining credit.",
+      example: "Anthropic API · OpenAI API · Gemini",
+      icon: "zap",
+      tone: "default",
+      recommended: false
+    },
+    relay: {
+      title: "Relay / proxy",
+      desc: "Balance or quota from a third-party gateway.",
+      example: "OpenRouter · Together · KeyAI",
+      icon: "link",
+      tone: "warn",
+      recommended: false
+    }
   };
   var MODES = ["subscription", "api-key", "relay"];
 
   // Per-provider metadata that isn't (yet) in /api/providers
   var PROVIDER_META = {
     claude: {
+      tone: "claude",
+      mark: "claude",
+      blurb: "Plan quota, weekly rolling window and Opus limit fed straight from your Claude Code login.",
       sourceHint: "Reuses your Claude Code login (macOS Keychain or ~/.claude/.credentials.json).",
+      readList: "Plan name, 5-hour window, this-week window and Opus usage percentage.",
       dashboardUrl: "https://claude.ai/settings/usage",
-      dashboardLabel: "Open Claude usage"
+      dashboardLabel: "Open Claude usage",
+      docsUrl: "https://claude.ai/settings/usage",
+      docsLabel: "View on claude.ai"
+    },
+    codex: {
+      tone: "codex", mark: "codex",
+      blurb: "Codex CLI plan, request limits and rolling quotas — coming as soon as the provider lands.",
+      readList: "Plan window and remaining requests."
+    },
+    "openai-plus": {
+      tone: "openai", mark: "openai",
+      blurb: "ChatGPT Plus / Team plan limits and rate windows.",
+      readList: "Plan tier, remaining messages, rate-limit windows."
+    },
+    cursor: {
+      tone: "cursor", mark: "cursor",
+      blurb: "Cursor Pro completions and fast-request balance.",
+      readList: "Fast / slow request balance, refresh date."
+    },
+    windsurf: {
+      tone: "windsurf", mark: "windsurf",
+      blurb: "Windsurf Flow credits and plan quota.",
+      readList: "Flow credits, plan tier, reset schedule."
+    },
+    "anthropic-api": {
+      tone: "anthropic", mark: "anthropic",
+      blurb: "Anthropic API balance and credit burn.",
+      readList: "Workspace balance, recent spend, hourly throughput."
+    },
+    "openai-api": {
+      tone: "openai", mark: "openai",
+      blurb: "OpenAI API credit balance and rate limits.",
+      readList: "Hard limit, soft limit, usage so far this month."
+    },
+    "gemini-api": {
+      tone: "gemini", mark: "gemini",
+      blurb: "Gemini API quotas and rate windows.",
+      readList: "Per-minute and per-day request quota."
+    },
+    "deepseek-api": {
+      tone: "deepseek", mark: "deepseek",
+      blurb: "DeepSeek API balance and burn rate.",
+      readList: "Credit balance, daily spend."
+    },
+    openrouter: {
+      tone: "openrouter", mark: "openrouter",
+      blurb: "OpenRouter wallet and per-model spend.",
+      readList: "Wallet balance, recent spend, throttling state."
     }
   };
 
+  // Vendors planned but not yet shipped — surfaced in the wizard so users see
+  // the roadmap instead of a dead end. Frontend-only; if a vendor lands in
+  // /api/providers it shadows the planned entry.
+  var ROADMAP = {
+    subscription: [
+      { id: "codex",        displayName: "Codex CLI",         eta: "next up" },
+      { id: "openai-plus",  displayName: "ChatGPT Plus / Team", eta: "planned" },
+      { id: "cursor",       displayName: "Cursor Pro",        eta: "planned" },
+      { id: "windsurf",     displayName: "Windsurf",          eta: "planned" }
+    ],
+    "api-key": [
+      { id: "anthropic-api", displayName: "Anthropic API",    eta: "next up" },
+      { id: "openai-api",    displayName: "OpenAI API",       eta: "next up" },
+      { id: "gemini-api",    displayName: "Gemini API",       eta: "planned" },
+      { id: "deepseek-api",  displayName: "DeepSeek API",     eta: "planned" }
+    ],
+    relay: [
+      { id: "openrouter",   displayName: "OpenRouter",        eta: "next up" }
+    ]
+  };
+
   var MOOD_LEGEND = {
-    chill: "Under 50% used — relaxed.",
-    nervous: "Past 50% — the cat is watching.",
-    panic: "Over 80% — the cat is panicking.",
-    idle: "No usage data yet.",
-    empty: "No providers connected."
+    chill:    { sub: "calm and quiet",   desc: "Under 50% used — relaxed.",        tone: "ok" },
+    nervous:  { sub: "keeping watch",    desc: "Past 50% — the cat is watching.",  tone: "warn" },
+    panic:    { sub: "tail puffed up",   desc: "Over 80% — the cat is panicking.", tone: "bad" },
+    idle:     { sub: "waiting for data", desc: "No usage data yet.",               tone: "idle" },
+    empty:    { sub: "no providers",     desc: "No providers connected.",          tone: "idle" }
   };
 
   // -------- State --------
@@ -1552,22 +2227,30 @@
   }
 
   function renderStatus() {
-    var sv = $("serviceStatus");
-    var st = $("stateStatus");
-    var dv = $("deviceStatus");
-    var pv = $("providerStatus");
+    var sv = $("serviceStatus"); var svSub = $("serviceSub");
+    var st = $("stateStatus");   var stSub = $("stateSub");
+    var dv = $("deviceStatus");  var dvSub = $("deviceSub");
+    var pv = $("providerStatus"); var pvSub = $("providerSub");
+
+    var portMatch = (app.runtime && app.runtime.service && app.runtime.service.localUrl || "")
+      .match(/:(\d+)/);
+    var port = portMatch ? portMatch[1] : "4717";
 
     if (!app.online) {
       sv.innerHTML = '<span class="dot dot--bad"></span>Offline';
+      svSub.textContent = "tap retry above";
     } else {
       sv.innerHTML = '<span class="dot dot--ok"></span>Running';
+      svSub.textContent = "port " + port;
     }
 
     if (!app.snapshot) {
       st.innerHTML = '<span class="dot dot--warn"></span>Unavailable';
+      stSub.textContent = "no fetch yet";
     } else {
       var rel = relativeTime(app.snapshot.fetchedAt) || "—";
-      st.innerHTML = '<span class="dot dot--ok"></span>v' + app.snapshot.version + ' · ' + esc(rel);
+      st.innerHTML = '<span class="dot dot--ok"></span>v' + app.snapshot.version;
+      stSub.textContent = "updated " + rel;
     }
 
     var devices = (app.runtime && app.runtime.devices) || [];
@@ -1575,18 +2258,31 @@
     var recent = devices.filter(function (d) { return d.status === "recent"; }).length;
     if (!devices.length) {
       dv.innerHTML = '<span class="dot"></span>Waiting';
+      dvSub.textContent = "no devices yet";
     } else if (connected) {
-      dv.innerHTML = '<span class="dot dot--ok"></span>' + connected + ' connected' + (recent ? ' · ' + recent + ' recent' : '');
+      dv.innerHTML = '<span class="dot dot--ok"></span>' + connected + ' online';
+      dvSub.textContent = recent
+        ? recent + ' recently seen'
+        : (devices[0].ip || 'one Tokpet');
     } else if (recent) {
       dv.innerHTML = '<span class="dot dot--warn"></span>' + recent + ' recent';
+      dvSub.textContent = "may have slept";
     } else {
       dv.innerHTML = '<span class="dot dot--bad"></span>' + devices.length + ' silent';
+      dvSub.textContent = "check Wi-Fi";
     }
 
     var active = activeProviders().length;
     var total = app.providers.length;
     var dotCls = active ? 'dot--ok' : 'dot--warn';
-    pv.innerHTML = '<span class="dot ' + dotCls + '"></span>' + active + ' active' + (total > active ? ' · ' + (total - active) + ' available' : '');
+    pv.innerHTML = '<span class="dot ' + dotCls + '"></span>' + active + ' active';
+    if (!total) {
+      pvSub.textContent = "none connected";
+    } else if (total > active) {
+      pvSub.textContent = (total - active) + ' more available';
+    } else {
+      pvSub.textContent = "all wired up";
+    }
   }
 
   function renderNow() {
@@ -1595,24 +2291,35 @@
     var label = $("nowLabel");
     var sub = $("nowSub");
     var mood = $("nowMood");
+    var moodSub = $("nowMoodSub");
+    var moodName = mood.querySelector(".mood-name");
+
+    function setMood(key) {
+      var meta = MOOD_LEGEND[key] || MOOD_LEGEND.idle;
+      moodName.textContent = key;
+      moodSub.textContent = "· " + meta.sub;
+      mood.title = meta.desc;
+    }
+    function setRing(pct) {
+      ring.style.background = "conic-gradient(#fff " + (pct * 3.6) + "deg, rgba(255,255,255,.22) 0deg)";
+    }
 
     var primary = app.snapshot && app.snapshot.primary;
     if (!primary) {
-      metric.textContent = "—";
       metric.classList.add("is-empty");
-      label.textContent = activeProviders().length ? "Providers are configured." : "No data yet.";
-      sub.textContent = activeProviders().length ? "Waiting for the first usage sample." : "Add a provider to publish usage.";
-      var moodKey = activeProviders().length ? "idle" : "empty";
-      mood.textContent = moodKey;
-      mood.title = MOOD_LEGEND[moodKey];
+      var hasActive = activeProviders().length;
+      metric.innerHTML = '<span class="num">' + (hasActive ? '…' : '—') + '</span><span class="cap">' + (hasActive ? 'fetching' : 'no data') + '</span>';
+      label.textContent = hasActive ? "Providers are wired up." : "No data yet.";
+      sub.textContent = hasActive ? "Waiting for the first usage sample." : "Add a provider so the cat has something to watch.";
+      setMood(hasActive ? "idle" : "empty");
       ring.style.background = "conic-gradient(rgba(255,255,255,.4) 0deg, rgba(255,255,255,.18) 0deg)";
       return;
     }
 
     var provider = providerById(primary.providerId);
     var pct = Math.max(0, Math.min(100, Math.round(primary.usedPct)));
-    metric.textContent = pct + "%";
     metric.classList.remove("is-empty");
+    metric.innerHTML = '<span class="num">' + pct + '%</span><span class="cap">used</span>';
 
     var sp = stateProvider(primary.providerId);
     var win = null;
@@ -1628,25 +2335,53 @@
       sub.textContent = "";
     }
 
-    var moodKey = primary.mood || "idle";
-    mood.textContent = moodKey;
-    mood.title = MOOD_LEGEND[moodKey] || "Mood reflects the tightest active window.";
-
-    ring.style.background = "conic-gradient(#fff " + (pct * 3.6) + "deg, rgba(255,255,255,.22) 0deg)";
+    setMood(primary.mood || "idle");
+    setRing(pct);
   }
 
   function renderProviders() {
     var list = $("providersList");
     var active = activeProviders();
     if (!active.length) {
-      list.innerHTML = '<div class="empty">' +
-        '<div class="empty-icon">' + icon("provider", "lg") + '</div>' +
-        '<div><div class="empty-title">No providers connected.</div>' +
-        'Click <strong>Add provider</strong> to wire up Claude, Codex, OpenAI, or another source.</div>' +
+      var detectedAvailable = app.providers.filter(function (p) { return p.available && !p.activated; }).length;
+      var sampleChips = app.providers.slice(0, 4).map(function (p) {
+        var tone = (PROVIDER_META[p.id] || {}).tone;
+        return '<span class="chip">' + brandMarkSmall(p.id, tone) + esc(p.displayName) + '</span>';
+      }).join("");
+      list.innerHTML =
+        '<div class="empty-hero">' +
+          '<div class="illus">' + icon("rocket", "lg") + '</div>' +
+          '<h3>Wire up your first provider</h3>' +
+          '<p>Tokpet only reads what’s already on this Mac — your Claude Code login, API keys you store locally, that kind of thing. Nothing leaves the machine.</p>' +
+          (sampleChips ? '<div class="chips">' + sampleChips + '</div>' : '') +
+          '<div class="empty-actions">' +
+            '<button class="btn btn--primary" onclick="startAddProvider()">' + icon("plus", "sm") + 'Add provider</button>' +
+            (detectedAvailable ? '<span class="hint" style="font-size:var(--fs-sm)">' + detectedAvailable + ' detected on this Mac</span>' : '') +
+          '</div>' +
         '</div>';
       return;
     }
     list.innerHTML = active.map(renderProviderCard).join("");
+  }
+
+  function brandMarkSmall(providerId, tone) {
+    var meta = PROVIDER_META[providerId] || {};
+    var mk = meta.mark;
+    var sym = mk ? '#m-' + mk : '#m-generic';
+    return '<span class="source-mark" data-tone="' + esc(tone || meta.tone || '') + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none"><svg style="width:14px;height:14px"><use href="' + sym + '"></use></svg></span>';
+  }
+
+  function brandMark(providerId, displayName, cls) {
+    var meta = PROVIDER_META[providerId] || {};
+    var tone = meta.tone || '';
+    var mk = meta.mark;
+    var rootCls = cls || "source-mark";
+    if (mk) {
+      var sym = '#m-' + mk;
+      return '<div class="' + rootCls + '" data-tone="' + esc(tone) + '"><svg><use href="' + sym + '"></use></svg></div>';
+    }
+    var initial = (displayName || providerId || "?").charAt(0).toUpperCase();
+    return '<div class="' + rootCls + ' ' + rootCls + '--initial" data-tone="' + esc(tone) + '">' + esc(initial) + '</div>';
   }
 
   function providerStatus(provider, sp) {
@@ -1706,7 +2441,6 @@
       body = '<div class="empty"><div class="empty-icon">' + icon("info") + '</div><div>This provider is active but reported no usage in the current window.</div></div>';
     }
 
-    var initial = (provider.displayName || provider.id || "?").charAt(0).toUpperCase();
     var nameHtml = '<span>' + esc(provider.displayName || provider.id) + '</span>';
     if (meta.dashboardUrl) {
       nameHtml = '<a class="name-link" href="' + esc(meta.dashboardUrl) + '" target="_blank" rel="noopener" title="' + esc(meta.dashboardLabel || "Open provider") + '">' +
@@ -1720,7 +2454,7 @@
     return '<article class="provider">' +
       '<div class="provider-head">' +
         '<div><div class="source-main">' +
-          '<div class="source-mark">' + esc(initial) + '</div>' +
+          brandMark(provider.id, provider.displayName) +
           '<div style="min-width:0">' +
             '<div class="name">' + nameHtml + '</div>' +
             '<div class="meta">' + esc(modeLabel(provider.mode)) + (lastUpdate ? ' · updated ' + esc(lastUpdate) : '') + '</div>' +
@@ -1741,25 +2475,29 @@
     var list = $("devicesList");
     var devices = (app.runtime && app.runtime.devices) || [];
     if (!devices.length) {
-      list.innerHTML = '<div class="empty">' +
-        '<div class="empty-icon">' + icon("device", "lg") + '</div>' +
-        '<div><div class="empty-title">No devices yet.</div>' +
-        'Finish Wi-Fi provisioning on a Tokpet device and make sure it can reach this LAN.</div>' +
+      list.innerHTML =
+        '<div class="empty-hero">' +
+          '<div class="illus" style="background:linear-gradient(135deg,#ffd9b8,#ffb38a);color:#a14b13">' + icon("device", "lg") + '</div>' +
+          '<h3>No Tokpet hardware yet</h3>' +
+          '<p>Plug a device in, follow the captive portal at <span class="mono">tokpet-setup</span> Wi-Fi, then come back — it should appear within seconds.</p>' +
         '</div>';
       return;
     }
     list.innerHTML = devices.map(function (device) {
       var cls = device.status === "connected" ? "pill--ok"
         : device.status === "recent" ? "pill--warn" : "pill--bad";
-      var statusLabel = device.status === "connected" ? "Connected"
-        : device.status === "recent" ? "Recent" : "Silent";
+      var statusLabel = device.status === "connected" ? "Online"
+        : device.status === "recent" ? "Recently seen" : "Silent";
       var ua = device.userAgent || "unknown client";
       var lastSeen = relativeTime(device.lastSeenAt) || "—";
+      var sub = device.status === "connected"
+        ? "polling now · " + device.pollCount + " requests so far"
+        : "last seen " + lastSeen + " · " + device.pollCount + " requests";
       return '<article class="device">' +
         '<div class="device-head">' +
           '<div>' +
-            '<div class="device-name">' + icon("device", "sm") + '<span class="name">Tokpet device</span></div>' +
-            '<div class="meta">' + esc(device.ip) + ' · last poll ' + esc(lastSeen) + ' · ' + esc(String(device.pollCount)) + ' requests</div>' +
+            '<div class="device-name">' + icon("device", "sm") + '<span class="name">Tokpet · ' + esc(device.ip) + '</span></div>' +
+            '<div class="meta">' + esc(sub) + '</div>' +
             '<details class="dev-detail"><summary>Details</summary>' +
               '<dl class="dl">' +
                 '<dt>Client</dt><dd>' + esc(ua) + '</dd>' +
@@ -1792,16 +2530,21 @@
     var lanUrls = service && Array.isArray(service.lanStateUrls) ? service.lanStateUrls.filter(function (u) { return u && u.indexOf("http") === 0; }) : [];
     var localUrl = service && service.localUrl ? service.localUrl : "http://localhost:4717/";
     var mdnsStatus = runtime && runtime.mdns ? runtime.mdns.status : "unknown";
-    var mdnsService = runtime && runtime.mdns ? (runtime.mdns.service || "_tokpet._tcp.local") + ":" + (runtime.mdns.port || 4717) : "_tokpet._tcp.local:4717";
+    var mdnsRaw = runtime && runtime.mdns ? runtime.mdns : { service: "_tokpet._tcp.local", port: 4717 };
+    var mdnsService = (mdnsRaw.service || "_tokpet._tcp.local") + ":" + (mdnsRaw.port || 4717);
 
     app.stateUrl = lanUrls[0] || (location.origin + "/state");
+
+    function openBtn(u, label) {
+      return '<a class="btn btn--sm" href="' + esc(u) + '" target="_blank" rel="noopener" aria-label="' + esc(label || 'Open ' + u) + '">' + icon("external", "sm") + 'Open</a>';
+    }
 
     var deviceBlock =
       '<div class="net-section">' +
         '<div class="net-section-head"><div><h3>Tokpet device discovery</h3><p>How official hardware finds this companion.</p></div>' + mdnsPill(mdnsStatus) + '</div>' +
         '<div class="url-list">' +
-          '<div class="url-line"><code>' + esc(mdnsService) + '</code>' + copyButton(mdnsService, "mDNS service") + '</div>' +
-          '<div class="url-line"><code>' + esc(localUrl) + '</code>' + copyButton(localUrl, "console URL") + '</div>' +
+          '<div class="url-line url-line--actions"><code>' + esc(mdnsService) + '</code>' + copyButton(mdnsService, "mDNS service") + '<span></span></div>' +
+          '<div class="url-line url-line--actions"><code>' + esc(localUrl) + '</code>' + copyButton(localUrl, "console URL") + openBtn(localUrl, "Open console") + '</div>' +
         '</div>' +
       '</div>';
 
@@ -1816,7 +2559,9 @@
         '<div class="net-section">' +
           '<div class="net-section-head"><div><h3>State API for third-party clients</h3><p><span class="mono">GET /state</span> · no auth · cacheable JSON.</p></div></div>' +
           '<div class="url-list">' +
-            lanUrls.map(function (u) { return '<div class="url-line"><code>' + esc(u) + '</code>' + copyButton(u, "state URL") + '</div>'; }).join("") +
+            lanUrls.map(function (u) {
+              return '<div class="url-line url-line--actions"><code>' + esc(u) + '</code>' + copyButton(u, "state URL") + openBtn(u, "Open state URL") + '</div>';
+            }).join("") +
           '</div>' +
         '</div>';
     }
@@ -1830,13 +2575,29 @@
     $("diagSchema").textContent = snap ? "v" + snap.version : "v—";
     $("diagFetched").textContent = snap ? (relativeTime(snap.fetchedAt) || "—") : "—";
     $("diagProviderCount").textContent = snap ? (snap.providers || []).length : 0;
+    renderSnippet();
+  }
+
+  function renderSnippet() {
     var url = app.stateUrl || "http://localhost:4717/state";
-    $("diagCurl").textContent = "curl " + url;
+    var kind = app.snippet || "curl";
+    var code = url;
+    if (kind === "curl")        code = "curl " + url;
+    else if (kind === "httpie") code = "http " + url;
+    else if (kind === "fetch")  code = "fetch(\"" + url + "\").then(r => r.json()).then(console.log)";
+    $("diagSnippet").textContent = code;
+  }
+
+  function pickSnippet(kind) {
+    app.snippet = kind;
+    var btns = document.querySelectorAll('.tabs [data-snippet]');
+    btns.forEach(function (b) { b.classList.toggle("on", b.dataset.snippet === kind); });
+    renderSnippet();
   }
 
   // -------- Wizard --------
   function startAddProvider() {
-    if (!app.providers.length) {
+    if (!Array.isArray(app.providers)) {
       // Still loading — wait a tick
       refreshAll(false).then(startAddProvider);
       return;
@@ -1846,33 +2607,47 @@
     app.wizardActive = true;
     app.skipModeStep = false;
 
-    // Single-mode collapse: if only one mode has providers, skip step 1
-    var availableModes = MODES.filter(function (m) { return providersIn(m).length > 0; });
-    var startStep = 1;
-    if (availableModes.length === 1) {
-      app.mode = availableModes[0];
-      app.skipModeStep = true;
-      // Also collapse step 2 if only one provider in that mode
-      var single = providersIn(app.mode);
-      if (single.length === 1) {
-        app.provider = single[0].id;
-        startStep = 3;
-      } else {
-        startStep = 2;
-      }
-    }
-
     renderModes();
     document.body.classList.add("mode-add");
-    goStep(startStep);
+    goStep(1);
     if (history.pushState) {
       history.pushState({ wizard: true }, "", "#add-provider");
     }
-    // Focus first interactive element
     setTimeout(function () {
       var first = document.querySelector(".wizard .mode:not(:disabled), .wizard .provider-option, .wizard #connectBtn");
       if (first) first.focus();
     }, 50);
+  }
+
+  // Merged list per mode: registered providers (connected/available) plus the
+  // roadmap entries that aren't shipped yet. Status drives UI affordances.
+  function vendorsForMode(mode) {
+    var registered = app.providers.filter(function (p) { return p.mode === mode; });
+    var list = registered.map(function (p) {
+      return {
+        id: p.id,
+        displayName: p.displayName,
+        mode: p.mode,
+        status: p.activated ? "connected" : (p.available ? "available" : "unavailable"),
+        eta: null
+      };
+    });
+    var seen = {};
+    list.forEach(function (v) { seen[v.id] = true; });
+    (ROADMAP[mode] || []).forEach(function (r) {
+      if (seen[r.id]) return;
+      list.push({
+        id: r.id,
+        displayName: r.displayName,
+        mode: mode,
+        status: "planned",
+        eta: r.eta
+      });
+    });
+    return list;
+  }
+  function actionableVendors(mode) {
+    return vendorsForMode(mode).filter(function (v) { return v.status === "available" || v.status === "connected"; });
   }
 
   function showDashboard() {
@@ -1894,17 +2669,43 @@
   function renderModes() {
     $("modes").innerHTML = MODES.map(function (mode) {
       var meta = MODE_META[mode];
-      var available = providersIn(mode);
-      var all = allProvidersIn(mode);
-      var disabled = !all.length;
-      var tag = disabled ? "Coming soon"
-        : available.length ? available.length + " available"
-        : "Already connected";
-      return '<button class="mode" type="button" ' + (disabled ? "disabled" : "") +
+      var list = vendorsForMode(mode);
+      var available = list.filter(function (v) { return v.status === "available"; }).length;
+      var connected = list.filter(function (v) { return v.status === "connected"; }).length;
+      var planned   = list.filter(function (v) { return v.status === "planned"; }).length;
+
+      var tagText, tagCls;
+      if (available) {
+        tagText = available + ' ready';
+        tagCls = '';
+      } else if (connected && planned) {
+        tagText = connected + ' active · ' + planned + ' planned';
+        tagCls = 'tag--ok';
+      } else if (connected) {
+        tagText = connected + ' active';
+        tagCls = 'tag--ok';
+      } else if (planned) {
+        tagText = planned + ' planned';
+        tagCls = 'tag--muted';
+      } else {
+        tagText = 'No vendors yet';
+        tagCls = 'tag--muted';
+      }
+      var tagIcon = tagCls === 'tag--ok' ? 'check' : (available ? 'sparkle' : 'info');
+
+      var iconCls = meta.tone === "ok" ? "mode-icon mode-icon--ok"
+        : meta.tone === "warn" ? "mode-icon mode-icon--warn"
+        : "mode-icon";
+      return '<button class="mode" type="button"' +
         ' onclick="pickMode(\'' + esc(mode) + '\', this)">' +
-        '<div class="mode-title">' + esc(meta.title) + '</div>' +
-        '<div class="mode-desc">' + esc(meta.desc) + '</div>' +
-        '<div class="mode-tag">' + esc(tag) + '</div>' +
+        (meta.recommended && available ? '<span class="ribbon">recommended</span>' : '') +
+        '<div class="' + iconCls + '">' + icon(meta.icon || "info", "lg") + '</div>' +
+        '<div class="mode-text">' +
+          '<h3 class="mode-title">' + esc(meta.title) + '</h3>' +
+          '<p class="mode-desc">' + esc(meta.desc) + '</p>' +
+        '</div>' +
+        '<span class="mode-tag ' + tagCls + '">' + icon(tagIcon, "sm") + tagText + '</span>' +
+        (meta.example ? '<div class="mode-example">e.g. ' + esc(meta.example) + '</div>' : '') +
         '</button>';
     }).join("");
     $("next1").disabled = !app.mode;
@@ -1922,18 +2723,41 @@
   }
 
   function renderProviderOptions() {
-    var list = providersIn(app.mode);
-    if (!list.length) {
-      $("providerOptions").innerHTML = '<div class="empty"><div class="empty-icon">' + icon("info") + '</div><div>All ' + esc(modeLabel(app.mode)) + ' providers in this category are already connected.</div></div>';
-      $("next2").disabled = true;
-      return;
-    }
-    $("providerOptions").innerHTML = list.map(function (p) {
-      return '<button class="provider-option" type="button" onclick="pickProvider(\'' + esc(p.id) + '\', this)">' +
-        '<div class="mode-title">' + esc(p.displayName) + '</div>' +
-        '<div class="mode-desc">' + esc(modeLabel(p.mode)) + ' · ready to connect</div>' +
+    var vendors = vendorsForMode(app.mode);
+    var actionable = vendors.filter(function (v) { return v.status === "available" || v.status === "connected"; });
+
+    var headerNote = actionable.length
+      ? 'Tap any vendor to ' + (actionable.some(function (v) { return v.status === "available"; }) ? 'connect or reconnect' : 'reconnect') + '. Planned ones below are previews.'
+      : 'Nothing connectable yet — every vendor in this category is on the roadmap.';
+
+    var html = '<p class="hint" style="margin:0 0 var(--s-3)">' + esc(headerNote) + '</p>';
+
+    html += vendors.map(function (v) {
+      var meta = PROVIDER_META[v.id] || {};
+      var blurb = meta.blurb || (modeLabel(v.mode) + ' · ready to connect');
+      var pill, attrs;
+      if (v.status === "connected") {
+        pill = '<span class="pill pill--ok">Connected</span>';
+        attrs = 'onclick="pickProvider(\'' + esc(v.id) + '\', this)"';
+      } else if (v.status === "available") {
+        pill = '<span class="pill" style="background:var(--neutral-soft);color:var(--brand-1)">Ready</span>';
+        attrs = 'onclick="pickProvider(\'' + esc(v.id) + '\', this)"';
+      } else {
+        pill = '<span class="pill pill--warn">' + esc(v.eta || 'planned') + '</span>';
+        attrs = 'disabled aria-disabled="true" title="Not shipped yet — Tokpet will surface this vendor as soon as it lands."';
+      }
+      return '<button class="provider-option" type="button" ' + attrs + '>' +
+        brandMark(v.id, v.displayName, "opt-mark") +
+        '<div class="opt-body">' +
+          '<div class="opt-name">' + esc(v.displayName) + ' ' + pill + '</div>' +
+          '<div class="opt-sub">' + esc(blurb) + '</div>' +
+        '</div>' +
+        (v.status === "planned" ? '<div class="opt-arrow" style="opacity:.35">' + icon("info", "sm") + '</div>'
+                                : '<div class="opt-arrow">' + icon("arrow-right", "sm") + '</div>') +
         '</button>';
     }).join("");
+
+    $("providerOptions").innerHTML = html;
     $("next2").disabled = !app.provider;
     if (app.provider) {
       var sel = document.querySelector('.provider-option[onclick*="\'' + app.provider + '\'"]');
@@ -1949,23 +2773,26 @@
   }
 
   function goStep(n) {
-    ["step1", "step2", "step3"].forEach(function (id, i) {
-      var el = $(id);
-      if ((i + 1) === n) el.removeAttribute("hidden");
-      else el.setAttribute("hidden", "");
-    });
+    var allSteps = ["step1", "step2", "step3", "stepDone"];
+    allSteps.forEach(function (id) { $(id).setAttribute("hidden", ""); });
+    if (n === "done") {
+      $("stepDone").removeAttribute("hidden");
+      $("wizardSteps").setAttribute("hidden", "");
+      $("wizardTitle").textContent = "All connected";
+      $("wizardSub").textContent = "Tokpet has everything it can reach on this Mac.";
+      return;
+    }
+    $("step" + n).removeAttribute("hidden");
+    $("wizardTitle").textContent = "Add provider";
+    $("wizardSub").textContent = "Three quick steps — Tokpet only reads what's already on this Mac.";
     ["dot1", "dot2", "dot3"].forEach(function (id, i) {
       var el = $(id);
       el.classList.toggle("on", (i + 1) <= n);
       el.classList.toggle("current", (i + 1) === n);
     });
 
-    // Show/hide step dots when collapsed
     if (app.skipModeStep && app.provider && app.mode) {
       $("wizardSteps").setAttribute("hidden", "");
-    } else if (app.skipModeStep) {
-      // hide step 1 dot via opacity? simpler: keep dots
-      $("wizardSteps").removeAttribute("hidden");
     } else {
       $("wizardSteps").removeAttribute("hidden");
     }
@@ -1978,27 +2805,44 @@
       var p = providerById(app.provider);
       var pmeta = PROVIDER_META[app.provider] || {};
       var label = p ? p.displayName : "provider";
-      $("connectTitle").textContent = "Connect " + label;
+      $("connectTitle").textContent = "Review & connect " + label;
+
+      var markHost = $("connectMark");
+      markHost.outerHTML = brandMark(app.provider, label, "opt-mark").replace('class="opt-mark"', 'class="opt-mark" id="connectMark"');
+
       $("connectMethod").textContent = p && p.mode === "subscription" ? "Local credential reuse"
         : p && p.mode === "api-key" ? "API key on this machine"
         : "Configured upstream";
-      $("connectCopy").textContent = pmeta.sourceHint ||
+      $("connectCopy").textContent = pmeta.blurb ||
         (p && p.mode === "subscription"
           ? "Tokpet will reuse credentials already stored on this machine."
           : "Tokpet will validate the credentials configured for this provider.");
+
+      $("connectReadList").textContent = pmeta.readList || "Plan windows, used percentage, reset times.";
+
       var hint = $("connectSourceHint");
+      var hintText = $("connectSourceText");
       if (pmeta.sourceHint) {
-        hint.innerHTML = icon("info", "sm") + '<span style="margin-left:6px">No new password needed — Tokpet only reads, never stores.</span>';
+        hintText.textContent = pmeta.sourceHint;
         hint.removeAttribute("hidden");
       } else {
         hint.setAttribute("hidden", "");
       }
+
+      var docs = $("connectDocs");
+      if (pmeta.docsUrl) {
+        docs.href = pmeta.docsUrl;
+        $("connectDocsLabel").textContent = pmeta.docsLabel || "Provider docs";
+        docs.removeAttribute("hidden");
+      } else {
+        docs.setAttribute("hidden", "");
+      }
+
       $("connectError").style.display = "none";
       var btn = $("connectBtn");
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
-      btn.textContent = p && p.activated ? "Reconnect" : "Connect";
-      // Hide Back if we collapsed steps 1+2
+      btn.querySelector("span").textContent = p && p.activated ? "Reconnect" : "Connect";
       if (app.skipModeStep && !app.provider) {
         $("step3Back").style.display = "none";
       } else {
