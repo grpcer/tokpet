@@ -39,7 +39,7 @@ describe('publishMdns', () => {
     const advertisement = mod.publishMdns(4717);
 
     expect(Bonjour.lastInstance?.published[0]).toEqual({
-        name: 'Tokpet Companion 4717',
+      name: 'Tokpet Companion 4717',
       type: 'tokpet',
       protocol: 'tcp',
       port: 4717,
