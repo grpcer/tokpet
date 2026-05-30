@@ -12,7 +12,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Aggregator } from '../../aggregator/state.js';
 import type { Provider } from '../../protocol/provider.js';
 import { isUsageError } from '../../protocol/usage.js';
-import { loadConfig, removeProvider, saveProvider } from '../../config/store.js';
+import { loadConfig, removeProvider, saveOrder, saveProvider } from '../../config/store.js';
 
 function isLoopback(ip: string | undefined): boolean {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
@@ -114,6 +114,22 @@ export function registerConfigRoutes(
       await removeProvider(id);
       agg.unregister(id);
       return { ok: true };
+    });
+
+    // Reorder the activated provider cards. The body must shape as
+    // `{ order: string[] }` where every id is currently activated; any id
+    // not yet activated (or unknown) is silently dropped by saveOrder and the
+    // aggregator alike. This is what backs the console's up/down arrows and
+    // is what the device tiles render in.
+    instance.post('/api/providers/reorder', async (req, reply) => {
+      const body = req.body as { order?: unknown } | null;
+      const raw = body?.order;
+      if (!Array.isArray(raw) || !raw.every((x) => typeof x === 'string')) {
+        return reply.code(400).send({ ok: false, error: 'order must be a string[]' });
+      }
+      await saveOrder(raw);
+      agg.reorder(raw);
+      return { ok: true, order: agg.list().map((e) => e.id) };
     });
 
     done();

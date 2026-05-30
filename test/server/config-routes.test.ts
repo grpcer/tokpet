@@ -166,6 +166,43 @@ describe('config routes', () => {
     expect(res.json<ApiResponse>().ok).toBe(false);
   });
 
+  it('reorder persists the new sequence and reorders the aggregator', async () => {
+    const { app, agg } = makeApp();
+    await app.inject({
+      method: 'POST',
+      url: '/api/providers/ok/activate',
+      payload: {},
+    });
+    await app.inject({
+      method: 'POST',
+      url: '/api/providers/apikey/activate',
+      payload: { apiKey: 'sk-stored', enabled: true },
+    });
+
+    expect(agg.list().map((e) => e.id)).toEqual(['ok', 'apikey']);
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/providers/reorder',
+      payload: { order: ['apikey', 'ok'] },
+    });
+    const body = res.json<ApiResponse & { order?: string[] }>();
+    expect(body.ok).toBe(true);
+    expect(body.order).toEqual(['apikey', 'ok']);
+    expect(agg.list().map((e) => e.id)).toEqual(['apikey', 'ok']);
+  });
+
+  it('reorder rejects a missing or malformed order body with 400', async () => {
+    const { app } = makeApp();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/providers/reorder',
+      payload: { order: 'not-an-array' },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json<ApiResponse>().ok).toBe(false);
+  });
+
   it('delete unregisters', async () => {
     const { app, agg } = makeApp();
     await app.inject({ method: 'POST', url: '/api/providers/ok/activate', payload: {} });
