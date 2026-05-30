@@ -5,13 +5,15 @@
 // providers through this list.
 
 import type { Provider } from '../protocol/provider.js';
+import { deepseekProvider } from './api-key/deepseek/index.js';
 import { claudeProvider } from './subscription/claude/index.js';
 
 export const ALL_PROVIDERS: readonly Provider[] = [
   claudeProvider,
+  deepseekProvider,
   // Planned slots:
   //   subscription:  codex, openai-plus, cursor, windsurf, …
-  //   api-key:       anthropic-api, openai-api, gemini-api, deepseek-api, …
+  //   api-key:       anthropic-api, openai-api, gemini-api, …
   //   relay:         openrouter, together, keyai, …
 ];
 

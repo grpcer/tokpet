@@ -1485,6 +1485,102 @@
       transition-duration: .01ms !important;
     }
   }
+
+  /* ---------------- API-key wizard fields ---------------- */
+  .ck-fields { display: grid; gap: var(--s-3); }
+  .field-group { display: grid; gap: var(--s-2); }
+  .field-label {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-s);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .field-label .req { color: var(--bad); }
+  .field-label .opt { color: var(--ink-faint); font-weight: var(--fw-m); font-size: var(--fs-xs); }
+  .field-input {
+    width: 100%;
+    height: var(--ctl-md);
+    padding: 0 var(--s-4);
+    border: 1px solid var(--line-strong);
+    background: var(--field);
+    color: var(--ink);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    outline: none;
+    box-sizing: border-box;
+  }
+  .field-input:focus { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 3px rgba(110, 84, 240, .14); }
+  .field-help { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.45; }
+  .field-help a { color: var(--brand-1); }
+  details.ck-advanced {
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--r-sm);
+    background: var(--field);
+    padding: var(--s-3) var(--s-4);
+  }
+  details.ck-advanced[open] { background: var(--card); border-style: solid; }
+  details.ck-advanced summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-s);
+    color: var(--brand-1);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  details.ck-advanced summary::-webkit-details-marker { display: none; }
+  details.ck-advanced summary::after {
+    content: "▸";
+    font-size: 10px;
+    transition: transform var(--dur) var(--ease);
+  }
+  details.ck-advanced[open] summary::after { transform: rotate(90deg); }
+  details.ck-advanced .adv-body { margin-top: var(--s-3); display: grid; gap: var(--s-3); }
+
+  /* ---------------- Provider card: pre-paid balance block ---------------- */
+  .balance-block {
+    display: grid;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    background: var(--field);
+    border-radius: var(--r-sm);
+    margin-top: var(--s-3);
+  }
+  .balance-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-3);
+  }
+  .balance-label {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
+    font-weight: var(--fw-s);
+  }
+  .balance-amount {
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-x);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+  }
+  .balance-amount .ccy {
+    font-size: var(--fs-md);
+    color: var(--ink-soft);
+    font-weight: var(--fw-s);
+    margin-left: var(--s-1);
+  }
+  .balance-amount.is-empty { color: var(--bad); }
+  .balance-block.is-empty {
+    background: var(--bad-soft);
+    border: 1px solid #f5c0cc;
+  }
+  .balance-block.is-empty .balance-label { color: var(--bad); }
 </style>
 </head>
 <body>
@@ -1813,6 +1909,29 @@
                     </div>
                   </div>
                 </div>
+                <div class="ck-fields" id="connectFields" hidden>
+                  <div class="field-group">
+                    <label class="field-label" for="connectApiKey">
+                      <span>API Key</span>
+                      <span class="req">*</span>
+                    </label>
+                    <input id="connectApiKey" class="field-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" oninput="onConnectFieldInput()">
+                    <div class="field-help" id="connectApiKeyHelp">Paste the API key from the provider dashboard. Stored locally in <span class="mono">~/.tokpet/config.json</span>.</div>
+                  </div>
+                  <details class="ck-advanced" id="connectAdvanced">
+                    <summary><span>Advanced</span></summary>
+                    <div class="adv-body">
+                      <div class="field-group">
+                        <label class="field-label" for="connectBaseUrl">
+                          <span>Base URL</span>
+                          <span class="opt">optional</span>
+                        </label>
+                        <input id="connectBaseUrl" class="field-input" type="text" autocomplete="off" spellcheck="false" placeholder="https://api.example.com">
+                        <div class="field-help">Leave blank to use the default endpoint.</div>
+                      </div>
+                    </div>
+                  </details>
+                </div>
                 <div class="source-line" id="connectSourceHint" hidden>
                   <svg aria-hidden="true"><use href="#i-anchor"></use></svg>
                   <span id="connectSourceText"></span>
@@ -1956,10 +2075,14 @@
       blurb: "Gemini API quotas and rate windows.",
       readList: "Per-minute and per-day request quota."
     },
-    "deepseek-api": {
+    deepseek: {
       tone: "deepseek", mark: "deepseek",
-      blurb: "DeepSeek API balance and burn rate.",
-      readList: "Credit balance, daily spend."
+      blurb: "DeepSeek API wallet balance — pre-paid credits, read from /user/balance only.",
+      readList: "Remaining wallet balance and currency.",
+      dashboardUrl: "https://platform.deepseek.com/usage",
+      dashboardLabel: "Open DeepSeek usage",
+      docsUrl: "https://api-docs.deepseek.com/api/get-user-balance",
+      docsLabel: "View balance API docs"
     },
     openrouter: {
       tone: "openrouter", mark: "openrouter",
@@ -1981,8 +2104,7 @@
     "api-key": [
       { id: "anthropic-api", displayName: "Anthropic API",    eta: "next up" },
       { id: "openai-api",    displayName: "OpenAI API",       eta: "next up" },
-      { id: "gemini-api",    displayName: "Gemini API",       eta: "planned" },
-      { id: "deepseek-api",  displayName: "DeepSeek API",     eta: "planned" }
+      { id: "gemini-api",    displayName: "Gemini API",       eta: "planned" }
     ],
     relay: [
       { id: "openrouter",   displayName: "OpenRouter",        eta: "next up" }
@@ -2089,6 +2211,33 @@
     if (pct >= 80) return "fill--bad";
     if (pct >= 50) return "fill--warn";
     return "";
+  }
+
+  // Pre-paid wallet renderer (DeepSeek 等). Reads balance.remaining + currency.
+  // `balance.remaining <= 0` flips the block to the empty/bad state without
+  // emitting a UsageError — the wallet is just out of credit.
+  var CURRENCY_SYMBOLS = { USD: "$", CNY: "¥", EUR: "€" };
+  function formatBalance(amount, currency) {
+    var sym = CURRENCY_SYMBOLS[currency] || "";
+    var n = Number(amount);
+    if (!Number.isFinite(n)) n = 0;
+    var formatted = n.toFixed(2);
+    return { sym: sym, num: formatted, ccy: currency };
+  }
+  function renderBalanceBlock(balance) {
+    var f = formatBalance(balance.remaining, balance.currency);
+    var empty = !(balance.remaining > 0);
+    var blockCls = "balance-block" + (empty ? " is-empty" : "");
+    var amtCls = "balance-amount" + (empty ? " is-empty" : "");
+    return '<div class="' + blockCls + '">' +
+      '<div class="balance-row">' +
+        '<span class="balance-label">Remaining</span>' +
+        '<span class="' + amtCls + '">' +
+          (f.sym ? esc(f.sym) : '') + esc(f.num) +
+          (f.ccy ? ' <span class="ccy">' + esc(f.ccy) + '</span>' : '') +
+        '</span>' +
+      '</div>' +
+    '</div>';
   }
 
   function errorInfo(error) {
@@ -2394,18 +2543,27 @@
       var bad = result.code === "auth-expired" || result.code === "not-configured";
       return { pillClass: bad ? "pill--bad" : "pill--warn", label: info.title, kind: "error", info: info };
     }
+    // Pre-paid wallet: balance.remaining <= 0 overrides the source-based pill
+    // so users see the empty state without scrolling past the freshness chrome.
+    var emptyWallet = result.mode === 'api-key'
+      && result.balance
+      && typeof result.balance.remaining === 'number'
+      && result.balance.remaining <= 0;
     // Healthy / cached / stale / live
     var source = result.source || "live";
     var fetched = result.fetchedAt ? new Date(result.fetchedAt).getTime() : null;
     var ageSec = fetched ? (Date.now() - fetched) / 1000 : null;
     if (source === "stale") {
       var staleAgeLabel = relativeTime(result.staleSince || result.fetchedAt) || "moments ago";
+      if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
       return { pillClass: "pill--warn", label: "Stale · " + staleAgeLabel, kind: "stale" };
     }
     if (source === "cached" || (ageSec != null && ageSec > 300)) {
       var ageLabel = relativeTime(result.fetchedAt) || "stale";
+      if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
       return { pillClass: "pill--warn", label: "Cached · " + ageLabel, kind: "cached" };
     }
+    if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
     return { pillClass: "pill--ok", label: "Healthy", kind: "ok" };
   }
 
@@ -2437,6 +2595,8 @@
             : '') +
           '</div>';
       }).join("") + '</div>';
+    } else if (result && result.balance && typeof result.balance.remaining === 'number') {
+      body = renderBalanceBlock(result.balance);
     } else {
       body = '<div class="empty"><div class="empty-icon">' + icon("info") + '</div><div>This provider is active but reported no usage in the current window.</div></div>';
     }
@@ -2843,12 +3003,51 @@
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
       btn.querySelector("span").textContent = p && p.activated ? "Reconnect" : "Connect";
+
+      // Toggle the api-key form. Pre-fill baseUrl per-provider so users see the
+      // expected default and don't accidentally point at a stale proxy.
+      var fields = $("connectFields");
+      var keyInput = $("connectApiKey");
+      var baseInput = $("connectBaseUrl");
+      if (p && p.mode === "api-key") {
+        fields.removeAttribute("hidden");
+        keyInput.value = "";
+        baseInput.value = "";
+        baseInput.placeholder = providerBaseUrlPlaceholder(p.id);
+        $("connectAdvanced").open = false;
+        btn.disabled = true; // require API key before activating
+      } else {
+        fields.setAttribute("hidden", "");
+      }
+
       if (app.skipModeStep && !app.provider) {
         $("step3Back").style.display = "none";
       } else {
         $("step3Back").style.display = "";
       }
     }
+  }
+
+  function providerBaseUrlPlaceholder(id) {
+    if (id === "deepseek") return "https://api.deepseek.com";
+    return "https://api.example.com";
+  }
+
+  function onConnectFieldInput() {
+    var btn = $("connectBtn");
+    var key = ($("connectApiKey").value || "").trim();
+    btn.disabled = !key;
+  }
+
+  function collectConnectBody() {
+    var p = providerById(app.provider);
+    if (p && p.mode === "api-key") {
+      var body = { apiKey: ($("connectApiKey").value || "").trim() };
+      var base = ($("connectBaseUrl").value || "").trim();
+      if (base) body.baseUrl = base;
+      return body;
+    }
+    return {};
   }
 
   function activateProvider() {
@@ -2860,7 +3059,7 @@
     btn.disabled = true;
     var originalText = btn.textContent;
     btn.textContent = "Connecting…";
-    api("POST", "/api/providers/" + encodeURIComponent(id) + "/activate", {}).then(function (result) {
+    api("POST", "/api/providers/" + encodeURIComponent(id) + "/activate", collectConnectBody()).then(function (result) {
       btn.removeAttribute("aria-busy");
       if (!result || !result.ok) {
         var info = errorInfo(result && result.error);

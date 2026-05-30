@@ -29,11 +29,22 @@ export interface UsageWindow {
   readonly durationMins?: number;
 }
 
-/** Balance / cumulative spend (shared by api-key and relay modes). */
+/**
+ * Balance / cumulative spend (shared by api-key and relay modes).
+ *
+ * Vendors expose one of two shapes; this single interface covers both:
+ *   1. Used-vs-total (OpenAI dashboard, monthly quotas): set `used` and `total`.
+ *   2. Pre-paid remaining (DeepSeek, 阿里云, 火山): set `remaining` only —
+ *      upstream reports the wallet balance directly without a "total ever spent."
+ * At least one of `used` / `total` / `remaining` must be set.
+ */
 export interface UsageBalance {
-  readonly used: number;
-  /** Total cap. May be unknown / unlimited. */
+  /** Cumulative spend. Undefined for pre-paid providers that only report remaining. */
+  readonly used?: number;
+  /** Total cap. Undefined when unknown / unlimited / not applicable (pre-paid). */
   readonly total?: number;
+  /** Current remaining balance. Primary number for pre-paid providers. */
+  readonly remaining?: number;
   readonly currency: 'USD' | 'CNY' | 'EUR' | 'credits' | 'tokens';
   readonly period?: 'monthly' | 'weekly' | 'daily' | 'lifetime';
   readonly resetsAt?: Date;

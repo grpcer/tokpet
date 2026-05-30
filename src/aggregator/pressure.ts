@@ -21,7 +21,15 @@ export function computePrimary(stateProviders: readonly StateProvider[]): Primar
           best = { providerId: sp.id, windowId: w.id, usedPct: w.usedPct };
         }
       }
-    } else if (r.balance && typeof r.balance.total === 'number' && r.balance.total > 0) {
+    } else if (
+      r.balance &&
+      typeof r.balance.used === 'number' &&
+      typeof r.balance.total === 'number' &&
+      r.balance.total > 0
+    ) {
+      // Pre-paid providers (DeepSeek 等) only report `remaining` and have no
+      // meaningful "percent used" — they cannot participate in primary
+      // selection and are surfaced only on their own provider card / screen.
       const pct = (r.balance.used / r.balance.total) * 100;
       if (!best || pct > best.usedPct) {
         best = { providerId: sp.id, usedPct: pct };
