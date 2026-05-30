@@ -6,10 +6,14 @@ export interface MdnsAdvertisement {
   stop(): Promise<void>;
 }
 
-export function publishMdns(port: number): MdnsAdvertisement {
+export interface MdnsOptions {
+  onStatus?: (status: 'published') => void;
+}
+
+export function publishMdns(port: number, options: MdnsOptions = {}): MdnsAdvertisement {
   const bonjour = new Bonjour();
-  bonjour.publish({
-    name: 'Tokpet Companion',
+  const service = bonjour.publish({
+    name: `Tokpet Companion ${port}`,
     type: 'tokpet',
     protocol: 'tcp',
     port,
@@ -18,6 +22,7 @@ export function publishMdns(port: number): MdnsAdvertisement {
       protocol: '1',
     },
   });
+  service.on('up', () => options.onStatus?.('published'));
 
   return {
     stop: () =>

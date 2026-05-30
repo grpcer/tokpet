@@ -5,6 +5,7 @@ import { z } from 'zod';
 import Fastify from 'fastify';
 import { Aggregator } from '../../src/aggregator/state.js';
 import { registerStateRoute } from '../../src/server/routes/state.js';
+import { createRuntimeState } from '../../src/server/runtime.js';
 import type { Provider } from '../../src/protocol/provider.js';
 import type { UsageResult } from '../../src/protocol/usage.js';
 
@@ -42,5 +43,26 @@ describe('GET /state', () => {
     const body = res.json<StateBody>();
     expect(body.version).toBe(1);
     expect(body.providers[0]?.id).toBe('claude');
+  });
+
+  it('records non-loopback device polls for the console', async () => {
+    const agg = new Aggregator();
+    const runtime = createRuntimeState(4717);
+    const app = Fastify();
+    registerStateRoute(app, agg, runtime);
+
+    await app.inject({
+      method: 'GET',
+      url: '/state',
+      remoteAddress: '192.168.1.42',
+      headers: { 'user-agent': 'Tokpet-ESP32S3/1.0' },
+    });
+
+    expect(runtime.devices).toHaveLength(1);
+    expect(runtime.devices[0]).toMatchObject({
+      ip: '192.168.1.42',
+      userAgent: 'Tokpet-ESP32S3/1.0',
+      pollCount: 1,
+    });
   });
 });
