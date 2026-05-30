@@ -97,4 +97,51 @@ describe('computePrimary', () => {
     ];
     expect(computePrimary(providers)).toBeUndefined();
   });
+
+  it('ignores pre-paid wallet providers that only report remaining', () => {
+    const providers: StateProvider[] = [
+      {
+        id: 'deepseek',
+        displayName: 'DeepSeek',
+        mode: 'api-key',
+        result: {
+          mode: 'api-key',
+          fetchedAt,
+          source: 'live',
+          balance: { remaining: 110, currency: 'CNY' },
+        },
+      },
+    ];
+    expect(computePrimary(providers)).toBeUndefined();
+  });
+
+  it('lets a subscription provider win when a pre-paid wallet sits alongside', () => {
+    const providers: StateProvider[] = [
+      {
+        id: 'claude',
+        displayName: 'Claude',
+        mode: 'subscription',
+        result: {
+          mode: 'subscription',
+          fetchedAt,
+          source: 'live',
+          windows: [{ id: '7d', label: '7d', usedPct: 42 }],
+        },
+      },
+      {
+        id: 'deepseek',
+        displayName: 'DeepSeek',
+        mode: 'api-key',
+        result: {
+          mode: 'api-key',
+          fetchedAt,
+          source: 'live',
+          balance: { remaining: 5, currency: 'CNY' },
+        },
+      },
+    ];
+    const primary = computePrimary(providers);
+    expect(primary?.providerId).toBe('claude');
+    expect(primary?.windowId).toBe('7d');
+  });
 });
