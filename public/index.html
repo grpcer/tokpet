@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tokpet · Add a data source</title>
+<title>Tokpet · Setup</title>
 <style>
   :root{
     --brand-1:#6e54f0; --brand-2:#ff6a98;
@@ -101,6 +101,11 @@
   .u .reset{font-size:11.5px;color:var(--ink-soft);margin-top:6px}
   .errbar{background:#fff1ee;border:1.5px solid #ffd5c9;color:#c1452a;border-radius:13px;padding:12px 14px;font-size:13px;line-height:1.5;margin-top:14px;display:none}
   .errbar.on{display:block}
+  .homecard{background:var(--field);border:1.5px solid var(--line);border-radius:16px;padding:16px 17px;margin-bottom:16px}
+  .homecard .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .homecard .title{font-size:15px;font-weight:800}.homecard .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .linkbtn{background:none;border:none;color:var(--brand-1);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:7px 8px;border-radius:10px}
+  .linkbtn:hover{background:#f0ebfb}
 
   .btn{display:block;width:100%;text-align:center;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;color:#fff;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));box-shadow:0 9px 20px -7px rgba(110,84,240,.62);transition:.18s;margin-top:18px}
   .btn:hover{transform:translateY(-1px)}
@@ -120,6 +125,22 @@
     <div class="body">
       <div class="topbar"><button class="back" id="back" onclick="goBack()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Back</button></div>
       <div class="steps"><span class="d on" id="d1"></span><span class="d" id="d2"></span><span class="d" id="d3"></span></div>
+
+      <!-- HOME: configured providers -->
+      <section class="screen" id="home">
+        <div class="lbl">Ready</div>
+        <h2>Your data source is connected</h2>
+        <p class="sub">Tokpet will publish this state on your local network for the device to discover.</p>
+        <div class="homecard">
+          <div class="row">
+            <div><div class="title" id="activeTitle">Active provider</div><div class="meta" id="activeMeta">Loading usage…</div></div>
+            <button class="linkbtn" onclick="startAddFlow()">Change</button>
+          </div>
+          <div class="uwrap" id="homeUsage"></div>
+          <div class="errbar" id="homeErr"></div>
+        </div>
+        <button class="btn" onclick="refreshHome()">Refresh usage</button>
+      </section>
 
       <!-- STEP 1: access mode (rendered from /api/providers) -->
       <section class="screen on" id="s1">
@@ -147,9 +168,9 @@
         <p class="sub">No key to enter — this source reuses the login you already have.</p>
         <div class="infocard">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-          <div><div class="t">Reuses your local login</div><div class="d">Tokpet reads the credentials already on this machine and calls the usage endpoint. Hit test to confirm it works.</div></div>
+          <div><div class="t">Reuses your local login</div><div class="d">Tokpet reads the credentials already on this machine, fetches usage once, and saves the source when it works.</div></div>
         </div>
-        <button class="btn" id="btnTest" onclick="runTest()">Test connection</button>
+        <button class="btn" id="btnTest" onclick="runTest()">Connect source</button>
         <div class="errbar" id="errbar"></div>
         <div class="result" id="result">
           <div class="actbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Test passed — activated automatically</div>
@@ -192,7 +213,7 @@
   var MODES=["subscription","api-key","relay"];
   var MODE_LABEL={subscription:"Subscription","api-key":"Direct API key",relay:"Relay / proxy"};
 
-  var state={providers:[],mode:null,provider:null,step:1};
+  var state={providers:[],mode:null,provider:null,step:1,homeProvider:null};
 
   function api(method,url,body){
     return fetch(url,{method:method,headers:{"Content-Type":"application/json"},
@@ -201,6 +222,7 @@
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]}); }
   function providersIn(mode){ return state.providers.filter(function(p){return p.mode===mode&&p.available}); }
   function labelOf(id){ var p=state.providers.find(function(x){return x.id===id}); return p?p.displayName:id; }
+  function activeProviders(){ return state.providers.filter(function(p){return p.activated}); }
 
   // ---- STEP 1 ----
   function renderModes(){
@@ -257,26 +279,34 @@
   // ---- STEP 3: test -> auto-activate -> render usage ----
   function resetTest(){
     $("result").classList.remove("on"); $("errbar").classList.remove("on");
-    var b=$("btnTest"); b.style.display="block"; b.disabled=false; b.classList.remove("wait"); b.innerHTML="Test connection";
+    var b=$("btnTest"); b.style.display="block"; b.disabled=false; b.classList.remove("wait"); b.innerHTML="Connect source";
     $("panel").removeAttribute("data-mood"); $("cat").innerHTML=catSVG("");
   }
   function pctColor(p){ return p<50?"linear-gradient(90deg,#1fb37a,#10a59a)":p<80?"linear-gradient(90deg,#ff9f5a,#ff7a59)":"linear-gradient(90deg,#ff7a59,#f2486e)"; }
   function fmtReset(iso){ if(!iso) return ""; var d=new Date(iso); return isNaN(d.getTime())?"":"Resets "+d.toLocaleString(); }
-  function renderUsage(usage){
+  function renderUsageInto(targetId, usage){
     var ws=(usage&&usage.windows)||[];
-    if(!ws.length){ $("uwrap").innerHTML='<div class="u"><div class="reset">No usage windows reported.</div></div>'; return; }
-    $("uwrap").innerHTML=ws.map(function(w){
+    if(!ws.length){ $(targetId).innerHTML='<div class="u"><div class="reset">No usage windows reported.</div></div>'; return; }
+    $(targetId).innerHTML=ws.map(function(w){
       return '<div class="u"><div class="top"><span class="wlbl">'+esc(w.label)+'</span><span class="pct">'
         +Math.round(w.usedPct)+'%</span></div><div class="track"><div class="fill"></div></div>'
         +'<div class="reset">'+fmtReset(w.resetsAt)+'</div></div>';
     }).join("");
     requestAnimationFrame(function(){ setTimeout(function(){
-      var fills=$("uwrap").querySelectorAll(".fill");
+      var fills=$(targetId).querySelectorAll(".fill");
       ws.forEach(function(w,i){ if(fills[i]){ fills[i].style.width=Math.round(w.usedPct)+"%"; fills[i].style.background=pctColor(w.usedPct); } });
     },60); });
   }
+  function renderUsage(usage){ renderUsageInto("uwrap", usage); }
+  function errorMessage(error){
+    if(!error) return "Test failed. Check that you're logged in, then try again.";
+    if(error.code==="rate-limited") return "Claude usage is temporarily rate limited. Wait a few minutes, then refresh.";
+    if(error.code==="auth-expired") return "Claude login expired. Run Claude Code once, sign in again, then retry.";
+    if(error.code==="not-configured") return error.message || "Claude login was not found on this machine.";
+    return error.message || "Test failed. Check that you're logged in, then try again.";
+  }
   function showError(msg){
-    var b=$("btnTest"); b.disabled=false; b.classList.remove("wait"); b.innerHTML="Test connection";
+    var b=$("btnTest"); b.disabled=false; b.classList.remove("wait"); b.innerHTML="Connect source";
     $("panel").setAttribute("data-mood","bad"); $("cat").innerHTML=catSVG("sad");
     $("errbar").textContent=msg||"Test failed. Check that you're logged in, then try again.";
     $("errbar").classList.add("on");
@@ -284,32 +314,70 @@
   function runTest(){
     var id=state.provider, b=$("btnTest");
     $("errbar").classList.remove("on");
-    b.disabled=true; b.classList.add("wait"); b.innerHTML='<span class="spin"></span>Testing…';
-    api("POST","/api/providers/"+id+"/test",{}).then(function(res){
-      if(!res||!res.ok){ showError(res&&res.error&&res.error.message?res.error.message:"Test failed. Check that you're logged in, then try again."); return; }
-      return api("POST","/api/providers/"+id+"/activate",{}).then(function(act){
-        if(!act||!act.ok){ showError(act&&act.error&&act.error.message?act.error.message:"Could not activate. Try again."); return; }
-        b.style.display="none"; $("result").classList.add("on");
-        $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy"); $("tag").textContent="Connected";
-        renderUsage(act.usage||res.usage);
-        var p=state.providers.find(function(x){return x.id===id}); if(p) p.activated=true;
-      });
+    b.disabled=true; b.classList.add("wait"); b.innerHTML='<span class="spin"></span>Connecting…';
+    api("POST","/api/providers/"+id+"/activate",{}).then(function(act){
+      if(!act||!act.ok){ showError(errorMessage(act&&act.error)); return; }
+      b.style.display="none"; $("result").classList.add("on");
+      $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy"); $("tag").textContent="Connected";
+      renderUsage(act.usage);
+      var p=state.providers.find(function(x){return x.id===id}); if(p) p.activated=true;
     }).catch(function(){ showError("Network error reaching the local service."); });
   }
 
   function finish(){
     api("GET","/api/providers").then(function(list){
-      state.providers=Array.isArray(list)?list:[]; state.mode=null; state.provider=null;
-      renderModes(); resetTest();
-      document.querySelectorAll(".mode,.prov").forEach(function(e){e.classList.remove("sel")});
-      $("next1").disabled=true; $("next2").disabled=true;
-      goStep(1);
+      state.providers=Array.isArray(list)?list:[]; resetTest(); bootView();
     });
+  }
+
+  function showOnly(id){
+    ["home","s1","s2","s3"].forEach(function(s){ $(s).classList.toggle("on",s===id) });
+  }
+  function startAddFlow(){
+    state.mode=null; state.provider=null; state.step=1; state.homeProvider=null;
+    renderModes(); resetTest();
+    document.querySelectorAll(".mode,.prov").forEach(function(e){e.classList.remove("sel")});
+    $("next1").disabled=true; $("next2").disabled=true;
+    $("panel").removeAttribute("data-mood"); $("cat").innerHTML=catSVG(""); $("tag").textContent="Add a data source";
+    $("back").classList.remove("show"); ["d1","d2","d3"].forEach(function(d,i){ $(d).classList.toggle("on",i===0) });
+    showOnly("s1");
+  }
+  function showHome(provider){
+    state.homeProvider=provider.id; $("activeTitle").textContent=provider.displayName;
+    $("activeMeta").textContent="Loading usage…"; $("homeErr").classList.remove("on"); $("homeUsage").innerHTML="";
+    $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy"); $("tag").textContent="Connected";
+    $("back").classList.remove("show"); ["d1","d2","d3"].forEach(function(d){ d.classList.remove("on") });
+    showOnly("home"); refreshHome();
+  }
+  function refreshHome(){
+    $("homeErr").classList.remove("on"); $("activeMeta").textContent="Refreshing usage…";
+    api("GET","/state").then(function(snap){
+      var p=(snap.providers||[]).find(function(x){return x.id===state.homeProvider});
+      if(!p){ $("activeMeta").textContent="Provider is not active."; return; }
+      if(p.result&&p.result.kind==="error"){
+        $("panel").setAttribute("data-mood","bad"); $("cat").innerHTML=catSVG("sad");
+        $("activeMeta").textContent="Needs attention";
+        $("homeErr").textContent=errorMessage(p.result); $("homeErr").classList.add("on");
+        $("homeUsage").innerHTML="";
+        return;
+      }
+      $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy");
+      $("activeMeta").textContent="Last updated "+new Date(p.result.fetchedAt).toLocaleTimeString();
+      renderUsageInto("homeUsage", p.result);
+    }).catch(function(){
+      $("activeMeta").textContent="Local service unreachable.";
+      $("homeErr").textContent="Network error reaching the local service."; $("homeErr").classList.add("on");
+    });
+  }
+  function bootView(){
+    renderModes();
+    var active=activeProviders()[0];
+    if(active) showHome(active); else startAddFlow();
   }
 
   // ---- boot ----
   api("GET","/api/providers").then(function(list){
-    state.providers=Array.isArray(list)?list:[]; renderModes();
+    state.providers=Array.isArray(list)?list:[]; bootView();
   });
 </script>
 </body>

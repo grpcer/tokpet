@@ -73,6 +73,16 @@ describe('config routes', () => {
     ]);
   });
 
+  it('marks restored providers as active', async () => {
+    const { app, agg } = makeApp();
+    agg.register(okProvider, { enabled: true });
+    const res = await app.inject({ method: 'GET', url: '/api/providers' });
+    expect(res.json()).toEqual([
+      { id: 'ok', displayName: 'OK', mode: 'subscription', available: true, activated: true },
+      { id: 'err', displayName: 'Err', mode: 'subscription', available: true, activated: false },
+    ]);
+  });
+
   it('test returns usage on success', async () => {
     const { app } = makeApp();
     const res = await app.inject({ method: 'POST', url: '/api/providers/ok/test', payload: {} });

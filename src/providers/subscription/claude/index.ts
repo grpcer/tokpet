@@ -14,6 +14,13 @@ function err(code: Extract<UsageResult, { kind: 'error' }>['code'], message: str
   return { kind: 'error', code, message, fetchedAt: new Date() };
 }
 
+function providerErrorMessage(e: ClaudeUsageFetchError): string {
+  if (e.code === 'rate-limited') {
+    return 'Claude usage is temporarily rate limited. Wait a few minutes, then refresh.';
+  }
+  return e.message;
+}
+
 export const claudeProvider: Provider<'subscription'> = {
   id: 'claude',
   displayName: 'Claude',
@@ -47,7 +54,7 @@ export const claudeProvider: Provider<'subscription'> = {
     try {
       return await fetchClaudeUsage(auth.accessToken, ctx);
     } catch (e) {
-      if (e instanceof ClaudeUsageFetchError) return err(e.code, e.message);
+      if (e instanceof ClaudeUsageFetchError) return err(e.code, providerErrorMessage(e));
       return err('unknown', (e as Error).message);
     }
   },
