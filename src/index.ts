@@ -11,11 +11,13 @@ import { startServer } from './server/http.js';
 import { loadConfig } from './config/store.js';
 import { openBrowser } from './server/open-browser.js';
 import { publishMdns } from './server/mdns.js';
+import { createRuntimeState, markMdnsPublished } from './server/runtime.js';
 
 const PORT = Number(process.env.PORT) || 4717;
 
 async function main() {
   const agg = new Aggregator();
+  const runtime = createRuntimeState(PORT);
 
   const config = await loadConfig();
   for (const [id, providerConfig] of Object.entries(config.providers)) {
@@ -28,8 +30,10 @@ async function main() {
     console.log(`[tokpet] restored ${provider.mode}/${provider.id}`);
   }
 
-  await startServer(agg, PORT);
-  const mdns = publishMdns(PORT);
+  await startServer(agg, PORT, runtime);
+  const mdns = publishMdns(PORT, {
+    onStatus: () => markMdnsPublished(runtime),
+  });
   const url = `http://localhost:${PORT}/`;
   console.log(`[tokpet] setup page:  ${url}`);
   console.log(`[tokpet] state JSON:  ${url}state`);

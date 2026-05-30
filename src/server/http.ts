@@ -8,13 +8,20 @@ import type { Aggregator } from '../aggregator/state.js';
 import { ALL_PROVIDERS } from '../providers/registry.js';
 import { registerStateRoute } from './routes/state.js';
 import { registerConfigRoutes } from './routes/config.js';
+import { registerRuntimeRoutes } from './routes/runtime.js';
+import { createRuntimeState, type RuntimeState } from './runtime.js';
 
-export async function startServer(agg: Aggregator, port: number): Promise<FastifyInstance> {
+export async function startServer(
+  agg: Aggregator,
+  port: number,
+  runtime: RuntimeState = createRuntimeState(port),
+): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
 
   app.get('/health', () => ({ ok: true }));
-  registerStateRoute(app, agg);
+  registerStateRoute(app, agg, runtime);
   registerConfigRoutes(app, agg, ALL_PROVIDERS);
+  registerRuntimeRoutes(app, runtime);
 
   // Serve the setup page. `public/` sits at the package root; both
   // src/server/http.ts (dev) and dist/server/http.js (build) resolve to it
