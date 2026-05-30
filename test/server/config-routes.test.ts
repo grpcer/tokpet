@@ -31,6 +31,28 @@ const okProvider: Provider = {
       windows: [{ id: '5h', label: 'Past 5 hours', usedPct: 42, durationMins: 300 }],
     }),
 };
+// Stand-in for api-key providers (DeepSeek-style) where the schema has a
+// required field with no default — confirmReconnect()'s empty-body POST must
+// recover the stored credentials instead of failing schema validation.
+const apiKeyProvider: Provider = {
+  id: 'apikey',
+  displayName: 'ApiKey',
+  mode: 'api-key',
+  configSchema: z.object({
+    apiKey: z.string().min(1),
+    enabled: z.boolean().default(true),
+  }),
+  isReady: () => Promise.resolve(true),
+  fetch: (config): Promise<UsageResult> => {
+    const cfg = config as { apiKey: string };
+    return Promise.resolve({
+      mode: 'api-key',
+      fetchedAt: new Date(),
+      source: 'live',
+      balance: { remaining: cfg.apiKey === 'sk-stored' ? 8.81 : 0, currency: 'CNY' },
+    });
+  },
+};
 const errProvider: Provider = {
   id: 'err',
   displayName: 'Err',
@@ -49,7 +71,7 @@ const errProvider: Provider = {
 function makeApp() {
   const agg = new Aggregator();
   const app = Fastify();
-  registerConfigRoutes(app, agg, [okProvider, errProvider]);
+  registerConfigRoutes(app, agg, [okProvider, errProvider, apiKeyProvider]);
   return { app, agg };
 }
 
@@ -70,6 +92,7 @@ describe('config routes', () => {
     expect(res.json()).toEqual([
       { id: 'ok', displayName: 'OK', mode: 'subscription', available: true, activated: false },
       { id: 'err', displayName: 'Err', mode: 'subscription', available: true, activated: false },
+      { id: 'apikey', displayName: 'ApiKey', mode: 'api-key', available: true, activated: false },
     ]);
   });
 
@@ -80,6 +103,7 @@ describe('config routes', () => {
     expect(res.json()).toEqual([
       { id: 'ok', displayName: 'OK', mode: 'subscription', available: true, activated: true },
       { id: 'err', displayName: 'Err', mode: 'subscription', available: true, activated: false },
+      { id: 'apikey', displayName: 'ApiKey', mode: 'api-key', available: true, activated: false },
     ]);
   });
 
@@ -108,6 +132,38 @@ describe('config routes', () => {
     });
     expect(res.json<ApiResponse>().ok).toBe(true);
     expect(agg.has('ok')).toBe(true);
+  });
+
+  // The dashboard's Reconnect button posts an empty body; an api-key provider
+  // whose schema requires a non-empty apiKey would otherwise fail Zod validation
+  // and return "invalid config". /activate must fall back to the stored config.
+  it('reconnect with empty body recovers stored api-key config', async () => {
+    const { app, agg } = makeApp();
+    await app.inject({
+      method: 'POST',
+      url: '/api/providers/apikey/activate',
+      payload: { apiKey: 'sk-stored', enabled: true },
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/providers/apikey/activate',
+      payload: {},
+    });
+    const body = res.json<ApiResponse>();
+    expect(body.ok).toBe(true);
+    expect(agg.has('apikey')).toBe(true);
+  });
+
+  it('reconnect with empty body still 400s when no stored config exists', async () => {
+    const { app } = makeApp();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/providers/apikey/activate',
+      payload: {},
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json<ApiResponse>().ok).toBe(false);
   });
 
   it('delete unregisters', async () => {

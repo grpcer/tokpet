@@ -73,9 +73,26 @@ export function registerConfigRoutes(
       const provider = find(id);
       if (!provider) return reply.code(404).send({ ok: false, error: 'unknown provider' });
 
+      // The dashboard's Reconnect button posts an empty body so api-key
+      // providers (e.g. DeepSeek's required apiKey) can re-test the stored
+      // credentials without re-prompting. Fall back to the persisted config
+      // when the request body has no fields to merge.
+      let effectiveBody: unknown = req.body;
+      if (
+        effectiveBody == null ||
+        (typeof effectiveBody === 'object' &&
+          !Array.isArray(effectiveBody) &&
+          Object.keys(effectiveBody).length === 0)
+      ) {
+        const stored = (await loadConfig()).providers[id];
+        if (stored !== undefined) {
+          effectiveBody = stored;
+        }
+      }
+
       let config: unknown;
       try {
-        config = provider.configSchema.parse(req.body ?? {});
+        config = provider.configSchema.parse(effectiveBody ?? {});
       } catch {
         return reply.code(400).send({ ok: false, error: 'invalid config' });
       }
