@@ -38,15 +38,28 @@ export function registerConfigRoutes(
       next();
     });
 
-    instance.get('/api/providers', () =>
-      providers.map((p) => ({
+    // Activated providers are returned in the user-chosen order kept by the
+    // aggregator (the order behind /state and the device tiles); unactivated
+    // ones trail in registry order. Without this, the dashboard's optimistic
+    // ↑/↓ reorder would be immediately overwritten by the next refresh —
+    // because `providers` here is registry order, not user order.
+    instance.get('/api/providers', () => {
+      const order = new Map<string, number>();
+      agg.list().forEach((e, i) => order.set(e.id, i));
+      const sorted = [...providers].sort((a, b) => {
+        const ia = order.has(a.id) ? (order.get(a.id) as number) : Infinity;
+        const ib = order.has(b.id) ? (order.get(b.id) as number) : Infinity;
+        if (ia !== ib) return ia - ib;
+        return providers.indexOf(a) - providers.indexOf(b);
+      });
+      return sorted.map((p) => ({
         id: p.id,
         displayName: p.displayName,
         mode: p.mode,
         available: true,
         activated: agg.has(p.id),
-      })),
-    );
+      }));
+    });
 
     instance.get('/api/config', () => loadConfig());
 
