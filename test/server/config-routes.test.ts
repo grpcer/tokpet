@@ -166,6 +166,25 @@ describe('config routes', () => {
     expect(res.json<ApiResponse>().ok).toBe(false);
   });
 
+  it('lists activated providers in aggregator order, unactivated trail in registry order', async () => {
+    const { app, agg } = makeApp();
+    // Activate ok first, then apikey — registry order is [ok, err, apikey],
+    // user order so far should be [ok, apikey] then [err] trailing.
+    agg.register(okProvider, { enabled: true });
+    agg.register(apiKeyProvider, { apiKey: 'sk', enabled: true });
+    let res = await app.inject({ method: 'GET', url: '/api/providers' });
+    expect(res.json<{ id: string }[]>().map((p) => p.id)).toEqual(['ok', 'apikey', 'err']);
+
+    // Reorder via the route — apikey should now lead.
+    await app.inject({
+      method: 'POST',
+      url: '/api/providers/reorder',
+      payload: { order: ['apikey', 'ok'] },
+    });
+    res = await app.inject({ method: 'GET', url: '/api/providers' });
+    expect(res.json<{ id: string }[]>().map((p) => p.id)).toEqual(['apikey', 'ok', 'err']);
+  });
+
   it('reorder persists the new sequence and reorders the aggregator', async () => {
     const { app, agg } = makeApp();
     await app.inject({

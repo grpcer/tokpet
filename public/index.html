@@ -1635,6 +1635,7 @@
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></symbol>
     <symbol id="i-reconnect" viewBox="0 0 24 24"><path d="M17 2v5h-5"/><path d="M7 22v-5h5"/><path d="M18.5 9A7 7 0 0 0 7 5.5L5 7.5"/><path d="M5.5 15A7 7 0 0 0 17 18.5l2-2"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4"/><path d="M11 13l9-9"/><path d="M15 6l3 3"/><path d="M18 3l3 3"/></symbol>
     <symbol id="i-diagnostics" viewBox="0 0 24 24"><path d="M4 6h14M4 11h10M4 16h7"/><path d="M17 12v6M14 15h6"/></symbol>
     <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4L10 14"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></symbol>
     <symbol id="i-pet" viewBox="0 0 24 24"><path d="M6 7c-1 2-1.5 4-1 6.5C6 18 9 20 12 20s6-2 7-6.5c.5-2.5 0-4.5-1-6.5"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M11 17c.7.5 1.3.5 2 0"/></symbol>
@@ -2716,9 +2717,70 @@
       '<div class="provider-actions">' +
         '<button class="btn btn--sm" onclick="refreshAll(true)">' + icon("refresh", "sm") + 'Refresh</button>' +
         '<button class="btn btn--sm" onclick="openReconnect(\'' + esc(provider.id) + '\')">' + icon("reconnect", "sm") + 'Reconnect</button>' +
+        // api-key providers (DeepSeek, future OpenAI/Anthropic API, ...) keep
+        // a user-provided secret in ~/.tokpet/config.json. "Reconnect" just
+        // re-tests the stored one; "Update key" lets the user rotate it.
+        (provider.mode === "api-key"
+          ? '<button class="btn btn--sm" onclick="startUpdateKey(\'' + esc(provider.id) + '\')">' + icon("key", "sm") + 'Update key</button>'
+          : "") +
         '<button class="btn btn--sm btn--danger" onclick="openRemove(\'' + esc(provider.id) + '\')">' + icon("trash", "sm") + 'Remove</button>' +
       '</div>' +
     '</article>';
+  }
+
+  // Open the wizard at step 3 with the current api-key + baseUrl prefilled so
+  // the user can rotate / fix the credential without re-walking the picker.
+  function startUpdateKey(id) {
+    if (!Array.isArray(app.providers)) {
+      refreshAll(false).then(function () { startUpdateKey(id); });
+      return;
+    }
+    var p = providerById(id);
+    if (!p || p.mode !== "api-key") return;
+    app.mode = p.mode;
+    app.provider = id;
+    app.wizardActive = true;
+    app.skipModeStep = true; // Back from step 3 just closes the wizard.
+    document.body.classList.add("mode-add");
+    goStep(3);
+    if (history.pushState) {
+      history.pushState({ wizard: true }, "", "#update-key/" + encodeURIComponent(id));
+    }
+    // Pull the stored config from the loopback /api/config endpoint and
+    // prefill the form. /api/config returns the same JSON we wrote to
+    // ~/.tokpet/config.json so we can recover the original apiKey + baseUrl.
+    api("GET", "/api/config").then(function (cfg) {
+      var stored = cfg && cfg.providers && cfg.providers[id];
+      if (!stored || typeof stored !== "object") return;
+      var keyEl = $("connectApiKey");
+      var baseEl = $("connectBaseUrl");
+      if (typeof stored.apiKey === "string" && stored.apiKey) {
+        keyEl.value = stored.apiKey;
+        onConnectFieldInput();
+      }
+      if (typeof stored.baseUrl === "string" && stored.baseUrl) {
+        baseEl.value = stored.baseUrl;
+        var adv = $("connectAdvanced");
+        if (adv) adv.open = true;
+      }
+    });
+    // Adapt the chrome: this is a rotation, not a first-time wire-up.
+    setTimeout(function () {
+      var label = p.displayName;
+      var wTitle = $("wizardTitle");
+      var wSub = $("wizardSub");
+      var cTitle = $("connectTitle");
+      var cBack = $("step3Back");
+      var cBtn = $("connectBtn");
+      if (wTitle) wTitle.textContent = "Update API key";
+      if (wSub) wSub.textContent = "Paste a new key for " + label + " — the existing one stays until this one tests green.";
+      if (cTitle) cTitle.textContent = "Update " + label + " key";
+      if (cBack) cBack.style.display = "none"; // no step 1/2 to go back to in this flow
+      if (cBtn) {
+        var span = cBtn.querySelector("span");
+        if (span) span.textContent = "Save & reconnect";
+      }
+    }, 0);
   }
 
   // Reorder the activated providers by ±1 step. Persists the new order via
