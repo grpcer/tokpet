@@ -10,6 +10,7 @@ import { findProvider } from './providers/registry.js';
 import { startServer } from './server/http.js';
 import { loadConfig } from './config/store.js';
 import { openBrowser } from './server/open-browser.js';
+import { publishMdns } from './server/mdns.js';
 
 const PORT = Number(process.env.PORT) || 4717;
 
@@ -28,10 +29,19 @@ async function main() {
   }
 
   await startServer(agg, PORT);
+  const mdns = publishMdns(PORT);
   const url = `http://localhost:${PORT}/`;
   console.log(`[tokpet] setup page:  ${url}`);
   console.log(`[tokpet] state JSON:  ${url}state`);
+  console.log(`[tokpet] mDNS:        _tokpet._tcp.local:${PORT}`);
   if (!process.env.TOKPET_NO_OPEN) openBrowser(url);
+
+  const stop = async () => {
+    await mdns.stop();
+    process.exit(0);
+  };
+  process.once('SIGINT', () => void stop());
+  process.once('SIGTERM', () => void stop());
 }
 
 main().catch((e) => {
