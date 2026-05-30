@@ -10,7 +10,13 @@ export type ProviderMode = 'subscription' | 'api-key' | 'relay';
 
 export interface UsageBase {
   readonly fetchedAt: Date;
-  readonly source: 'live' | 'cached' | 'estimated';
+  readonly source: 'live' | 'cached' | 'stale' | 'estimated';
+  /**
+   * When `source === 'stale'`, the timestamp of the underlying successful
+   * fetch this snapshot was carried over from. Consumers can render this
+   * as "stale for X minutes" and decide their own freshness thresholds.
+   */
+  readonly staleSince?: Date;
 }
 
 /** A rolling-window quota slice (e.g. 5h, 7d, monthly). */
@@ -78,4 +84,14 @@ export type UsageResult = Usage | UsageError;
 
 export function isUsageError(r: UsageResult): r is UsageError {
   return (r as UsageError).kind === 'error';
+}
+
+/**
+ * Transient codes describe failures we expect to clear up on their own —
+ * an expired OAuth token waiting on a refresh, vendor 5xx, network blip,
+ * rate limit cooldown. Terminal codes (`not-configured`) require user
+ * action and should not be smoothed over with stale data.
+ */
+export function isTransientErrorCode(code: UsageError['code']): boolean {
+  return code !== 'not-configured';
 }
