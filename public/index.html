@@ -3,382 +3,649 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tokpet · Setup</title>
+<title>Tokpet Console</title>
 <style>
   :root{
     --brand-1:#6e54f0; --brand-2:#ff6a98;
     --ink:#241d3a; --ink-soft:#7a7396;
     --bg:#f4f1ec; --card:#ffffff; --line:#ece7f6; --field:#faf8fe;
-    --ok-1:#1fb37a; --ok-2:#10a59a;
-    --bad-1:#ff7a59; --bad-2:#f2486e;
+    --ok:#16a06c; --warn:#e07a35; --bad:#e54866;
+    --shadow:0 2px 4px rgba(58,38,120,.04),0 12px 36px -8px rgba(58,38,120,.18),0 4px 12px rgba(58,38,120,.06);
+    --ease:cubic-bezier(.4,0,.2,1);
     --r:22px;
     --font:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",Quicksand,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{font-family:var(--font);color:var(--ink);background:var(--bg);
+  *{box-sizing:border-box}
+  html,body{min-height:100%;margin:0}
+  body{
+    font-family:var(--font);color:var(--ink);background:var(--bg);
     background-image:
       radial-gradient(60% 50% at 12% -5%, rgba(110,84,240,.18), transparent 70%),
       radial-gradient(55% 45% at 105% 12%, rgba(255,106,152,.18), transparent 70%),
       radial-gradient(60% 50% at 50% 110%, rgba(110,84,240,.10), transparent 70%);
-    min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;-webkit-font-smoothing:antialiased}
-  .panel{width:100%;max-width:680px;background:var(--card);border-radius:var(--r);
-    box-shadow:0 22px 60px -16px rgba(58,38,120,.32),0 4px 14px rgba(58,38,120,.08);
-    overflow:hidden;animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
-  @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
-
-  .hd{position:relative;padding:24px 22px 20px;text-align:center;color:#fff;overflow:hidden;
-    background:linear-gradient(135deg,var(--brand-1),var(--brand-2));transition:background .55s ease}
-  .hd::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% -25%,rgba(255,255,255,.28),transparent 60%);pointer-events:none}
-  .hd .name{font-weight:800;font-size:19px;letter-spacing:.3px;margin-top:4px;position:relative}
-  .hd .tag{font-size:12.5px;opacity:.95;margin-top:3px;font-weight:500;position:relative}
-  .panel[data-mood="ok"] .hd{background:linear-gradient(135deg,var(--ok-1),var(--ok-2))}
-  .panel[data-mood="bad"] .hd{background:linear-gradient(135deg,var(--bad-1),var(--bad-2))}
-  svg.cat{width:70px;height:auto;display:block;margin:0 auto 2px;position:relative}
-  svg.cat.happy,svg.cat.sad{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
-  @keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-
-  .body{padding:18px 26px 28px}
-  .topbar{display:flex;align-items:center;min-height:26px;margin-bottom:4px}
-  .back{background:none;border:none;font:inherit;color:var(--brand-1);font-size:13px;font-weight:600;cursor:pointer;
-    display:none;align-items:center;gap:5px;padding:5px 8px 5px 4px;border-radius:9px;transition:.15s}
-  .back:hover{background:var(--field)}
-  .back.show{display:inline-flex}
-  .steps{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 16px}
-  .steps .d{width:8px;height:8px;border-radius:50%;background:#ddd4f0;transition:.3s}
-  .steps .d.on{width:26px;border-radius:5px;background:linear-gradient(90deg,var(--brand-1),var(--brand-2))}
-  .lbl{text-align:center;font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--ink-soft);text-transform:uppercase;margin-bottom:8px}
-  h2{text-align:center;font-size:20px;margin-bottom:6px}
-  .sub{text-align:center;color:var(--ink-soft);font-size:13px;margin-bottom:22px;line-height:1.5}
-
-  .screen{display:none;animation:fade .42s ease both}
-  .screen.on{display:block}
-  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-
-  /* step 1: modes */
-  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
-  @media(max-width:600px){.modes{grid-template-columns:1fr}}
-  .mode{text-align:left;border:2px solid var(--line);border-radius:18px;padding:22px 20px 20px;cursor:pointer;background:var(--field);transition:.2s;position:relative;display:flex;flex-direction:column}
-  .mode:hover{border-color:#cdbff5;transform:translateY(-3px);box-shadow:0 14px 30px -14px rgba(110,84,240,.5)}
-  .mode.sel{border-color:var(--brand-1);background:#fff;box-shadow:0 0 0 4px rgba(110,84,240,.12),0 16px 30px -18px rgba(110,84,240,.45)}
-  .mode.off{opacity:.5;cursor:not-allowed;background:#f7f6fa}
-  .mode.off:hover{transform:none;border-color:var(--line);box-shadow:none}
-  .mode .ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(110,84,240,.16),rgba(255,106,152,.16));color:var(--brand-1);margin-bottom:16px;box-shadow:0 5px 12px -5px rgba(110,84,240,.32)}
-  .mode .ic svg{width:23px;height:23px}
-  .mode h3{font-size:16.5px;margin-bottom:9px;letter-spacing:.1px}
-  .mode p{font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:20px;flex:1}
-  .mode .ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
-  .mode .ex span{font-size:11px;font-weight:600;color:#8a7fb0;background:#f0ebfb;border-radius:8px;padding:4px 10px}
-  .mode .ex span.ready{color:#16a34a;background:#dcfce7}
-  .mode .ex span.soon{color:#9a8f6b;background:#f3efe0}
-  .check{position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));display:none;align-items:center;justify-content:center;box-shadow:0 3px 8px -2px rgba(110,84,240,.5)}
-  .mode.sel .check{display:flex}.check svg{width:13px;height:13px;color:#fff}
-
-  /* step 2: providers */
-  .prov{display:flex;align-items:center;gap:14px;padding:15px 16px;border:2px solid var(--line);border-radius:15px;background:var(--field);cursor:pointer;margin-bottom:11px;transition:.18s}
-  .prov:hover{border-color:#cdbff5;transform:translateX(2px)}
-  .prov.sel{border-color:var(--brand-1);background:#fff;box-shadow:0 0 0 4px rgba(110,84,240,.12)}
-  .logo{width:40px;height:40px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:17px;background:linear-gradient(135deg,var(--brand-1),var(--brand-2))}
-  .logo.claude{background:#d97757}
-  .prov .meta{flex:1}.prov .nm{font-size:15.5px;font-weight:700}.prov .desc{font-size:12px;color:var(--ink-soft);margin-top:2px}
-  .tagpill{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:4px 9px;border-radius:999px;flex:none}
-  .tagpill.ready{color:#16a34a;background:#dcfce7}.tagpill.active{color:#6d28d9;background:#ede9fe}
-
-  /* step 3: test */
-  .infocard{display:flex;gap:13px;align-items:flex-start;background:var(--field);border:1.5px solid var(--line);border-radius:15px;padding:15px 16px;margin-bottom:18px}
-  .infocard .ic{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(110,84,240,.14),rgba(255,106,152,.14));color:var(--brand-1)}
-  .infocard .ic svg{width:18px;height:18px}
-  .infocard .t{font-size:13.5px;font-weight:700;margin-bottom:3px}.infocard .d{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
-  .result{display:none;animation:fade .45s ease both}.result.on{display:block}
-  .actbar{display:flex;align-items:center;gap:9px;background:#eafaf2;border:1.5px solid #bcebd4;color:#0f9d63;border-radius:13px;padding:12px 14px;font-size:13.5px;font-weight:700;margin-bottom:18px}
-  .actbar svg{width:18px;height:18px;flex:none}
-  .uwrap{background:var(--field);border:1.5px solid var(--line);border-radius:15px;padding:16px 17px}
-  .u{margin-bottom:16px}.u:last-child{margin-bottom:0}
-  .u .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
-  .u .wlbl{font-size:13px;font-weight:700}.u .pct{font-size:13px;font-weight:800}
-  .u .track{height:9px;border-radius:6px;background:#ece7f6;overflow:hidden}
-  .u .fill{height:100%;border-radius:6px;width:0;transition:width .9s cubic-bezier(.3,1,.4,1)}
-  .u .reset{font-size:11.5px;color:var(--ink-soft);margin-top:6px}
-  .errbar{background:#fff1ee;border:1.5px solid #ffd5c9;color:#c1452a;border-radius:13px;padding:12px 14px;font-size:13px;line-height:1.5;margin-top:14px;display:none}
-  .errbar.on{display:block}
-  .homecard{background:var(--field);border:1.5px solid var(--line);border-radius:16px;padding:16px 17px;margin-bottom:16px}
-  .homecard .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-  .homecard .title{font-size:15px;font-weight:800}.homecard .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
-  .linkbtn{background:none;border:none;color:var(--brand-1);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:7px 8px;border-radius:10px}
-  .linkbtn:hover{background:#f0ebfb}
-
-  .btn{display:block;width:100%;text-align:center;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;color:#fff;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));box-shadow:0 9px 20px -7px rgba(110,84,240,.62);transition:.18s;margin-top:18px}
-  .btn:hover{transform:translateY(-1px)}
-  .btn[disabled]{opacity:.4;pointer-events:none;box-shadow:none;transform:none}
-  .btn.wait[disabled]{opacity:.55;cursor:wait}
-  .btn .spin{display:inline-block;width:15px;height:15px;border:2.5px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;vertical-align:-2px;margin-right:8px;animation:rot .7s linear infinite}
-  @keyframes rot{to{transform:rotate(360deg)}}
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  button,input{font:inherit}
+  button{cursor:pointer}
+  .page{width:100%;max-width:1240px;margin:0 auto;padding:28px}
+  .console{background:rgba(255,255,255,.82);border:1px solid rgba(236,231,246,.9);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .hero{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) 390px;gap:24px;align-items:stretch;padding:26px;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));color:#fff;overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% -25%,rgba(255,255,255,.28),transparent 62%);pointer-events:none}
+  .hero-copy,.hero-meter{position:relative;z-index:1}
+  .brand-row{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  .brand-row>div:last-child{min-width:0}
+  .cat-badge{width:76px;height:70px;position:relative;flex:none;filter:drop-shadow(0 8px 18px rgba(36,29,58,.16))}
+  .cat-badge::before{content:"";position:absolute;left:9px;right:9px;bottom:4px;height:50px;border-radius:45% 45% 38% 38%;background:#fff}
+  .cat-badge::after{content:"";position:absolute;left:24px;top:34px;width:8px;height:8px;border-radius:50%;background:rgba(36,29,58,.72);box-shadow:24px 0 rgba(36,29,58,.72)}
+  .cat-badge .ear{position:absolute;top:6px;width:27px;height:31px;background:#fff;clip-path:polygon(50% 0,100% 100%,0 100%)}
+  .cat-badge .ear.left{left:12px;transform:rotate(-25deg)}
+  .cat-badge .ear.right{right:12px;transform:rotate(25deg)}
+  h1{font-size:31px;line-height:1.05;margin:0 0 7px;letter-spacing:0}
+  .hero-sub{margin:0;color:rgba(255,255,255,.82);font-size:14.5px;line-height:1.45}
+  .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .icon{width:18px;height:18px;flex:0 0 18px;display:block;stroke:currentColor;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}
+  .btn{border:1px solid rgba(110,84,240,.22);background:#fff;color:var(--ink);border-radius:15px;height:42px;padding:0 15px;font-weight:800;font-size:14px;box-shadow:0 9px 20px -12px rgba(58,38,120,.45);display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;flex:none;transition:all .2s var(--ease)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px -12px rgba(58,38,120,.55)}
+  .btn:active{transform:translateY(0);transition-duration:.1s}
+  .btn.primary{border-color:transparent;background:#fff;color:var(--brand-1)}
+  .btn.ghost{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.26);color:#fff}
+  .btn.small{height:33px;padding:0 11px;font-size:12.5px;border-radius:11px}
+  .icon-btn{width:32px;height:32px;border:1px solid rgba(110,84,240,.18);border-radius:12px;background:#fff;color:var(--brand-1);display:grid;place-items:center;box-shadow:0 8px 18px -14px rgba(58,38,120,.45);transition:all .2s var(--ease)}
+  .icon-btn .icon{width:16px;height:16px;flex-basis:16px}
+  .icon-btn:hover{transform:translateY(-2px);background:#fbf8ff;box-shadow:0 12px 24px -14px rgba(58,38,120,.55)}
+  .btn.danger{color:var(--bad)}
+  .hero-meter{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:18px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .hero-meter>div:last-child{min-width:0}
+  .ring{width:152px;height:152px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#fff 0deg,rgba(255,255,255,.25) 0deg);position:relative;transition:background .5s var(--ease);box-shadow:0 8px 32px rgba(0,0,0,.1)}
+  .ring::after{content:"";position:absolute;inset:13px;border-radius:50%;background:linear-gradient(135deg,var(--brand-1),var(--brand-2))}
+  .ring-value{position:relative;z-index:1;font-size:38px;font-weight:900;letter-spacing:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+  .metric-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:8px}
+  .metric-label{font-size:20px;font-weight:850;line-height:1.15}
+  .mood{display:inline-flex;margin-top:12px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);padding:6px 10px;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+  .status-strip{display:flex;flex-wrap:wrap;gap:10px;padding:13px 18px;background:linear-gradient(180deg,#fff,var(--field));border-bottom:1px solid var(--line)}
+  .status{min-width:0;flex:1 1 190px;background:var(--field);border:1px solid var(--line);border-radius:999px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .status .label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:850;margin:0}
+  .status .value{font-size:14px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ink-soft);margin-right:7px}
+  .dot.ok{background:var(--ok);animation:pulse 2s var(--ease) infinite}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .content{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:16px;padding:18px;align-items:start}
+  .stack{display:grid;gap:16px;align-content:start}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 2px 8px -4px rgba(58,38,120,.08),0 5px 18px -16px rgba(58,38,120,.2);transition:box-shadow .25s var(--ease)}
+  .panel:hover{box-shadow:0 4px 12px -4px rgba(58,38,120,.1),0 8px 24px -12px rgba(58,38,120,.22)}
+  .panel-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;margin-bottom:14px}
+  .panel-head>.btn{margin-top:2px;justify-self:end}
+  .panel-title{display:flex;align-items:flex-start;gap:12px;min-width:0}
+  .title-stack{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+  .section-title{display:flex;align-items:center;min-height:38px;min-width:0}
+  .panel-hint{max-width:620px}
+  .icon-bubble{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;flex:none;padding:0;background:linear-gradient(135deg,rgba(110,84,240,.13),rgba(255,106,152,.13));color:var(--brand-1);box-shadow:0 8px 18px -14px rgba(110,84,240,.5)}
+  .icon-bubble.provider{color:var(--brand-1);padding:0}
+  .icon-bubble.device{color:var(--ok);background:linear-gradient(135deg,rgba(22,160,108,.12),rgba(53,201,154,.12));box-shadow:0 6px 16px -10px rgba(22,160,108,.35);padding:0;border:0}
+  .icon-bubble.network{color:var(--warn);background:linear-gradient(135deg,rgba(224,122,53,.12),rgba(255,159,90,.12));box-shadow:0 6px 16px -10px rgba(224,122,53,.35);padding:0}
+  .icon-bubble.diagnostics{color:var(--brand-2);background:linear-gradient(135deg,rgba(255,106,152,.12),rgba(255,122,89,.12));box-shadow:0 6px 16px -10px rgba(255,106,152,.35);padding:0}
+  .icon-bubble .icon{width:20px;height:20px;flex-basis:20px}
+  .panel h2{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+  .hint{font-size:13px;color:var(--ink-soft);line-height:1.45;margin:0}
+  .rows{display:grid;gap:12px}
+  .provider,.device{border:0;border-radius:16px;padding:15px;background:linear-gradient(180deg,#fff,var(--field));box-shadow:inset 0 0 0 1px rgba(110,84,240,.12);transition:all .25s var(--ease)}
+  .provider:hover,.device:hover{box-shadow:inset 0 0 0 1px rgba(110,84,240,.2),0 8px 24px -12px rgba(58,38,120,.12);transform:translateY(-1px)}
+  .provider-head,.device-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .provider-head>div:first-child,.device-head>div:first-child{min-width:0}
+  .source-main{display:flex;gap:11px;align-items:flex-start;min-width:0}
+  .source-mark{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;flex:0 0 38px;background:linear-gradient(135deg,rgba(110,84,240,.16),rgba(255,106,152,.18));color:var(--brand-1);font-weight:950;box-shadow:inset 0 0 0 1px rgba(110,84,240,.12)}
+  .name{font-weight:900;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .meta{font-size:12.5px;color:var(--ink-soft);margin-top:3px;line-height:1.45;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:900;background:#f0ebfb;color:#7467a8;text-transform:uppercase;letter-spacing:.06em}
+  .pill.ok{background:#e5f8ef;color:var(--ok)}
+  .pill.warn{background:#fff0df;color:var(--warn)}
+  .pill.bad{background:#ffe9ee;color:var(--bad)}
+  .usage{display:grid;gap:12px;margin-top:12px}
+  .window-row{display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px;min-width:0}
+  .window-row>div:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar{height:10px;border-radius:999px;background:#e8e1f5;overflow:hidden}
+  .fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--ok),#35c99a);transition:width .6s var(--ease)}
+  .fill.warn{background:linear-gradient(90deg,#ff9f5a,var(--warn))}
+  .fill.bad{background:linear-gradient(90deg,#ff7a59,var(--bad))}
+  .provider-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .empty{border:1.5px dashed #d7cdec;border-radius:18px;padding:18px;background:#fff;color:var(--ink-soft);font-size:13.5px;line-height:1.55}
+  .error{border:1.5px solid #ffd5df;background:#fff4f7;color:var(--bad);border-radius:15px;padding:11px;font-size:13px;line-height:1.45}
+  .network-list{display:grid;gap:10px;font-size:13px;color:var(--ink-soft);line-height:1.45;min-width:0}
+  .net-card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,var(--field));padding:11px;min-width:0;transition:border-color .2s var(--ease)}
+  .net-card:hover{border-color:#cdbff5}
+  .net-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .net-label{font-weight:900;color:var(--ink);font-size:13px}
+  .url-list{display:grid;gap:7px;min-width:0}
+  .url-line{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:center;min-width:0}
+  .network-list code{display:block;min-width:0;color:var(--ink);background:#f0ebfb;padding:7px 9px;border-radius:10px;overflow-wrap:anywhere;word-break:break-word;font-size:12.5px;line-height:1.35}
+  .mini-status{border-radius:999px;background:#e5f8ef;color:var(--ok);padding:3px 7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+  .net-note{border-top:1px solid var(--line);padding-top:9px;color:var(--ink-soft)}
+  .diagnostics{padding:0 18px 18px}
+  details.panel{padding:0;overflow:hidden}
+  details.panel summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:17px 18px;cursor:pointer;transition:background .2s var(--ease)}
+  details.panel summary:hover{background:var(--field)}
+  details.panel summary::-webkit-details-marker{display:none}
+  .diag-toolbar{display:flex;justify-content:flex-end;padding:0 18px 12px}
+  .summary-title h2{margin:0 0 4px;font-size:18px}
+  pre{margin:0 18px 18px;max-height:280px;overflow:auto;background:#121826;color:#e5e7eb;border-radius:16px;padding:14px;font-size:12px;line-height:1.5;border:1px solid rgba(255,255,255,.06);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .wizard{display:none}
+  body.mode-add .dashboard{display:none}
+  body.mode-add .wizard{display:block}
+  .wizard-shell{width:100%;max-width:720px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .wizard-hd{padding:24px 22px 20px;color:#fff;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .wizard-hd h1{font-size:22px}
+  .wizard-body{padding:20px}
+  .steps{display:flex;gap:8px;margin-bottom:16px}
+  .step-dot{height:8px;flex:1;border-radius:999px;background:#ddd4f0;transition:background .3s var(--ease)}
+  .step-dot.on{background:linear-gradient(90deg,var(--brand-1),var(--brand-2))}
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mode,.provider-option{border:1.5px solid var(--line);border-radius:18px;padding:16px;background:var(--field);text-align:left;transition:all .2s var(--ease)}
+  .mode:hover,.provider-option:hover{border-color:#cdbff5;transform:translateY(-1px)}
+  .mode.sel,.provider-option.sel{border-color:var(--brand-1);background:#fff;box-shadow:0 0 0 4px rgba(110,84,240,.12)}
+  .mode.off{opacity:.52;cursor:not-allowed}
+  .option-list{display:grid;gap:10px}
+  .connect-box{border:1.5px solid var(--line);border-radius:18px;padding:16px;background:var(--field)}
+  .connect-box h3{margin:0 0 6px;font-size:15px}
+  .connect-box p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.45}
+  .footer-actions{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+  .toast{display:none;margin:0 18px 14px;border:1.5px solid #bcebd4;background:#eafaf2;color:var(--ok);border-radius:14px;padding:11px 13px;font-size:13px;font-weight:800}
+  .toast.on{display:block;animation:toastIn .3s var(--ease)}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(36,29,58,.34);z-index:10}
+  .modal.on{display:flex;animation:fadeIn .2s var(--ease)}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .dialog{width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 60px -12px rgba(58,38,120,.3),0 8px 20px rgba(58,38,120,.08);padding:20px}
+  .dialog-cat{width:58px;height:54px;margin-bottom:10px;position:relative;filter:drop-shadow(0 5px 12px rgba(110,84,240,.16))}
+  .dialog-cat::before{content:"";position:absolute;left:7px;right:7px;bottom:3px;height:39px;border-radius:45% 45% 38% 38%;background:linear-gradient(135deg,#fff,#f8f2ff);border:1px solid #f0e7ff}
+  .dialog-cat::after{content:"";position:absolute;left:18px;top:26px;width:6px;height:6px;border-radius:50%;background:rgba(36,29,58,.66);box-shadow:18px 0 rgba(36,29,58,.66)}
+  .dialog h2{margin:0 0 7px;font-size:20px}
+  .dialog p{margin:0;color:var(--ink-soft);font-size:13.5px;line-height:1.55}
+  .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  @media(max-width:900px){
+    .page{padding:16px}
+    .hero,.content{grid-template-columns:1fr}
+    .hero-meter{grid-template-columns:auto minmax(0,1fr)}
+    .ring{width:128px;height:128px}
+    .status{flex-basis:calc(50% - 5px)}
+    .modes{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){
+    body{overflow-x:hidden}
+    .page{padding:16px 10px}
+    .console{border-radius:22px}
+    .hero{padding:18px 18px 20px}
+    .brand-row{display:grid;grid-template-columns:1fr;align-items:start;gap:10px}
+    .cat-badge{width:54px;height:50px}
+    .cat-badge::before{left:8px;right:8px;height:41px}
+    .cat-badge::after{left:17px;top:26px;width:6px;height:6px;box-shadow:16px 0 rgba(36,29,58,.72)}
+    .cat-badge .ear{top:5px;width:20px;height:23px}
+    .cat-badge .ear.left{left:9px}
+    .cat-badge .ear.right{right:9px}
+    h1{font-size:27px;line-height:1.08}
+    .brand-row h1{font-size:25px}
+    .hero-sub{max-width:300px;font-size:13.5px;line-height:1.35;overflow-wrap:break-word}
+    .hero-actions{gap:8px}
+    .hero-actions .btn{height:39px;padding:0 12px;font-size:13px}
+    .hero-meter{grid-template-columns:1fr;text-align:center}
+    .ring{width:122px;height:122px;margin:0 auto}
+    .ring-value{font-size:33px}
+    .metric-label{font-size:18px}
+    .status-strip{padding:12px 10px}
+    .status{flex-basis:100%;display:grid;grid-template-columns:1fr;gap:3px;border-radius:18px;align-items:start}
+    .status .value{max-width:none;text-align:left}
+    .panel-head{grid-template-columns:1fr}
+    .panel-head>.btn.small{justify-self:start;padding:0 10px}
+    .panel-hint{max-width:300px}
+    .content{padding:12px 10px}
+    .panel{padding:14px;border-radius:18px}
+    .panel-title{gap:10px}
+    .icon-bubble{width:34px;height:34px;border-radius:12px}
+    .icon-bubble .icon{width:18px;height:18px;flex-basis:18px}
+    .section-title{min-height:34px}
+    .provider-head, .device-head{display:grid;grid-template-columns:1fr;gap:10px}
+    .source-main{min-width:0}
+    .source-main>div:last-child{min-width:0}
+    .pills{justify-content:flex-start}
+    .window-row{grid-template-columns:1fr;gap:7px}
+    .window-row .bar,.window-row .meta{grid-column:1 / -1!important}
+    .provider-actions .btn.small{flex:1 1 calc(50% - 4px)}
+    .network-list code{font-size:12px}
+  }
+  ::selection{background:rgba(110,84,240,.2)}
 </style>
 </head>
 <body>
-  <div class="panel" id="panel">
-    <div class="hd">
-      <span id="cat"></span>
-      <div class="name">Tokpet</div>
-      <div class="tag" id="tag">Add a data source</div>
-    </div>
-    <div class="body">
-      <div class="topbar"><button class="back" id="back" onclick="goBack()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Back</button></div>
-      <div class="steps"><span class="d on" id="d1"></span><span class="d" id="d2"></span><span class="d" id="d3"></span></div>
-
-      <!-- HOME: configured providers -->
-      <section class="screen" id="home">
-        <div class="lbl">Ready</div>
-        <h2>Your data source is connected</h2>
-        <p class="sub">Tokpet will publish this state on your local network for the device to discover.</p>
-        <div class="homecard">
-          <div class="row">
-            <div><div class="title" id="activeTitle">Active provider</div><div class="meta" id="activeMeta">Loading usage…</div></div>
-            <button class="linkbtn" onclick="startAddFlow()">Change</button>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></symbol>
+    <symbol id="i-provider" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="4"/><path d="M8 10h8M8 14h5"/></symbol>
+    <symbol id="i-device" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="3"/><path d="M10 17h4"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19h.01"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></symbol>
+    <symbol id="i-reconnect" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2v5h-5"/><path d="M7 22v-5h5"/><path d="M18.5 9A7 7 0 0 0 7 5.5L5 7.5"/><path d="M5.5 15A7 7 0 0 0 17 18.5l2-2"/></symbol>
+    <symbol id="i-diagnostics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h14M4 11h10M4 16h7"/><path d="M17 12v6M14 15h6"/></symbol>
+  </svg>
+  <main class="page">
+    <div class="dashboard">
+      <div class="console">
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="brand-row">
+              <div class="cat-badge"><span class="ear left"></span><span class="ear right"></span></div>
+              <div>
+                <h1>Tokpet Console</h1>
+                <p class="hero-sub">A friendly local control center for AI usage, providers, and your desk pet.</p>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <button class="btn primary" icon="plus" onclick="startAddProvider()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus"></use></svg>Add provider</button>
+              <button class="btn ghost" icon="refresh" onclick="refreshAll()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-refresh"></use></svg>Refresh state</button>
+            </div>
           </div>
-          <div class="uwrap" id="homeUsage"></div>
-          <div class="errbar" id="homeErr"></div>
+          <div class="hero-meter">
+            <div class="ring" id="nowRing"><div class="ring-value" id="nowMetric">No data</div></div>
+            <div>
+              <div class="metric-title">Now showing</div>
+              <div class="metric-label" id="nowLabel">Add a provider to publish usage.</div>
+              <div class="mood" id="nowMood">idle</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="toast" id="toast"></div>
+
+        <section class="status-strip" aria-label="Runtime status">
+          <div class="status"><div class="label">Companion</div><div class="value"><span class="dot ok"></span><span id="serviceStatus">Running</span></div></div>
+          <div class="status"><div class="label">State feed</div><div class="value" id="stateStatus">Loading</div></div>
+          <div class="status"><div class="label">Device</div><div class="value" id="deviceStatus">Checking</div></div>
+          <div class="status"><div class="label">Providers</div><div class="value" id="providerStatus">0 active</div></div>
+        </section>
+
+        <div class="content">
+          <div class="stack">
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-title">
+                  <div class="icon-bubble provider"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-provider"></use></svg></div>
+                  <div class="title-stack">
+                    <div class="section-title"><h2>Providers</h2></div>
+                    <p class="hint panel-hint">Your connected AI usage sources. Refresh, reconnect, or remove them here.</p>
+                  </div>
+                </div>
+                <button class="btn small primary" icon="plus" onclick="startAddProvider()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus"></use></svg>Add source</button>
+              </div>
+              <div class="rows" id="providersList"></div>
+            </section>
+          </div>
+
+          <aside class="stack">
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-title">
+                  <div class="icon-bubble device"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-device"></use></svg></div>
+                  <div class="title-stack">
+                    <div class="section-title"><h2>Devices</h2></div>
+                    <p class="hint panel-hint">Tokpet hardware observed through <span class="mono">/state</span> polling.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="rows" id="devicesList"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-title">
+                  <div class="icon-bubble network"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-network"></use></svg></div>
+                  <div class="title-stack">
+                    <div class="section-title"><h2>Network</h2></div>
+                    <p class="hint panel-hint">Discovery and local URLs used by Tokpet hardware.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="network-list" id="networkList"></div>
+            </section>
+          </aside>
         </div>
-        <button class="btn" onclick="refreshHome()">Refresh usage</button>
-      </section>
 
-      <!-- STEP 1: access mode (rendered from /api/providers) -->
-      <section class="screen on" id="s1">
-        <div class="lbl">Step 1 · Access mode</div>
-        <h2>How does Tokpet read this provider?</h2>
-        <p class="sub">Providers are grouped by how the vendor exposes your usage. Pick the one that fits.</p>
-        <div class="modes" id="modes"></div>
-        <button class="btn" id="next1" disabled onclick="goStep(2)">Continue →</button>
-      </section>
-
-      <!-- STEP 2: provider within the chosen mode -->
-      <section class="screen" id="s2">
-        <div class="lbl" id="s2lbl">Step 2 · Provider</div>
-        <h2>Which provider?</h2>
-        <p class="sub">Pick the source you want Tokpet to track.</p>
-        <div id="provList"></div>
-        <p class="sub" id="moreSoon" style="margin-top:14px;display:none">More coming soon.</p>
-        <button class="btn" id="next2" disabled onclick="goStep(3)">Continue →</button>
-      </section>
-
-      <!-- STEP 3: connect & test -->
-      <section class="screen" id="s3">
-        <div class="lbl" id="s3lbl">Step 3 · Connect</div>
-        <h2 id="h3title">Connect</h2>
-        <p class="sub">No key to enter — this source reuses the login you already have.</p>
-        <div class="infocard">
-          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-          <div><div class="t">Reuses your local login</div><div class="d">Tokpet reads the credentials already on this machine, fetches usage once, and saves the source when it works.</div></div>
+        <div class="diagnostics">
+          <details class="panel">
+            <summary>
+              <div class="panel-title summary-title">
+                <div class="icon-bubble diagnostics"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-diagnostics"></use></svg></div>
+                <div class="title-stack">
+                  <div class="section-title"><h2>Advanced diagnostics</h2></div>
+                  <p class="hint panel-hint">State Preview, URL, and raw JSON for devices and third-party clients.</p>
+                </div>
+              </div>
+            </summary>
+            <div class="diag-toolbar">
+              <button class="btn small" type="button" onclick="copyStateUrl()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>Copy state URL</button>
+            </div>
+            <pre id="stateJson">{}</pre>
+          </details>
         </div>
-        <button class="btn" id="btnTest" onclick="runTest()">Connect source</button>
-        <div class="errbar" id="errbar"></div>
-        <div class="result" id="result">
-          <div class="actbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Test passed — activated automatically</div>
-          <div class="uwrap" id="uwrap"></div>
-          <button class="btn" style="margin-top:14px" onclick="finish()">Done →</button>
-        </div>
-      </section>
-
+      </div>
     </div>
-  </div>
+
+    <div class="wizard">
+      <div class="wizard-shell">
+        <header class="wizard-hd">
+          <div>
+            <h1>Add provider</h1>
+            <p class="hero-sub">Connect a data source, then return to Tokpet Console.</p>
+          </div>
+          <button class="btn ghost" onclick="showDashboard()">Back</button>
+        </header>
+        <div class="wizard-body">
+          <div class="steps"><span class="step-dot on" id="dot1"></span><span class="step-dot" id="dot2"></span><span class="step-dot" id="dot3"></span></div>
+
+          <div id="step1">
+            <div class="panel-head"><div><h2>Access mode</h2><p class="hint">Choose how Tokpet reads this source.</p></div></div>
+            <div class="modes" id="modes"></div>
+            <div class="footer-actions"><span></span><button class="btn primary" id="next1" disabled onclick="goStep(2)">Continue</button></div>
+          </div>
+
+          <div id="step2" style="display:none">
+            <div class="panel-head"><div><h2>Provider</h2><p class="hint">Pick the provider to connect.</p></div></div>
+            <div class="option-list" id="providerOptions"></div>
+            <div class="footer-actions"><button class="btn" onclick="goStep(1)">Back</button><button class="btn primary" id="next2" disabled onclick="goStep(3)">Continue</button></div>
+          </div>
+
+          <div id="step3" style="display:none">
+            <div class="panel-head"><div><h2 id="connectTitle">Connect</h2><p class="hint">Tokpet tests the source before saving it.</p></div></div>
+            <div class="connect-box">
+              <h3>Local credential reuse</h3>
+              <p id="connectCopy">This provider uses credentials already present on this machine.</p>
+            </div>
+            <div class="error" id="connectError" style="display:none"></div>
+            <div class="footer-actions"><button class="btn" onclick="goStep(2)">Back</button><button class="btn primary" id="connectBtn" onclick="activateProvider()">Connect source</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="removeDialog" role="dialog" aria-modal="true" aria-labelledby="removeTitle">
+      <div class="dialog">
+        <div class="dialog-cat"></div>
+        <h2 id="removeTitle">Remove data source?</h2>
+        <p id="removeCopy">This only removes the source from Tokpet. It will not delete your provider login or credentials.</p>
+        <div class="dialog-actions">
+          <button class="btn" onclick="closeRemoveDialog()">Cancel</button>
+          <button class="btn danger" id="removeConfirmBtn" onclick="removeSelectedProvider()">Remove</button>
+        </div>
+      </div>
+    </div>
+  </main>
 
 <script>
-  // ---- cat mascot (neutral / happy / sad), from the provisioning prototype ----
-  function catSVG(mood){
-    var face="#ffffff", feat="rgba(36,26,66,.62)", blush="rgba(255,128,164,.95)", eyes, mouth;
-    if(mood==="happy"){
-      eyes='<path d="M30 50 Q37.5 42 45 50" fill="none" stroke="'+feat+'" stroke-width="3.4" stroke-linecap="round"/><path d="M55 50 Q62.5 42 70 50" fill="none" stroke="'+feat+'" stroke-width="3.4" stroke-linecap="round"/>';
-      mouth='<path d="M41 60 Q50 69 59 60" fill="none" stroke="'+feat+'" stroke-width="2.8" stroke-linecap="round"/>';
-    }else if(mood==="sad"){
-      eyes='<ellipse cx="37.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/><ellipse cx="62.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/>';
-      mouth='<path d="M43 65 Q50 59 57 65" fill="none" stroke="'+feat+'" stroke-width="2.8" stroke-linecap="round"/>';
-    }else{
-      eyes='<ellipse cx="37.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/><ellipse cx="62.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/><circle cx="39.2" cy="49" r="1.5" fill="#fff"/><circle cx="64.2" cy="49" r="1.5" fill="#fff"/>';
-      mouth='<path d="M44 60 Q50 64.5 56 60" fill="none" stroke="'+feat+'" stroke-width="2.6" stroke-linecap="round"/>';
-    }
-    return '<svg class="cat'+(mood?(' '+mood):'')+'" viewBox="0 0 100 92" xmlns="http://www.w3.org/2000/svg"><path d="M27 34 L32 7 L48 28 Z" fill="'+face+'"/><path d="M73 34 L68 7 L52 28 Z" fill="'+face+'"/><ellipse cx="50" cy="54" rx="33" ry="30" fill="'+face+'"/><ellipse cx="29" cy="60" rx="6" ry="3.7" fill="'+blush+'" opacity="'+(mood==="happy"?".9":".5")+'"/><ellipse cx="71" cy="60" rx="6" ry="3.7" fill="'+blush+'" opacity="'+(mood==="happy"?".9":".5")+'"/>'+eyes+'<path d="M47 56 L53 56 L50 59.5 Z" fill="'+blush+'"/>'+mouth+'<g stroke="'+feat+'" stroke-width="1.5" stroke-linecap="round" opacity=".5"><line x1="13" y1="55" x2="26" y2="56"/><line x1="13" y1="61" x2="26" y2="60"/><line x1="87" y1="55" x2="74" y2="56"/><line x1="87" y1="61" x2="74" y2="60"/></g></svg>';
-  }
-  var $=function(id){return document.getElementById(id)};
-  $("cat").innerHTML=catSVG("");
-
-  // ---- mode metadata (icon + copy keyed by access mode) ----
   var MODE_META={
-    subscription:{title:"Subscription",desc:"Rolling 5-hour / weekly quota from a plan you're logged into.",
-      icon:'<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>'},
-    "api-key":{title:"Direct API key",desc:"Cumulative spend & remaining credit on a pay-as-you-go key.",
-      icon:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 8-8"/><path d="m17 7 2 2"/><path d="m14 10 2 2"/>'},
-    relay:{title:"Relay / proxy",desc:"Balance from a third-party gateway that resells multiple models.",
-      icon:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'}
+    subscription:{title:"Subscription",desc:"Plan quota, rolling windows, or vendor subscription limits."},
+    "api-key":{title:"Direct API key",desc:"Balance, spend, and remaining credit for a direct API account."},
+    relay:{title:"Relay / proxy",desc:"Balance or quota from a third-party gateway."}
   };
   var MODES=["subscription","api-key","relay"];
-  var MODE_LABEL={subscription:"Subscription","api-key":"Direct API key",relay:"Relay / proxy"};
-
-  var state={providers:[],mode:null,provider:null,step:1,homeProvider:null};
+  var app={providers:[],runtime:null,snapshot:null,mode:null,provider:null,stateUrl:"/state",removeId:null};
+  var $=function(id){return document.getElementById(id)};
 
   function api(method,url,body){
-    return fetch(url,{method:method,headers:{"Content-Type":"application/json"},
-      body:body?JSON.stringify(body):undefined}).then(function(r){return r.json()});
+    return fetch(url,{method:method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined})
+      .then(function(res){
+        if(typeof res.text!=="function"){
+          return res.json().then(function(json){if(!res.ok) json.__status=res.status; return json;});
+        }
+        return res.text().then(function(text){
+          var json;
+          try{json=text?JSON.parse(text):{};}catch(e){json={ok:false,error:{message:text||"Unexpected response from local service."}};}
+          if(!res.ok) json.__status=res.status;
+          return json;
+        });
+      });
   }
-  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]}); }
-  function providersIn(mode){ return state.providers.filter(function(p){return p.mode===mode&&p.available}); }
-  function labelOf(id){ var p=state.providers.find(function(x){return x.id===id}); return p?p.displayName:id; }
-  function activeProviders(){ return state.providers.filter(function(p){return p.activated}); }
-
-  // ---- STEP 1 ----
-  function renderModes(){
-    $("modes").innerHTML=MODES.map(function(m){
-      var meta=MODE_META[m], list=providersIn(m), on=list.length>0;
-      var ex = on
-        ? '<div class="ex">'+list.map(function(p){return '<span class="ready">'+esc(p.displayName)+(p.activated?" ✓":"")+'</span>'}).join("")+'</div>'
-        : '<div class="ex"><span class="soon">No providers yet</span></div>';
-      return '<div class="mode'+(on?"":" off")+'" data-k="'+m+'"'+(on?' onclick="pickMode(this)"':'')+'>'
-        +'<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>'
-        +'<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'+meta.icon+'</svg></div>'
-        +'<h3>'+esc(meta.title)+'</h3><p>'+esc(meta.desc)+'</p>'+ex+'</div>';
-    }).join("");
-  }
-  function pickMode(el){
-    document.querySelectorAll(".mode").forEach(function(m){m.classList.remove("sel")});
-    el.classList.add("sel"); state.mode=el.dataset.k; $("next1").disabled=false;
-  }
-
-  // ---- STEP 2 ----
-  function renderProviders(){
-    var list=providersIn(state.mode);
-    $("s2lbl").textContent="Step 2 · "+(MODE_LABEL[state.mode]||"Provider");
-    $("provList").innerHTML=list.map(function(p){
-      var initial=esc(p.displayName.charAt(0).toUpperCase());
-      var pill=p.activated?'<span class="tagpill active">ACTIVE</span>':'<span class="tagpill ready">READY</span>';
-      var logoClass=p.id==="claude"?"logo claude":"logo";
-      return '<div class="prov" data-id="'+esc(p.id)+'" onclick="pickProvider(this)">'
-        +'<div class="'+logoClass+'">'+initial+'</div>'
-        +'<div class="meta"><div class="nm">'+esc(p.displayName)+'</div><div class="desc">'
-        +(p.activated?"Already activated":"Test to connect")+'</div></div>'+pill+'</div>';
-    }).join("");
-    $("moreSoon").style.display="block";
-    $("next2").disabled=true; state.provider=null;
-  }
-  function pickProvider(el){
-    document.querySelectorAll(".prov").forEach(function(p){p.classList.remove("sel")});
-    el.classList.add("sel"); state.provider=el.dataset.id; $("next2").disabled=false;
-  }
-
-  // ---- navigation ----
-  var TAG={1:"Add a data source",2:"Pick a provider",3:"Connect"};
-  function goStep(n){
-    if(n===2) renderProviders();
-    if(n===3){ resetTest(); $("h3title").textContent="Connect "+labelOf(state.provider); $("s3lbl").textContent="Step 3 · "+labelOf(state.provider); }
-    ["s1","s2","s3"].forEach(function(s,i){ $(s).classList.toggle("on",(i+1)===n) });
-    ["d1","d2","d3"].forEach(function(d,i){ $(d).classList.toggle("on",(i+1)===n) });
-    $("tag").textContent=TAG[n]; $("back").classList.toggle("show",n>1);
-    if(n!==3){ $("panel").removeAttribute("data-mood"); $("cat").innerHTML=catSVG(""); }
-    state.step=n;
-  }
-  function goBack(){ if(state.step>1){ if(state.step===3) resetTest(); goStep(state.step-1); } }
-
-  // ---- STEP 3: test -> auto-activate -> render usage ----
-  function resetTest(){
-    $("result").classList.remove("on"); $("errbar").classList.remove("on");
-    var b=$("btnTest"); b.style.display="block"; b.disabled=false; b.classList.remove("wait"); b.innerHTML="Connect source";
-    $("panel").removeAttribute("data-mood"); $("cat").innerHTML=catSVG("");
-  }
-  function pctColor(p){ return p<50?"linear-gradient(90deg,#1fb37a,#10a59a)":p<80?"linear-gradient(90deg,#ff9f5a,#ff7a59)":"linear-gradient(90deg,#ff7a59,#f2486e)"; }
-  function fmtReset(iso){ if(!iso) return ""; var d=new Date(iso); return isNaN(d.getTime())?"":"Resets "+d.toLocaleString(); }
-  function renderUsageInto(targetId, usage){
-    var ws=(usage&&usage.windows)||[];
-    if(!ws.length){ $(targetId).innerHTML='<div class="u"><div class="reset">No usage windows reported.</div></div>'; return; }
-    $(targetId).innerHTML=ws.map(function(w){
-      return '<div class="u"><div class="top"><span class="wlbl">'+esc(w.label)+'</span><span class="pct">'
-        +Math.round(w.usedPct)+'%</span></div><div class="track"><div class="fill"></div></div>'
-        +'<div class="reset">'+fmtReset(w.resetsAt)+'</div></div>';
-    }).join("");
-    requestAnimationFrame(function(){ setTimeout(function(){
-      var fills=$(targetId).querySelectorAll(".fill");
-      ws.forEach(function(w,i){ if(fills[i]){ fills[i].style.width=Math.round(w.usedPct)+"%"; fills[i].style.background=pctColor(w.usedPct); } });
-    },60); });
-  }
-  function renderUsage(usage){ renderUsageInto("uwrap", usage); }
+  function esc(s){return String(s == null ? "" : s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function activeProviders(){return app.providers.filter(function(p){return p.activated});}
+  function providerById(id){return app.providers.find(function(p){return p.id===id});}
+  function stateProvider(id){return (app.snapshot&&app.snapshot.providers||[]).find(function(p){return p.id===id});}
+  function fmtTime(value){if(!value)return "never";var d=new Date(value);return isNaN(d.getTime())?"unknown":d.toLocaleTimeString();}
+  function fmtDate(value){if(!value)return "never";var d=new Date(value);return isNaN(d.getTime())?"unknown":d.toLocaleString();}
+  function fillClass(pct){return pct>=80?"bad":pct>=50?"warn":"";}
   function errorMessage(error){
-    if(!error) return "Test failed. Check that you're logged in, then try again.";
-    if(error.code==="rate-limited") return "Claude usage is temporarily rate limited. Wait a few minutes, then refresh.";
-    if(error.code==="auth-expired") return "Claude login expired. Run Claude Code once, sign in again, then retry.";
-    if(error.code==="not-configured") return error.message || "Claude login was not found on this machine.";
-    return error.message || "Test failed. Check that you're logged in, then try again.";
+    if(!error) return "Provider failed. Retry or reconnect the source.";
+    if(error.code==="rate-limited") return "Rate limited. Wait a few minutes, then refresh.";
+    if(error.code==="auth-expired") return "Login expired. Sign in again, then reconnect.";
+    if(error.code==="not-configured") return error.message || "Credentials were not found on this machine.";
+    return error.message || "Provider failed. Retry or reconnect the source.";
   }
-  function showError(msg){
-    var b=$("btnTest"); b.disabled=false; b.classList.remove("wait"); b.innerHTML="Connect source";
-    $("panel").setAttribute("data-mood","bad"); $("cat").innerHTML=catSVG("sad");
-    $("errbar").textContent=msg||"Test failed. Check that you're logged in, then try again.";
-    $("errbar").classList.add("on");
+  function icon(name){return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-'+name+'"></use></svg>';}
+  function copyIconButton(value){
+    return '<button class="icon-btn" type="button" aria-label="Copy URL" data-url="'+esc(value)+'" onclick="copyUrl(this.dataset.url)">'+icon('copy')+'</button>';
   }
-  function runTest(){
-    var id=state.provider, b=$("btnTest");
-    $("errbar").classList.remove("on");
-    b.disabled=true; b.classList.add("wait"); b.innerHTML='<span class="spin"></span>Connecting…';
-    api("POST","/api/providers/"+id+"/activate",{}).then(function(act){
-      if(!act||!act.ok){ showError(errorMessage(act&&act.error)); return; }
-      b.style.display="none"; $("result").classList.add("on");
-      $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy"); $("tag").textContent="Connected";
-      renderUsage(act.usage);
-      var p=state.providers.find(function(x){return x.id===id}); if(p) p.activated=true;
-    }).catch(function(){ showError("Network error reaching the local service."); });
-  }
+  function showToast(message){$("toast").textContent=message;$("toast").classList.add("on");setTimeout(function(){$("toast").classList.remove("on");},2800);}
 
-  function finish(){
-    api("GET","/api/providers").then(function(list){
-      state.providers=Array.isArray(list)?list:[]; resetTest(); bootView();
+  function refreshAll(){
+    Promise.all([
+      api("GET","/api/providers"),
+      api("GET","/api/runtime").catch(function(){return null;}),
+      api("GET","/state").catch(function(){return null;})
+    ]).then(function(results){
+      app.providers=Array.isArray(results[0])?results[0]:[];
+      app.runtime=results[1]&&results[1].ok?results[1]:null;
+      app.snapshot=results[2]&&results[2].version?results[2]:null;
+      renderDashboard();
     });
   }
 
-  function showOnly(id){
-    ["home","s1","s2","s3"].forEach(function(s){ $(s).classList.toggle("on",s===id) });
+  function renderDashboard(){
+    renderStatus();
+    renderNow();
+    renderProviders();
+    renderDevices();
+    renderNetwork();
+    $("stateJson").textContent=JSON.stringify(app.snapshot||{},null,2);
   }
-  function startAddFlow(){
-    state.mode=null; state.provider=null; state.step=1; state.homeProvider=null;
-    renderModes(); resetTest();
-    document.querySelectorAll(".mode,.prov").forEach(function(e){e.classList.remove("sel")});
-    $("next1").disabled=true; $("next2").disabled=true;
-    $("panel").removeAttribute("data-mood"); $("cat").innerHTML=catSVG(""); $("tag").textContent="Add a data source";
-    $("back").classList.remove("show"); ["d1","d2","d3"].forEach(function(d,i){ $(d).classList.toggle("on",i===0) });
-    showOnly("s1");
+
+  function renderStatus(){
+    var active=activeProviders().length;
+    $("serviceStatus").textContent=app.runtime?"Running":"Unknown";
+    $("stateStatus").textContent=app.snapshot?"v"+app.snapshot.version+" updated "+fmtTime(app.snapshot.fetchedAt):"Unavailable";
+    $("providerStatus").textContent=active+" active";
+    var devices=(app.runtime&&app.runtime.devices)||[];
+    var connected=devices.filter(function(d){return d.status==="connected";}).length;
+    $("deviceStatus").innerHTML=connected?'<span class="dot ok"></span>'+connected+" connected":'<span class="dot warn"></span>Waiting';
   }
-  function showHome(provider){
-    state.homeProvider=provider.id; $("activeTitle").textContent=provider.displayName;
-    $("activeMeta").textContent="Loading usage…"; $("homeErr").classList.remove("on"); $("homeUsage").innerHTML="";
-    $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy"); $("tag").textContent="Connected";
-    $("back").classList.remove("show"); ["d1","d2","d3"].forEach(function(d){ d.classList.remove("on") });
-    showOnly("home"); refreshHome();
+
+  function renderNow(){
+    var primary=app.snapshot&&app.snapshot.primary;
+    if(!primary){
+      $("nowMetric").textContent=activeProviders().length?"--":"--";
+      $("nowLabel").textContent=activeProviders().length?"Providers are configured, but no display metric is available.":"Add a provider to publish usage.";
+      $("nowMood").textContent=activeProviders().length?"idle":"empty";
+      $("nowRing").style.background="conic-gradient(rgba(255,255,255,.35) 0deg, rgba(255,255,255,.18) 0deg)";
+      return;
+    }
+    var provider=providerById(primary.providerId);
+    var pct=Math.max(0,Math.min(100,Math.round(primary.usedPct)));
+    $("nowMetric").textContent=pct+"%";
+    $("nowLabel").textContent=(provider?provider.displayName:primary.providerId)+" "+(primary.windowId||"primary");
+    $("nowMood").textContent=primary.mood;
+    $("nowRing").style.background="conic-gradient(#fff "+(pct*3.6)+"deg, rgba(255,255,255,.25) 0deg)";
   }
-  function refreshHome(){
-    $("homeErr").classList.remove("on"); $("activeMeta").textContent="Refreshing usage…";
-    api("GET","/state").then(function(snap){
-      var p=(snap.providers||[]).find(function(x){return x.id===state.homeProvider});
-      if(!p){ $("activeMeta").textContent="Provider is not active."; return; }
-      if(p.result&&p.result.kind==="error"){
-        $("panel").setAttribute("data-mood","bad"); $("cat").innerHTML=catSVG("sad");
-        $("activeMeta").textContent="Needs attention";
-        $("homeErr").textContent=errorMessage(p.result); $("homeErr").classList.add("on");
-        $("homeUsage").innerHTML="";
+
+  function renderProviders(){
+    var active=activeProviders();
+    if(!active.length){
+      $("providersList").innerHTML='<div class="empty">No providers are connected yet. Add Claude, Codex, OpenAI API, Anthropic API, OpenRouter, or another source as they become available.</div>';
+      return;
+    }
+    $("providersList").innerHTML=active.map(renderProviderCard).join("");
+  }
+
+  function renderProviderCard(provider){
+    var sp=stateProvider(provider.id);
+    var result=sp&&sp.result;
+    var source=result&&result.source?result.source:"unknown";
+    var status="ok";
+    var statusText=source;
+    var body="";
+    if(result&&result.kind==="error"){
+      status="bad";statusText=result.code||"error";
+      body='<div class="error">'+esc(errorMessage(result))+'</div>';
+    }else if(result&&Array.isArray(result.windows)){
+      body='<div class="usage">'+result.windows.map(function(w){
+        var pct=Math.round(w.usedPct||0);
+        return '<div class="window-row"><div>'+esc(w.label||w.id)+'</div><div class="bar"><div class="fill '+fillClass(pct)+'" style="width:'+pct+'%"></div></div><div>'+pct+'%</div><div class="meta" style="grid-column:1 / -1">Resets '+esc(fmtDate(w.resetsAt))+'</div></div>';
+      }).join("")+'</div>';
+    }else{
+      body='<div class="empty">This provider is active, but it has not reported usage yet.</div>';
+    }
+    var initial=(provider.displayName||provider.id||"?").charAt(0).toUpperCase();
+    return '<article class="provider"><div class="provider-head"><div class="source-main"><div class="source-mark">'+esc(initial)+'</div><div><div class="name">'+esc(provider.displayName)+'</div><div class="meta">'+esc(provider.mode)+' · last update '+esc(result&&result.fetchedAt?fmtTime(result.fetchedAt):(app.snapshot?fmtTime(app.snapshot.fetchedAt):"never"))+'</div></div></div><div class="pills"><span class="pill '+status+'">'+esc(statusText)+'</span><span class="pill">enabled</span></div></div>'+body+'<div class="provider-actions"><button class="btn small" onclick="refreshAll()">'+icon('refresh')+'Refresh</button><button class="btn small" onclick="reconnectProvider(\''+esc(provider.id)+'\')">'+icon('reconnect')+'Reconnect</button><button class="btn small danger" onclick="removeProvider(\''+esc(provider.id)+'\')">'+icon('trash')+'Remove</button></div></article>';
+  }
+
+  function renderDevices(){
+    var devices=(app.runtime&&app.runtime.devices)||[];
+    if(!devices.length){
+      $("devicesList").innerHTML='<div class="empty">No Tokpet device has requested /state yet. Keep the companion running, finish Wi-Fi provisioning, and confirm the device is on the same LAN.</div>';
+      return;
+    }
+    $("devicesList").innerHTML=devices.map(function(device){
+      var cls=device.status==="connected"?"ok":device.status==="recent"?"warn":"bad";
+      return '<article class="device"><div class="device-head"><div><div class="name">'+esc(device.ip)+'</div><div class="meta">Last poll '+esc(fmtTime(device.lastSeenAt))+' · '+esc(device.pollCount)+' requests</div><div class="meta">'+esc(device.userAgent||"unknown client")+'</div></div><span class="pill '+cls+'">'+esc(device.status)+'</span></div></article>';
+    }).join("");
+  }
+
+  function renderNetwork(){
+    var runtime=app.runtime;
+    var urls=runtime&&runtime.service&&runtime.service.lanStateUrls&&runtime.service.lanStateUrls.length?runtime.service.lanStateUrls:["No LAN address detected"];
+    app.stateUrl=urls[0]&&urls[0].indexOf("http")===0?urls[0]:"/state";
+    var mdnsStatus=runtime&&runtime.mdns?runtime.mdns.status:"unknown";
+    var localUrl=runtime&&runtime.service?runtime.service.localUrl:"http://localhost:4717/";
+    var discovery="_tokpet._tcp.local:4717";
+    function urlLine(value){
+      return '<div class="url-line"><code>'+esc(value)+'</code>'+copyIconButton(value)+'</div>';
+    }
+    $("networkList").innerHTML=[
+      '<div class="net-card"><div class="net-card-head"><div class="net-label">Console</div></div><div class="url-list">'+urlLine(localUrl)+'</div></div>',
+      '<div class="net-card"><div class="net-card-head"><div class="net-label">Discovery</div><span class="mini-status">'+esc(mdnsStatus)+'</span></div><div class="url-list">'+urlLine(discovery)+'</div></div>',
+      '<div class="net-card"><div class="net-card-head"><div class="net-label">State feed</div></div><div class="url-list">'+urls.map(urlLine).join("")+'</div></div>',
+      '<div class="net-note">LAN clients can read <code>/state</code>; settings stay on this computer.</div>'
+    ].join("");
+  }
+
+  function startAddProvider(){
+    app.mode=null;app.provider=null;renderModes();goStep(1);document.body.classList.add("mode-add");
+  }
+  function showDashboard(){document.body.classList.remove("mode-add");refreshAll();}
+  function providersIn(mode){return app.providers.filter(function(p){return p.mode===mode&&p.available;});}
+  function renderModes(){
+    $("modes").innerHTML=MODES.map(function(mode){
+      var meta=MODE_META[mode];var list=providersIn(mode);var disabled=!list.length;
+      return '<button class="mode '+(disabled?"off":"")+'" '+(disabled?"disabled":"")+' onclick="pickMode(\''+esc(mode)+'\',this)"><div class="name">'+esc(meta.title)+'</div><div class="meta">'+esc(meta.desc)+'</div><div class="meta">'+(list.length?list.length+" available":"Coming later")+'</div></button>';
+    }).join("");
+    $("next1").disabled=true;
+  }
+  function pickMode(mode,el){
+    app.mode=mode;document.querySelectorAll(".mode").forEach(function(n){n.classList.remove("sel");});el.classList.add("sel");$("next1").disabled=false;
+  }
+  function renderProviderOptions(){
+    var list=providersIn(app.mode);
+    $("providerOptions").innerHTML=list.map(function(p){
+      return '<button class="provider-option" onclick="pickProvider(\''+esc(p.id)+'\',this)"><div class="name">'+esc(p.displayName)+'</div><div class="meta">'+esc(p.mode)+' · '+(p.activated?"already connected":"ready to connect")+'</div></button>';
+    }).join("");
+    $("next2").disabled=true;
+  }
+  function pickProvider(id,el){
+    app.provider=id;document.querySelectorAll(".provider-option").forEach(function(n){n.classList.remove("sel");});el.classList.add("sel");$("next2").disabled=false;
+  }
+  function goStep(n){
+    ["step1","step2","step3"].forEach(function(id,i){$(id).style.display=(i+1)===n?"block":"none";});
+    ["dot1","dot2","dot3"].forEach(function(id,i){$(id).classList.toggle("on",(i+1)<=n);});
+    if(n===2) renderProviderOptions();
+    if(n===3){
+      var p=providerById(app.provider);
+      $("connectTitle").textContent="Connect "+(p?p.displayName:"provider");
+      $("connectError").style.display="none";
+      $("connectBtn").disabled=false;
+      $("connectBtn").textContent=p&&p.activated?"Reconnect source":"Connect source";
+    }
+  }
+  function activateProvider(){
+    var id=app.provider;
+    $("connectError").style.display="none";
+    $("connectBtn").disabled=true;
+    $("connectBtn").textContent="Connecting...";
+    api("POST","/api/providers/"+encodeURIComponent(id)+"/activate",{}).then(function(result){
+      if(!result||!result.ok){
+        $("connectError").textContent=errorMessage(result&&result.error);
+        $("connectError").style.display="block";
+        $("connectBtn").disabled=false;
+        $("connectBtn").textContent="Retry connect";
         return;
       }
-      $("panel").setAttribute("data-mood","ok"); $("cat").innerHTML=catSVG("happy");
-      $("activeMeta").textContent="Last updated "+new Date(p.result.fetchedAt).toLocaleTimeString();
-      renderUsageInto("homeUsage", p.result);
+      showToast("Provider connected.");
+      document.body.classList.remove("mode-add");
+      refreshAll();
     }).catch(function(){
-      $("activeMeta").textContent="Local service unreachable.";
-      $("homeErr").textContent="Network error reaching the local service."; $("homeErr").classList.add("on");
+      $("connectError").textContent="Network error reaching the local service.";
+      $("connectError").style.display="block";
+      $("connectBtn").disabled=false;
+      $("connectBtn").textContent="Retry connect";
     });
   }
-  function bootView(){
-    renderModes();
-    var active=activeProviders()[0];
-    if(active) showHome(active); else startAddFlow();
+  function reconnectProvider(id){
+    startAddProvider();
+    var p=providerById(id);
+    if(!p) return;
+    app.mode=p.mode;
+    app.provider=p.id;
+    goStep(3);
+  }
+  function removeProvider(id){
+    var p=providerById(id);
+    var name=p?p.displayName:id;
+    app.removeId=id;
+    $("removeTitle").textContent="Remove "+name+"?";
+    $("removeCopy").textContent="This only removes "+name+" from Tokpet. It will not delete your provider login or credentials.";
+    $("removeConfirmBtn").disabled=false;
+    $("removeConfirmBtn").textContent="Remove";
+    $("removeDialog").classList.add("on");
+  }
+  function closeRemoveDialog(){
+    app.removeId=null;
+    $("removeDialog").classList.remove("on");
+  }
+  function removeSelectedProvider(){
+    var id=app.removeId;
+    if(!id) return;
+    $("removeConfirmBtn").disabled=true;
+    $("removeConfirmBtn").textContent="Removing...";
+    api("DELETE","/api/providers/"+encodeURIComponent(id)).then(function(result){
+      if(!result||!result.ok){
+        showToast("Could not remove provider.");
+        $("removeConfirmBtn").disabled=false;
+        $("removeConfirmBtn").textContent="Remove";
+        return;
+      }
+      showToast("Provider removed.");
+      closeRemoveDialog();
+      refreshAll();
+    }).catch(function(){
+      showToast("Could not remove provider.");
+      $("removeConfirmBtn").disabled=false;
+      $("removeConfirmBtn").textContent="Remove";
+    });
+  }
+  function copyStateUrl(){
+    copyUrl(app.stateUrl);
+  }
+  function copyUrl(value){
+    if(navigator.clipboard) navigator.clipboard.writeText(value);
+    showToast("Copied.");
   }
 
-  // ---- boot ----
-  api("GET","/api/providers").then(function(list){
-    state.providers=Array.isArray(list)?list:[]; bootView();
-  });
+  refreshAll();
 </script>
 </body>
 </html>
