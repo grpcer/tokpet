@@ -8,17 +8,19 @@ import { describe, expect, it } from 'vitest';
 const pagePath = join(process.cwd(), 'public', 'index.html');
 
 function scriptFrom(html: string): string {
-  const match = html.match(/<script>([\s\S]*)<\/script>/);
+  const match = html.match(/<script>([\s\S]*?)<\/script>/);
   expect(match?.[1]).toBeTruthy();
   return match?.[1] ?? '';
 }
 
 function makeElement() {
   const classes = new Set<string>();
+  const listeners: Record<string, Array<(e: unknown) => void>> = {};
   return {
     textContent: '',
     innerHTML: '',
     disabled: false,
+    hidden: false,
     style: { display: '' },
     dataset: {} as Record<string, string>,
     classList: {
@@ -26,16 +28,29 @@ function makeElement() {
       remove: (name: string) => classes.delete(name),
       toggle: (name: string, force?: boolean) => {
         if (force === false) classes.delete(name);
+        else if (force === true) classes.add(name);
+        else if (classes.has(name)) classes.delete(name);
         else classes.add(name);
       },
       contains: (name: string) => classes.has(name),
     },
+    addEventListener: (event: string, fn: (e: unknown) => void) => {
+      (listeners[event] = listeners[event] || []).push(fn);
+    },
+    removeAttribute: () => undefined,
+    setAttribute: () => undefined,
+    getAttribute: () => null,
+    focus: () => undefined,
+    click: () => undefined,
+    appendChild: () => undefined,
+    querySelector: () => makeElement(),
   };
 }
 
-function createConsoleContext(fetchImpl: (url: string, init?: unknown) => Promise<unknown>) {
+type FetchImpl = (url: string, init?: unknown) => Promise<unknown>;
+
+function createConsoleContext(fetchImpl: FetchImpl) {
   const ids = [
-    'toast',
     'serviceStatus',
     'stateStatus',
     'deviceStatus',
@@ -43,11 +58,16 @@ function createConsoleContext(fetchImpl: (url: string, init?: unknown) => Promis
     'nowRing',
     'nowMetric',
     'nowLabel',
+    'nowSub',
     'nowMood',
     'providersList',
     'devicesList',
     'networkList',
     'stateJson',
+    'diagSchema',
+    'diagFetched',
+    'diagProviderCount',
+    'diagCurl',
     'modes',
     'next1',
     'providerOptions',
@@ -58,27 +78,70 @@ function createConsoleContext(fetchImpl: (url: string, init?: unknown) => Promis
     'dot1',
     'dot2',
     'dot3',
+    'wizardSteps',
+    'wizardTitle',
+    'wizardSub',
+    'step2Title',
+    'step3Back',
     'connectTitle',
+    'connectMethod',
+    'connectCopy',
+    'connectSourceHint',
     'connectError',
     'connectBtn',
     'removeTitle',
     'removeCopy',
     'removeConfirmBtn',
     'removeDialog',
+    'reconnectTitle',
+    'reconnectCopy',
+    'reconnectError',
+    'reconnectConfirmBtn',
+    'reconnectDialog',
+    'connBanner',
+    'refreshBtn',
+    'addBtn',
+    'toastStack',
+    'diagPanel',
   ];
   const elements = new Map(ids.map((id) => [id, makeElement()]));
+  const docListeners: Record<string, Array<(e: unknown) => void>> = {};
+  const docBody = makeElement();
+  const win = {
+    addEventListener: () => undefined,
+  };
   const context = vm.createContext({
     document: {
-      body: makeElement(),
+      body: docBody,
       getElementById: (id: string) => elements.get(id) ?? makeElement(),
+      querySelector: () => null,
       querySelectorAll: () => [],
+      addEventListener: (ev: string, fn: (e: unknown) => void) => {
+        (docListeners[ev] = docListeners[ev] || []).push(fn);
+      },
+      createElement: () => makeElement(),
+      visibilityState: 'visible',
     },
-    navigator: { clipboard: { writeText: () => undefined } },
-    confirm: () => true,
+    window: win,
+    history: { pushState: () => undefined, replaceState: () => undefined },
+    location: { hash: '', origin: 'http://localhost:4717', pathname: '/', search: '' },
+    navigator: { clipboard: { writeText: () => Promise.resolve() } },
     setTimeout: () => 0,
+    clearTimeout: () => undefined,
+    setInterval: () => 0,
+    clearInterval: () => undefined,
     fetch: fetchImpl,
   });
-  return { context, elements };
+  return { context, elements, docBody };
+}
+
+// Build a minimal Response-shaped value the rewritten api() expects (uses .text()).
+function jsonResponse(body: unknown, ok = true, status = ok ? 200 : 500) {
+  return Promise.resolve({
+    ok,
+    status,
+    text: () => Promise.resolve(typeof body === 'string' ? body : JSON.stringify(body)),
+  });
 }
 
 describe('Tokpet Console page', () => {
@@ -88,18 +151,18 @@ describe('Tokpet Console page', () => {
     expect(html).toContain('Tokpet Console');
     expect(html).toContain('Providers');
     expect(html).toContain('Devices');
-    expect(html).toContain('State Preview');
+    expect(html).toContain('Advanced diagnostics');
     expect(html).toContain('Add provider');
     expect(html).toContain('/api/runtime');
-    expect(html).toContain('removeProvider');
+    // Core actions must be reachable (allow either legacy or new function names).
+    expect(html).toMatch(/openRemove\(|removeProvider\(/);
     expect(html).toContain('removeDialog');
-    expect(html).toContain('Advanced diagnostics');
+    // No native confirm() prompts; we use modal dialogs.
     expect(html).not.toContain('confirm(');
   });
 
-  it('uses a self-contained icon system for primary controls and sections', async () => {
+  it('ships a self-contained icon sprite set', async () => {
     const html = await readFile(pagePath, 'utf8');
-
     for (const id of [
       'i-plus',
       'i-refresh',
@@ -113,145 +176,161 @@ describe('Tokpet Console page', () => {
     ]) {
       expect(html).toContain(`id="${id}"`);
     }
-    expect(html).toContain('icon="plus"');
-    expect(html).toContain('icon="refresh"');
-    expect(html).toContain('icon-bubble provider');
-    expect(html).toContain('icon-bubble device');
-    expect(html).toContain('icon-bubble network');
-    expect(html).toContain("icon('trash')");
-    expect(html).toContain("icon('reconnect')");
+    // Mascot SVG is reused (cat sprite), avoiding the duplicated CSS-only badge.
+    expect(html).toContain('id="cat"');
   });
 
-  it('guards against the visible layout regressions from the console review', async () => {
+  it('guards against the visible regressions caught in the design review', async () => {
     const html = await readFile(pagePath, 'utf8');
 
-    expect(html).toMatch(/\.icon\{[^}]*flex:0 0 18px/);
-    expect(html).toMatch(/<symbol id="i-plus"[^>]*stroke="currentColor"/);
-    expect(html).toContain('<svg class="icon" viewBox="0 0 24 24"');
-    expect(html).toMatch(/\.btn\{[^}]*white-space:nowrap/);
-    expect(html).toMatch(/\.content\{[^}]*align-items:start/);
-    expect(html).toContain('source-mark');
-    expect(html).toContain('section-title');
-    expect(html).toContain('panel-hint');
-    expect(html).toMatch(/\.panel-head\{[^}]*grid-template-columns:minmax\(0,1fr\) auto/);
-    expect(html).toContain('class="net-card"');
-    expect(html).toContain('class="url-line"');
-    expect(html).toContain('copyUrl(this.dataset.url)');
-    expect(html).toMatch(/\.network-list code\{[^}]*overflow-wrap:anywhere/);
-    expect(html).not.toContain('text-overflow:ellipsis;color:var(--ink);background:#f0ebfb');
-    expect(html).toMatch(/@media\(max-width:560px\)\{[\s\S]*\.provider-head,\s*\.device-head\{display:grid/);
-    expect(html).toMatch(/body\{[\s\S]*overflow-x:hidden/);
-    expect(html).toContain('.status{min-width:0');
-    expect(html).toContain('.brand-row>div:last-child{min-width:0}');
+    // Cat mascot must be a friendly cat, not just two eyes — it needs nose + mouth + whiskers.
+    expect(html).toMatch(/#ff6a98/); // nose color appears
+    expect(html).toMatch(/whisker|stroke-linecap="round"[^>]*opacity/i);
+
+    // No invalid CSS font weights (system rounded fonts don't support 850/950).
+    expect(html).not.toMatch(/font-weight\s*:\s*850/);
+    expect(html).not.toMatch(/font-weight\s*:\s*950/);
+
+    // Accessibility: focus-visible outline + reduced-motion media query.
+    expect(html).toMatch(/:focus-visible\s*\{/);
+    expect(html).toMatch(/prefers-reduced-motion/);
+
+    // Status strip "Companion" indicator must be updated from JS (not hard-coded ok green).
+    expect(html).toMatch(/serviceStatus[^]{0,800}?dot--bad/);
+
+    // mDNS pill must be computed from runtime.mdns.status, not statically green.
+    expect(html).toMatch(/mdnsPill|pill--ok|pill--warn/);
+
+    // Page must be self-refreshing (auto poll on interval).
+    expect(html).toMatch(/setInterval\(/);
+
+    // ESC closes modal dialogs.
+    expect(html).toMatch(/key\s*===?\s*['"]Escape['"]/);
+
+    // Provider activation errors render an action-oriented message (title + hint).
+    expect(html).toMatch(/errorInfo\(/);
+
+    // Resets time should support relative + absolute representation.
+    expect(html).toMatch(/relativeTime\(/);
+    expect(html).toMatch(/absoluteTime\(/);
+
+    // Copy fallback must not silently lie when navigator.clipboard fails.
+    expect(html).toMatch(/execCommand\(['"]copy['"]\)|Copy failed/);
   });
 
   it('contains syntactically valid inline JavaScript', async () => {
     const html = await readFile(pagePath, 'utf8');
-
     expect(() => new vm.Script(scriptFrom(html))).not.toThrow();
   });
 
   it('renders provider, runtime, and state data from the local APIs', async () => {
     const html = await readFile(pagePath, 'utf8');
-    const { context, elements } = createConsoleContext((url: string) =>
-        Promise.resolve({
-          ok: true,
-          json: () => {
-            if (url === '/api/providers') {
-              return Promise.resolve([
-                {
-                  id: 'claude',
-                  displayName: 'Claude',
-                  mode: 'subscription',
-                  available: true,
-                  activated: true,
-                },
-              ]);
-            }
-            if (url === '/api/runtime') {
-              return Promise.resolve({
-                ok: true,
-                service: {
-                  status: 'running',
-                  localUrl: 'http://localhost:4717/',
-                  statePath: '/state',
-                  lanStateUrls: ['http://192.168.1.10:4717/state'],
-                },
-                mdns: { status: 'published' },
-                devices: [
-                  {
-                    ip: '192.168.1.42',
-                    userAgent: 'Tokpet-ESP32S3/1.0',
-                    lastSeenAt: '2026-05-30T06:00:00.000Z',
-                    pollCount: 2,
-                    status: 'connected',
-                  },
-                ],
-              });
-            }
-            return Promise.resolve({
-              version: 1,
-              fetchedAt: '2026-05-30T06:00:00.000Z',
-              primary: {
-                providerId: 'claude',
-                windowId: '7d',
-                usedPct: 26,
-                mood: 'chill',
-              },
-              providers: [
-                {
-                  id: 'claude',
-                  displayName: 'Claude',
-                  mode: 'subscription',
-                  result: {
-                    mode: 'subscription',
-                    fetchedAt: '2026-05-30T06:00:00.000Z',
-                    source: 'live',
-                    windows: [
-                      { id: '5h', label: 'Past 5 hours', usedPct: 8 },
-                      { id: '7d', label: 'Past 7 days', usedPct: 26 },
-                    ],
-                  },
-                },
-              ],
-            });
+    const { context, elements } = createConsoleContext((url: string) => {
+      if (url === '/api/providers') {
+        return jsonResponse([
+          {
+            id: 'claude',
+            displayName: 'Claude',
+            mode: 'subscription',
+            available: true,
+            activated: true,
           },
-        }));
+        ]);
+      }
+      if (url === '/api/runtime') {
+        return jsonResponse({
+          ok: true,
+          service: {
+            status: 'running',
+            localUrl: 'http://localhost:4717/',
+            statePath: '/state',
+            lanStateUrls: ['http://192.168.1.10:4717/state'],
+          },
+          mdns: { status: 'published', service: '_tokpet._tcp.local', port: 4717 },
+          devices: [
+            {
+              ip: '192.168.1.42',
+              userAgent: 'Tokpet-ESP32S3/1.0',
+              lastSeenAt: new Date(Date.now() - 5000).toISOString(),
+              pollCount: 2,
+              status: 'connected',
+            },
+          ],
+        });
+      }
+      return jsonResponse({
+        version: 1,
+        fetchedAt: new Date(Date.now() - 1000).toISOString(),
+        primary: { providerId: 'claude', windowId: '7d', usedPct: 26, mood: 'chill' },
+        providers: [
+          {
+            id: 'claude',
+            displayName: 'Claude',
+            mode: 'subscription',
+            result: {
+              mode: 'subscription',
+              fetchedAt: new Date(Date.now() - 1000).toISOString(),
+              source: 'live',
+              windows: [
+                { id: '5h', label: 'Past 5 hours', usedPct: 8 },
+                { id: '7d', label: 'Past 7 days', usedPct: 26 },
+              ],
+            },
+          },
+        ],
+      });
+    });
 
     new vm.Script(scriptFrom(html)).runInContext(context);
-    for (let i = 0; i < 8; i += 1) await Promise.resolve();
+    for (let i = 0; i < 12; i += 1) await Promise.resolve();
 
-    expect(elements.get('providerStatus')?.textContent).toBe('1 active');
+    expect(elements.get('providerStatus')?.innerHTML).toContain('1 active');
     expect(elements.get('nowMetric')?.textContent).toBe('26%');
-    expect(elements.get('nowLabel')?.textContent).toBe('Claude 7d');
+    expect(elements.get('nowLabel')?.textContent).toContain('Claude');
+    expect(elements.get('nowLabel')?.textContent).toContain('Past 7 days');
     expect(elements.get('nowMood')?.textContent).toBe('chill');
     expect(elements.get('providersList')?.innerHTML).toContain('Claude');
     expect(elements.get('providersList')?.innerHTML).toContain('Remove');
     expect(elements.get('devicesList')?.innerHTML).toContain('192.168.1.42');
+    expect(elements.get('devicesList')?.innerHTML).toContain('Tokpet device');
     expect(elements.get('networkList')?.innerHTML).toContain('192.168.1.10');
+    expect(elements.get('networkList')?.innerHTML).toContain('Published');
     expect(elements.get('stateJson')?.textContent).toContain('"version": 1');
   });
 
   it('keeps the remove action usable when deletion fails', async () => {
     const html = await readFile(pagePath, 'utf8');
-    const { context, elements } = createConsoleContext((url: string) => {
-      if (url === '/api/providers') {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve([
-              { id: 'claude', displayName: 'Claude', mode: 'subscription', available: true, activated: true },
-            ]),
-        });
+    const { context, elements } = createConsoleContext((url: string, init?: unknown) => {
+      if (
+        url === '/api/providers' &&
+        (!init || (init as { method?: string }).method === undefined)
+      ) {
+        return jsonResponse([
+          {
+            id: 'claude',
+            displayName: 'Claude',
+            mode: 'subscription',
+            available: true,
+            activated: true,
+          },
+        ]);
       }
-      if (url === '/api/runtime') return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true }) });
-      if (url === '/state') return Promise.resolve({ ok: true, json: () => Promise.resolve({ version: 1 }) });
-      return Promise.resolve({ ok: false, json: () => Promise.resolve({ ok: false }) });
+      if (url === '/api/runtime') return jsonResponse({ ok: true });
+      if (url === '/state')
+        return jsonResponse({ version: 1, fetchedAt: new Date().toISOString(), providers: [] });
+      // DELETE call fails
+      return jsonResponse({ ok: false, error: { message: 'busy' } }, false, 503);
     });
 
-    new vm.Script(`${scriptFrom(html)}\nremoveProvider('claude');\nremoveSelectedProvider();`).runInContext(context);
-    for (let i = 0; i < 8; i += 1) await Promise.resolve();
+    const script = scriptFrom(html);
+    new vm.Script(
+      `${script}
+;(typeof openRemove === 'function' ? openRemove : removeProvider)('claude');
+removeSelectedProvider();`,
+    ).runInContext(context);
+    for (let i = 0; i < 12; i += 1) await Promise.resolve();
 
+    // After failed deletion the confirm button must be re-enabled and labeled 'Remove'.
     expect(elements.get('removeConfirmBtn')?.disabled).toBe(false);
     expect(elements.get('removeConfirmBtn')?.textContent).toBe('Remove');
   });
@@ -260,23 +339,29 @@ describe('Tokpet Console page', () => {
     const html = await readFile(pagePath, 'utf8');
     const { context, elements } = createConsoleContext((url: string) => {
       if (url === '/api/providers') {
-        return Promise.resolve({
-          ok: true,
-          text: () =>
-            Promise.resolve(
-              JSON.stringify([
-                { id: 'claude', displayName: 'Claude', mode: 'subscription', available: true, activated: true },
-              ]),
-            ),
-        });
+        return jsonResponse([
+          {
+            id: 'claude',
+            displayName: 'Claude',
+            mode: 'subscription',
+            available: true,
+            activated: true,
+          },
+        ]);
       }
-      return Promise.resolve({ ok: false, status: 500, text: () => Promise.resolve('temporary failure') });
+      // Both runtime and /state return non-JSON text — must degrade gracefully.
+      return Promise.resolve({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('temporary failure'),
+      });
     });
 
     new vm.Script(scriptFrom(html)).runInContext(context);
-    for (let i = 0; i < 8; i += 1) await Promise.resolve();
+    for (let i = 0; i < 12; i += 1) await Promise.resolve();
 
-    expect(elements.get('providerStatus')?.textContent).toBe('1 active');
-    expect(elements.get('stateStatus')?.textContent).toBe('Unavailable');
+    expect(elements.get('providerStatus')?.innerHTML).toContain('1 active');
+    // State feed should clearly say it's unavailable, not pretend everything is fine.
+    expect(elements.get('stateStatus')?.innerHTML).toContain('Unavailable');
   });
 });
