@@ -419,46 +419,46 @@
 
   /* ---------------- Status strip ---------------- */
 
+  /* Status strip — meta info under the hero. Should read as a slim subtitle,
+     not as a second hero with its own row of cards. No chips, no shadows;
+     each cell is separated by a 1px divider like a Vercel project meta bar. */
   .status-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--s-3);
-    padding: var(--s-4) var(--s-6);
-    background: var(--field);
+    gap: 0;
+    padding: var(--s-3) var(--s-6);
+    background: var(--card);
     border-bottom: 1px solid var(--line);
   }
   .status {
     min-width: 0;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: var(--s-3) var(--s-4);
+    padding: 0 var(--s-4);
     display: flex;
     flex-direction: column;
     gap: 2px;
-    transition: border-color var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
     cursor: default;
   }
-  .status[title]:hover { border-color: var(--line-strong); }
+  .status + .status { border-left: 1px solid var(--line); }
   .status .label {
-    font-size: var(--fs-xs);
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--ink-soft);
+    letter-spacing: .1em;
+    color: var(--ink-faint);
     font-weight: var(--fw-s);
   }
   .status .value {
     display: inline-flex;
     align-items: center;
     gap: var(--s-2);
-    font-size: var(--fs-base);
+    font-size: var(--fs-md);
     font-weight: var(--fw-b);
+    color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .status .sub {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     color: var(--ink-soft);
     font-weight: var(--fw-m);
     white-space: nowrap;
@@ -710,12 +710,23 @@
     flex-wrap: wrap;
     margin-top: var(--s-4);
     padding-top: var(--s-3);
-    border-top: 1px dashed var(--line);
+    border-top: 1px solid var(--line);
   }
   .provider-actions .spacer { flex: 1; }
-  .provider-actions .btn--danger { margin-left: auto; }
+  /* Remove button: icon-only, neutral at rest, red only on hover. */
+  .provider-actions .btn--remove {
+    margin-left: auto;
+    color: var(--ink-faint);
+    border-color: transparent;
+    background: transparent;
+  }
+  .provider-actions .btn--remove:hover {
+    color: var(--bad);
+    background: var(--bad-soft);
+    border-color: transparent;
+  }
   @media (max-width: 560px) {
-    .provider-actions .btn--danger { margin-left: 0; }
+    .provider-actions .btn--remove { margin-left: 0; }
   }
 
   /* ---------------- Empty / error ---------------- */
@@ -1067,6 +1078,31 @@
   .wizard.wizard--key-only #sectionVendor { display: none; }
   .wizard.wizard--key-only #sectionConnect { margin-top: 0; padding-top: 0; border-top: 0; }
   .footer-actions--end { justify-content: flex-end; }
+
+  /* In-flight submit lock — disables interaction in the rest of the wizard
+     while activateProvider awaits the network round-trip; the Connect btn
+     itself stays clickable but its aria-busy already blocks re-click. */
+  #wizardForm.is-submitting > section { opacity: .55; pointer-events: none; filter: saturate(.85); }
+  #wizardForm.is-submitting #connectBtn { pointer-events: auto; }
+
+  /* Inline confirm bar (replaces window.confirm for destructive in-flow
+     state resets like switching mode after typing an API key). */
+  .wz-confirm {
+    margin-top: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    background: var(--warn-soft);
+    border: 1px solid #f5d8b5;
+    border-radius: var(--r-card);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    flex-wrap: wrap;
+    animation: confirmIn .2s var(--ease);
+  }
+  .wz-confirm-msg { color: var(--warn); font-size: var(--fs-md); font-weight: var(--fw-s); }
+  .wz-confirm-actions { display: flex; gap: var(--s-2); }
+  @keyframes confirmIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
   .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
   .mode, .provider-option {
@@ -2002,7 +2038,7 @@
         </header>
         <div class="wizard-body">
           <!-- Single-page form. Sections gate downstream choices via [data-locked]. -->
-          <div id="wizardForm">
+          <div id="wizardForm" onkeydown="onConnectKeydown(event)">
             <section class="wz-section" id="sectionMode">
               <div class="wz-section-head">
                 <span class="wz-section-num">1</span>
@@ -2824,7 +2860,9 @@
       '</div>' +
       body +
       '<div class="provider-actions">' +
-        '<button class="btn btn--sm" onclick="refreshAll(true)">' + icon("refresh", "sm") + 'Refresh</button>' +
+        // Refresh: icon-only — it's the most frequent / least destructive
+        // action so it doesn't need to shout. Tooltip carries the label.
+        '<button class="btn btn--sm btn--icon" title="Refresh" aria-label="Refresh" onclick="refreshAll(true)">' + icon("refresh", "sm") + '</button>' +
         '<button class="btn btn--sm" onclick="openReconnect(\'' + esc(provider.id) + '\')">' + icon("reconnect", "sm") + 'Reconnect</button>' +
         // api-key providers (DeepSeek, future OpenAI/Anthropic API, ...) keep
         // a user-provided secret in ~/.tokpet/config.json. "Reconnect" just
@@ -2832,7 +2870,9 @@
         (provider.mode === "api-key"
           ? '<button class="btn btn--sm" onclick="startUpdateKey(\'' + esc(provider.id) + '\')">' + icon("key", "sm") + 'Update key</button>'
           : "") +
-        '<button class="btn btn--sm btn--danger" onclick="openRemove(\'' + esc(provider.id) + '\')">' + icon("trash", "sm") + 'Remove</button>' +
+        // Remove pushed to the far right, icon-only, danger colour only on
+        // hover — destructive action should NOT visually compete with daily ops.
+        '<button class="btn btn--sm btn--icon btn--remove" title="Remove" aria-label="Remove" onclick="openRemove(\'' + esc(provider.id) + '\')">' + icon("trash", "sm") + '</button>' +
       '</div>' +
     '</article>';
   }
@@ -3179,9 +3219,29 @@
 
   function pickMode(mode, el) {
     if (app.mode === mode) return;
+    // Guard: if the user already started filling out a connect form, ask
+    // before discarding it. A silent reset is the textbook "feels janky"
+    // moment that reviewers flagged.
+    if (hasPendingConnectInput()) {
+      var prev = providerById(app.provider);
+      var prevName = prev ? prev.displayName : "your selection";
+      showInlineConfirm(
+        "sectionMode",
+        "Switching method will discard " + prevName + ". Continue?",
+        function onConfirm() {
+          applyModePick(mode, el);
+        }
+      );
+      return;
+    }
+    applyModePick(mode, el);
+  }
+
+  function applyModePick(mode, el) {
     app.mode = mode;
     app.provider = null; // vendor list belongs to the new mode
     document.querySelectorAll(".mode").forEach(function (n) { n.classList.remove("sel"); });
+    if (!el) el = document.querySelector('.mode[onclick*="\'' + mode + '\'"]');
     if (el) el.classList.add("sel");
     renderProviderOptions();
     renderConnectPanel();
@@ -3191,6 +3251,41 @@
     if (vendorSection && vendorSection.scrollIntoView) {
       vendorSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+  }
+
+  // True iff the user has typed something into the connect form OR has a
+  // vendor selected. Used to gate destructive context resets.
+  function hasPendingConnectInput() {
+    if (!app.provider) return false;
+    var keyEl = document.getElementById("connectApiKey");
+    var baseEl = document.getElementById("connectBaseUrl");
+    var key = keyEl ? (keyEl.value || "").trim() : "";
+    var base = baseEl ? (baseEl.value || "").trim() : "";
+    return !!(key || base);
+  }
+
+  // Inline confirm bar attached to the bottom of a section. Lighter than
+  // a native browser dialog and stays in the page flow so the user sees
+  // what they're discarding. Auto-dismisses on Cancel or Confirm.
+  function showInlineConfirm(sectionId, message, onConfirm) {
+    var section = document.getElementById(sectionId);
+    if (!section) { onConfirm(); return; }
+    var existing = section.querySelector(".wz-confirm");
+    if (existing) existing.remove();
+    var bar = document.createElement("div");
+    bar.className = "wz-confirm";
+    bar.innerHTML =
+      '<span class="wz-confirm-msg"></span>' +
+      '<div class="wz-confirm-actions">' +
+        '<button type="button" class="btn btn--sm" data-act="cancel">Keep</button>' +
+        '<button type="button" class="btn btn--sm btn--danger" data-act="confirm">Discard</button>' +
+      '</div>';
+    bar.querySelector(".wz-confirm-msg").textContent = message;
+    section.appendChild(bar);
+    bar.querySelector('[data-act="cancel"]').onclick = function () { bar.remove(); };
+    bar.querySelector('[data-act="confirm"]').onclick = function () { bar.remove(); onConfirm(); };
+    // Focus the discard button so Enter / Space confirms quickly for keyboard users.
+    setTimeout(function () { bar.querySelector('[data-act="confirm"]').focus(); }, 50);
   }
 
   function renderProviderOptions() {
@@ -3411,39 +3506,65 @@
     return {};
   }
 
+  function setConnectBtnLabel(text) {
+    var btn = document.getElementById("connectBtn");
+    if (!btn) return;
+    var span = btn.querySelector("span");
+    if (span) span.textContent = text;
+  }
+
   function activateProvider() {
     var id = app.provider;
+    if (!id) return;
     var err = $("connectError");
     var btn = $("connectBtn");
+    var body = $("wizardForm");
     err.style.display = "none";
     btn.setAttribute("aria-busy", "true");
     btn.disabled = true;
-    var originalText = btn.textContent;
-    btn.textContent = "Connecting…";
+    if (body) body.classList.add("is-submitting"); // locks the rest of the page so a stray click can't race the request
+    setConnectBtnLabel("Connecting…");
     var pForName = providerById(id);
     var nameForErr = pForName && (pForName.displayName || pForName.id);
     api("POST", "/api/providers/" + encodeURIComponent(id) + "/activate", collectConnectBody()).then(function (result) {
       btn.removeAttribute("aria-busy");
+      if (body) body.classList.remove("is-submitting");
       if (!result || !result.ok) {
         var info = errorInfo(result && result.error, nameForErr);
         err.innerHTML = '<strong>' + esc(info.title) + '</strong><span class="hint">' + esc(info.hint) + '</span>';
         err.style.display = "grid";
         btn.disabled = false;
-        btn.textContent = "Try again";
+        setConnectBtnLabel("Try again");
         return;
       }
       showToast("Provider connected.", "ok");
       app.wizardActive = false;
       document.body.classList.remove("mode-add");
+      document.querySelector(".wizard").classList.remove("wizard--key-only");
       if (location.hash) history.replaceState({}, "", location.pathname);
       refreshAll(false);
     }).catch(function () {
       btn.removeAttribute("aria-busy");
+      if (body) body.classList.remove("is-submitting");
       err.innerHTML = '<strong>Network error reaching the local service.</strong><span class="hint">Check that the Tokpet companion is running, then try again.</span>';
       err.style.display = "grid";
       btn.disabled = false;
-      btn.textContent = "Try again";
+      setConnectBtnLabel("Try again");
     });
+  }
+
+  // Cmd/Ctrl+Enter (or Enter from inside the api-key field) submits the
+  // connect form — the keyboard shortcut every native-feeling form has.
+  function onConnectKeydown(e) {
+    if (e.key !== "Enter") return;
+    var btn = document.getElementById("connectBtn");
+    if (!btn || btn.disabled || btn.hasAttribute("aria-busy")) return;
+    // For the API key / base URL fields: plain Enter or Cmd/Ctrl+Enter both submit.
+    var fromKey = e.target && (e.target.id === "connectApiKey" || e.target.id === "connectBaseUrl");
+    if (fromKey || e.metaKey || e.ctrlKey) {
+      e.preventDefault();
+      activateProvider();
+    }
   }
 
   // -------- Reconnect dialog --------
