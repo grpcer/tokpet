@@ -24,13 +24,15 @@
     --on-brand-soft: rgba(255, 255, 255, .92);
     --on-brand-muted: rgba(255, 255, 255, .78);
 
-    /* Surfaces */
-    --bg: #f4f1ec;
+    /* Surfaces — all cool-neutral so dashboard / wizard / cards share one
+       colour temperature. Was a mix of warm (#f4f1ec) page bg and cold
+       (#faf8fe) wizard field, which read as two different products. */
+    --bg: #f5f4fa;
     --card: #ffffff;
     --line: #e6dff5;
     --line-strong: #cfc1ec;
-    --field: #faf8fe;
-    --field-strong: #f4eefd;
+    --field: #faf9fc;
+    --field-strong: #f3f0fa;
     --ink-faint: #948cb5;
 
     /* Semantic */
@@ -73,15 +75,16 @@
     --elev-2: 0 1px 2px rgba(16, 12, 32, .05), 0 8px 24px -8px rgba(16, 12, 32, .10);
     --elev-3: var(--elev-pop);
 
-    /* Type scale */
+    /* Type scale — modular-ish ladder; --fs-display reserved for hero h1. */
     --fs-xs: 11px;
     --fs-sm: 12px;
     --fs-md: 13px;
     --fs-base: 14px;
     --fs-lg: 16px;
-    --fs-xl: 18px;
-    --fs-2xl: 22px;
+    --fs-xl: 20px;
+    --fs-2xl: 24px;
     --fs-3xl: 28px;
+    --fs-display: 32px;
 
     /* Weights (system rounded supports 400/500/600/700/800) */
     --fw: 400;
@@ -192,24 +195,24 @@
   .brand-row > div:last-child { min-width: 0; }
 
   .cat-badge {
-    width: 64px;
-    height: 64px;
+    width: 44px;
+    height: 44px;
     flex: none;
-    filter: drop-shadow(0 6px 14px rgba(36, 29, 58, .18));
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .35));
   }
 
   h1 {
-    font-size: var(--fs-3xl);
+    font-size: var(--fs-display);
     font-weight: var(--fw-x);
     line-height: 1.08;
     margin: 0 0 var(--s-1);
-    letter-spacing: -.01em;
+    letter-spacing: -.02em;
   }
   .hero-sub {
     margin: 0;
     color: var(--on-brand-soft);
-    font-size: var(--fs-base);
-    line-height: 1.5;
+    font-size: var(--fs-md);
+    line-height: 1.55;
   }
   .hero-actions {
     display: flex;
@@ -594,8 +597,8 @@
     display: block;
     object-fit: contain;
   }
-  .source-mark .logo-img { width: 32px; height: 32px; }
-  .opt-mark .logo-img    { width: 36px; height: 36px; }
+  .source-mark .logo-img { width: 28px; height: 28px; }
+  .opt-mark .logo-img    { width: 24px; height: 24px; }
   .source-mark--xs { width: 18px; height: 18px; flex: 0 0 18px; font-size: 11px; }
   .source-mark--xs .logo-img { width: 16px; height: 16px; }
   /* Initial-letter fallback for vendors without a logo file. Subtle neutral
@@ -622,7 +625,7 @@
   .name-link {
     color: inherit;
     text-decoration: none;
-    border-bottom: 1px dashed transparent;
+    border-bottom: 1px solid transparent;
   }
   .name-link:hover { border-bottom-color: var(--brand-1); color: var(--brand-1); }
   .meta {
@@ -662,6 +665,16 @@
   .pill--ok { background: var(--ok-soft); color: var(--ok); }
   .pill--warn { background: var(--warn-soft); color: var(--warn); }
   .pill--bad { background: var(--bad-soft); color: var(--bad); }
+  /* Metadata pill — no background, lighter weight. For freshness / cache age
+     and similar info that isn't a state warning. */
+  .pill--meta {
+    background: transparent;
+    color: var(--ink-faint);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: var(--fw-m);
+    padding: 0;
+  }
   .pill .dot { width: 6px; height: 6px; }
 
   .usage { display: grid; gap: var(--s-3); margin-top: var(--s-3); }
@@ -693,7 +706,9 @@
   .fill {
     height: 100%;
     border-radius: var(--r-pill);
-    background: var(--ok);
+    /* Default neutral brand colour — green = "healthy" is misleading on a
+       "% used" meter; reserve warn/bad for actual high-water marks. */
+    background: var(--brand-1);
     transition: width var(--dur-slow) var(--ease), background var(--dur) var(--ease);
   }
   .fill--warn { background: var(--warn); }
@@ -1065,7 +1080,7 @@
   }
   /* Empty placeholder shown when a section has no real content yet. */
   .wz-empty {
-    border: 1px dashed var(--line);
+    border: 1px solid var(--line);
     border-radius: var(--r-md);
     padding: var(--s-4);
     color: var(--ink-soft);
@@ -1073,10 +1088,13 @@
     background: var(--field);
     text-align: center;
   }
-  /* Update-key flow hides sections 1 & 2; keep connect flush to the top. */
+  /* Update-key flow hides sections 1 & 2; keep connect flush to the top.
+     The wizard header also shrinks because rotating a key is a light task. */
   .wizard.wizard--key-only #sectionMode,
   .wizard.wizard--key-only #sectionVendor { display: none; }
   .wizard.wizard--key-only #sectionConnect { margin-top: 0; padding-top: 0; border-top: 0; }
+  .wizard.wizard--key-only .wizard-hd { padding: var(--s-4) var(--s-6); }
+  .wizard.wizard--key-only .wizard-hd h1 { font-size: var(--fs-xl); }
   .footer-actions--end { justify-content: flex-end; }
 
   /* In-flight submit lock — disables interaction in the rest of the wizard
@@ -1124,7 +1142,11 @@
     min-height: 100%;
   }
   .mode:hover:not(:disabled), .provider-option:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--brand-1); background: var(--card); }
-  .mode.sel, .provider-option.sel { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 4px rgba(110, 84, 240, .14), var(--elev-1); }
+  .mode.sel, .provider-option.sel {
+    border-color: var(--brand-1);
+    background: var(--card);
+    box-shadow: inset 3px 0 0 var(--brand-1);
+  }
   .mode:disabled { opacity: .7; cursor: not-allowed; }
   .mode .mode-icon {
     width: 40px;
@@ -1165,7 +1187,7 @@
     line-height: 1.5;
     margin-top: auto;
     padding-top: var(--s-2);
-    border-top: 1px dashed var(--line);
+    border-top: 1px solid var(--line);
   }
   .mode .ribbon {
     position: absolute;
@@ -1187,14 +1209,14 @@
 
   .provider-option {
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--s-3) var(--s-3);
     padding: var(--s-3) var(--s-4);
   }
   .provider-option .opt-mark {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     display: grid;
     place-items: center;
     flex: none;
@@ -1202,7 +1224,7 @@
     font-weight: var(--fw-x);
     font-size: var(--fs-lg);
   }
-  .provider-option .opt-mark .logo-img { width: 36px; height: 36px; }
+  .provider-option .opt-mark .logo-img { width: 24px; height: 24px; }
   .provider-option .opt-body { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
   .provider-option .opt-name { font-weight: var(--fw-x); font-size: var(--fs-base); color: var(--ink); }
   .provider-option .opt-sub { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.4; }
@@ -1306,7 +1328,7 @@
     align-items: flex-start;
     padding: var(--s-3) var(--s-4);
     background: var(--field);
-    border: 1px dashed var(--line-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--r-sm);
     font-size: var(--fs-sm);
     color: var(--ink-soft);
@@ -1593,7 +1615,7 @@
     .console { border-radius: var(--r-lg); }
     .hero { padding: var(--s-5); }
     .brand-row { gap: var(--s-3); }
-    .cat-badge { width: 52px; height: 52px; }
+    .cat-badge { width: 40px; height: 40px; }
     h1 { font-size: 24px; }
     .hero-sub { font-size: var(--fs-md); }
     .hero-actions { gap: var(--s-2); }
@@ -1684,7 +1706,7 @@
   .field-input-toggle.is-on { color: var(--brand-1); }
   .field-help a { color: var(--brand-1); }
   details.ck-advanced {
-    border: 1px dashed var(--line-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--r-sm);
     background: var(--field);
     padding: var(--s-3) var(--s-4);
@@ -2413,8 +2435,10 @@
   }
 
   function fillClass(pct) {
-    if (pct >= 80) return "fill--bad";
-    if (pct >= 50) return "fill--warn";
+    // Premium-tool semantics: brand neutral up to 80%, warn above, bad at 95+.
+    // "50% used" should not look the same shade of alarm as "90% used".
+    if (pct >= 95) return "fill--bad";
+    if (pct >= 80) return "fill--warn";
     return "";
   }
 
@@ -2768,12 +2792,15 @@
     if (source === "stale") {
       var staleAgeLabel = relativeTime(result.staleSince || result.fetchedAt) || "moments ago";
       if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
+      // Stale = something's actually wrong → keep warn colour.
       return { pillClass: "pill--warn", label: "Stale · " + staleAgeLabel, kind: "stale" };
     }
     if (source === "cached" || (ageSec != null && ageSec > 300)) {
       var ageLabel = relativeTime(result.fetchedAt) || "stale";
       if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
-      return { pillClass: "pill--warn", label: "Cached · " + ageLabel, kind: "cached" };
+      // Cached = metadata, not alarm. Use neutral meta styling so the row
+      // doesn't compete visually with real warnings.
+      return { pillClass: "pill--meta", label: "Cached · " + ageLabel, kind: "cached" };
     }
     if (emptyWallet) return { pillClass: "pill--bad", label: "Empty", kind: "ok" };
     return { pillClass: "pill--ok", label: "Healthy", kind: "ok" };
