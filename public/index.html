@@ -53,18 +53,25 @@
     --s-7: 32px;
     --s-8: 40px;
 
-    /* Radius */
+    /* Radius — 3-tier system: ctrl / card / shell. Old names are aliases. */
+    --r-ctrl: 8px;   /* buttons, inputs, pills, small chips */
+    --r-card: 12px;  /* panels, provider cards, mode tiles, connect-card */
+    --r-shell: 16px; /* console / wizard-shell / modals */
     --r-xs: 8px;
-    --r-sm: 12px;
-    --r-md: 16px;
-    --r-lg: 20px;
-    --r-xl: 28px;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 12px;
+    --r-xl: 16px;
     --r-pill: 999px;
 
-    /* Elevation */
-    --elev-1: 0 1px 2px rgba(58, 38, 120, .05), 0 4px 12px -4px rgba(58, 38, 120, .12);
-    --elev-2: 0 2px 6px rgba(58, 38, 120, .07), 0 16px 32px -10px rgba(58, 38, 120, .18);
-    --elev-3: 0 8px 16px rgba(58, 38, 120, .10), 0 28px 56px -14px rgba(58, 38, 120, .26);
+    /* Elevation — near-black at low alpha (was: heavily-tinted purple shadow
+       that pulled cards off the page). 2-tier semantics: flat (inline cards)
+       vs pop (floating overlays). The old elev-* names map to the new ones. */
+    --elev-flat: 0 1px 2px rgba(16, 12, 32, .04);
+    --elev-pop:  0 2px 4px rgba(16, 12, 32, .06), 0 18px 36px -12px rgba(16, 12, 32, .16);
+    --elev-1: var(--elev-flat);
+    --elev-2: 0 1px 2px rgba(16, 12, 32, .05), 0 8px 24px -8px rgba(16, 12, 32, .10);
+    --elev-3: var(--elev-pop);
 
     /* Type scale */
     --fs-xs: 11px;
@@ -144,6 +151,8 @@
 
   /* ---------------- Hero ---------------- */
 
+  /* Hero — matte near-black with a single 1px top highlight. Brand gradient
+     is reserved for the ring + primary CTA so it actually carries weight. */
   .hero {
     position: relative;
     display: grid;
@@ -151,24 +160,25 @@
     gap: var(--s-6);
     align-items: stretch;
     padding: var(--s-7);
-    background: var(--brand-grad);
+    background: linear-gradient(180deg, #14101F 0%, #1B1530 100%);
     color: var(--on-brand);
     overflow: hidden;
   }
   .hero::before {
     content: "";
     position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(40% 60% at 86% 18%, rgba(255, 255, 255, .18), transparent 70%),
-      radial-gradient(48% 78% at -5% 110%, rgba(255, 255, 255, .12), transparent 70%);
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(167, 139, 250, .45), transparent);
     pointer-events: none;
   }
   .hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(110% 100% at 0% 0%, rgba(255, 255, 255, .22), transparent 60%);
+    background:
+      radial-gradient(60% 80% at 90% 10%, rgba(167, 139, 250, .12), transparent 70%),
+      radial-gradient(55% 70% at 0% 110%, rgba(244, 114, 182, .08), transparent 70%);
     pointer-events: none;
   }
   .hero-copy, .hero-meter { position: relative; z-index: 1; }
@@ -347,9 +357,9 @@
       transform var(--dur-fast) var(--ease),
       box-shadow var(--dur) var(--ease);
   }
-  .btn:hover { background: var(--field); border-color: var(--brand-1); transform: translateY(-1px); box-shadow: var(--elev-1); }
-  .btn:active { transform: translateY(0); box-shadow: none; }
-  .btn:disabled, .btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn:hover { background: var(--field); border-color: var(--brand-1); }
+  .btn:active { background: var(--field-strong); }
+  .btn:disabled, .btn[disabled] { opacity: .55; cursor: not-allowed; }
   .btn[aria-busy="true"] { pointer-events: none; }
 
   .btn--primary { background: var(--brand-grad); color: #fff; border-color: transparent; box-shadow: var(--elev-1); }
@@ -429,7 +439,7 @@
     transition: border-color var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
     cursor: default;
   }
-  .status[title]:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+  .status[title]:hover { border-color: var(--line-strong); }
   .status .label {
     font-size: var(--fs-xs);
     text-transform: uppercase;
@@ -735,9 +745,9 @@
   .empty-title { color: var(--ink); font-weight: var(--fw-b); margin-bottom: 2px; }
 
   .empty-hero {
-    border: 1px dashed var(--line-strong);
-    background: linear-gradient(180deg, var(--field) 0%, var(--card) 100%);
-    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: var(--r-card);
     padding: var(--s-6) var(--s-5);
     text-align: center;
     display: grid;
@@ -745,19 +755,17 @@
     justify-items: center;
   }
   .empty-hero .illus {
-    width: 96px;
-    height: 96px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background: var(--brand-grad);
-    color: #fff;
+    background: var(--neutral-soft);
+    color: var(--brand-1);
     display: grid;
     place-items: center;
-    box-shadow: 0 12px 30px -10px rgba(110, 84, 240, .45);
   }
   .empty-hero .illus svg {
-    width: 52px;
-    height: 52px;
-    opacity: .96;
+    width: 32px;
+    height: 32px;
     stroke: currentColor;
     fill: none;
     stroke-width: 1.85;
@@ -960,10 +968,13 @@
     box-shadow: var(--elev-2);
     overflow: hidden;
   }
+  /* Wizard header — calm neutral, lets the form be the visual centre.
+     A tiny brand-coloured dot before the title is the only accent. */
   .wizard-hd {
-    padding: var(--s-6);
-    color: #fff;
-    background: var(--brand-grad);
+    padding: var(--s-5) var(--s-6);
+    color: var(--ink);
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -971,8 +982,33 @@
     flex-wrap: wrap;
   }
   .wizard-hd > div { min-width: 0; flex: 1 1 220px; }
-  .wizard-hd h1 { font-size: var(--fs-2xl); }
-  .wizard-hd .hero-sub { color: var(--on-brand-soft); margin-top: var(--s-1); }
+  .wizard-hd h1 {
+    font-size: var(--fs-2xl);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .wizard-hd h1::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-grad);
+    box-shadow: 0 0 0 3px rgba(110, 84, 240, .12);
+  }
+  .wizard-hd .hero-sub { color: var(--ink-soft); margin-top: var(--s-1); }
+  .wizard-hd .btn--ghost {
+    background: var(--field);
+    color: var(--ink-soft);
+    border-color: var(--line);
+    backdrop-filter: none;
+  }
+  .wizard-hd .btn--ghost:hover {
+    background: var(--field-strong);
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
   .wizard-body { padding: var(--s-6); }
 
   /* ----- Single-page wizard sections ----- */
@@ -989,10 +1025,10 @@
   }
   .wz-section-head > div { min-width: 0; }
   .wz-section-num {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: var(--r-pill);
-    background: var(--brand-grad);
+    background: var(--brand-1);
     color: var(--on-brand);
     font-weight: var(--fw-x);
     font-size: var(--fs-md);
@@ -1000,7 +1036,6 @@
     place-items: center;
     flex: none;
     line-height: 1;
-    box-shadow: 0 2px 6px -2px rgba(110, 84, 240, .3);
   }
   .wz-section-title { font-size: var(--fs-xl); margin: 0 0 var(--s-1); line-height: 1.2; }
   /* Locked downstream sections dim contents but keep heading visible so the
@@ -1052,7 +1087,7 @@
     gap: var(--s-3);
     min-height: 100%;
   }
-  .mode:hover:not(:disabled), .provider-option:hover { border-color: var(--brand-1); background: var(--card); transform: translateY(-1px); box-shadow: var(--elev-1); }
+  .mode:hover:not(:disabled), .provider-option:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--brand-1); background: var(--card); }
   .mode.sel, .provider-option.sel { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 4px rgba(110, 84, 240, .14), var(--elev-1); }
   .mode:disabled { opacity: .7; cursor: not-allowed; }
   .mode .mode-icon {
@@ -1328,17 +1363,16 @@
     align-items: flex-start;
   }
   .tip-num {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: var(--brand-grad);
-    color: #fff;
+    background: var(--neutral-soft);
+    color: var(--brand-1);
     font-weight: var(--fw-x);
     font-size: var(--fs-sm);
     display: grid;
     place-items: center;
     margin-top: 2px;
-    box-shadow: 0 4px 10px -3px rgba(110, 84, 240, .45);
   }
   .tip-body { display: grid; gap: 4px; }
   .tip-title { font-weight: var(--fw-b); color: var(--ink); font-size: var(--fs-base); }
