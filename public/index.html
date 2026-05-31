@@ -146,9 +146,8 @@
 
   .console {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--r-xl);
-    box-shadow: var(--elev-2);
+    border-radius: var(--r-shell);
+    box-shadow: 0 4px 12px -4px rgba(16, 12, 32, .08), 0 24px 56px -16px rgba(16, 12, 32, .18);
     overflow: hidden;
   }
 
@@ -512,12 +511,13 @@
   }
   .stack { display: grid; gap: var(--s-5); align-content: start; }
 
+  /* Flat panels — single soft drop shadow on white. The 1px outline is gone
+     so cards don't read as "boxes inside boxes" once provider rows fill them. */
   .panel {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
+    border-radius: var(--r-card);
     padding: var(--s-5);
-    box-shadow: var(--elev-1);
+    box-shadow: 0 1px 2px rgba(16, 12, 32, .04), 0 8px 24px -16px rgba(16, 12, 32, .12);
   }
   .panel-head {
     display: grid;
@@ -552,18 +552,18 @@
     margin: 0;
   }
 
-  .rows { display: grid; gap: var(--s-3); }
+  /* Rows inside a panel — flat list, divided by hairlines instead of boxed. */
+  .rows { display: grid; gap: 0; }
+  .rows > * + * { border-top: 1px solid var(--line); }
 
   /* ---------------- Provider card ---------------- */
 
   .provider, .device {
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: var(--s-4);
-    background: var(--card);
-    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    padding: var(--s-4) 0;
+    background: transparent;
   }
-  .provider:hover, .device:hover { border-color: var(--line-strong); box-shadow: var(--elev-1); }
+  .rows > .provider:first-child, .rows > .device:first-child { padding-top: var(--s-3); }
+  .rows > .provider:last-child, .rows > .device:last-child { padding-bottom: var(--s-3); }
 
   .provider-head, .device-head {
     display: flex;
@@ -757,9 +757,8 @@
   /* ---------------- Empty / error ---------------- */
 
   .empty {
-    border: 1px solid var(--line);
     background: var(--field);
-    border-radius: var(--r-md);
+    border-radius: var(--r-card);
     padding: var(--s-5);
     color: var(--ink-soft);
     font-size: var(--fs-base);
@@ -781,9 +780,7 @@
   .empty-title { color: var(--ink); font-weight: var(--fw-b); margin-bottom: 2px; }
 
   .empty-hero {
-    border: 1px solid var(--line);
-    background: var(--card);
-    border-radius: var(--r-card);
+    background: transparent;
     padding: var(--s-6) var(--s-5);
     text-align: center;
     display: grid;
@@ -886,10 +883,9 @@
   .url-line code {
     display: block;
     color: var(--ink);
-    background: var(--field);
-    border: 1px solid var(--line);
+    background: var(--field-strong);
     padding: var(--s-2) var(--s-3);
-    border-radius: var(--r-sm);
+    border-radius: var(--r-ctrl);
     font-family: var(--font-mono);
     font-size: var(--fs-md);
     line-height: 1.45;
@@ -999,9 +995,8 @@
     max-width: 640px;
     margin: 0 auto;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--r-xl);
-    box-shadow: var(--elev-2);
+    border-radius: var(--r-shell);
+    box-shadow: 0 4px 12px -4px rgba(16, 12, 32, .08), 0 24px 56px -16px rgba(16, 12, 32, .18);
     overflow: hidden;
   }
   /* Wizard header — calm neutral, lets the form be the visual centre.
@@ -1097,10 +1092,9 @@
   }
   /* Empty placeholder shown when a section has no real content yet. */
   .wz-empty {
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
+    border-radius: var(--r-card);
     padding: var(--s-4);
-    color: var(--ink-soft);
+    color: var(--ink-faint);
     font-size: var(--fs-md);
     background: var(--field);
     text-align: center;
@@ -1285,11 +1279,12 @@
     flex-wrap: wrap;
   }
 
+  /* Connect card — flat, lives on top of the wizard's white bg with a soft
+     tinted band as the header so the trust details have visual grounding
+     without resorting to a box outline. */
   .connect-card {
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    background: var(--card);
-    box-shadow: var(--elev-1);
+    border-radius: var(--r-card);
+    background: var(--field);
     overflow: hidden;
   }
   .connect-card .ck-hd {
@@ -1298,8 +1293,7 @@
     gap: var(--s-4);
     align-items: center;
     padding: var(--s-5);
-    background: var(--field);
-    border-bottom: 1px solid var(--line);
+    background: transparent;
   }
   /* Connect-card logo slot: just centring + size; no chip background or border. */
   .connect-card .ck-hd .opt-mark {
@@ -1314,7 +1308,7 @@
   .connect-card .ck-hd .opt-mark .logo-img { width: 48px; height: 48px; }
   .connect-card .ck-title { font-size: var(--fs-xl); font-weight: var(--fw-x); margin: 0 0 2px; letter-spacing: -.01em; }
   .connect-card .ck-sub { font-size: var(--fs-md); color: var(--ink-soft); margin: 0; line-height: 1.5; }
-  .connect-card .ck-body { padding: var(--s-5); display: grid; gap: var(--s-4); }
+  .connect-card .ck-body { padding: var(--s-5); display: grid; gap: var(--s-4); background: var(--card); }
 
   .trust {
     display: grid;
@@ -1357,9 +1351,8 @@
     gap: var(--s-3);
     align-items: flex-start;
     padding: var(--s-3) var(--s-4);
-    background: var(--field);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-sm);
+    background: var(--field-strong);
+    border-radius: var(--r-ctrl);
     font-size: var(--fs-sm);
     color: var(--ink-soft);
     line-height: 1.5;
@@ -1441,8 +1434,7 @@
     gap: var(--s-3);
   }
   .tip {
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
+    border-radius: var(--r-card);
     padding: var(--s-4);
     background: var(--field);
     display: grid;
@@ -1736,12 +1728,11 @@
   .field-input-toggle.is-on { color: var(--brand-1); }
   .field-help a { color: var(--brand-1); }
   details.ck-advanced {
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-sm);
-    background: var(--field);
+    border-radius: var(--r-ctrl);
+    background: var(--field-strong);
     padding: var(--s-3) var(--s-4);
   }
-  details.ck-advanced[open] { background: var(--card); border-style: solid; }
+  details.ck-advanced[open] { background: var(--card); }
   details.ck-advanced summary {
     list-style: none;
     cursor: pointer;
