@@ -8,9 +8,12 @@ import { describe, expect, it } from 'vitest';
 const pagePath = join(process.cwd(), 'public', 'index.html');
 
 function scriptFrom(html: string): string {
-  const match = html.match(/<script>([\s\S]*?)<\/script>/);
-  expect(match?.[1]).toBeTruthy();
-  return match?.[1] ?? '';
+  // The page now ships two inline <script> blocks: a tiny head-level theme
+  // bootstrap (sets data-theme before paint) plus the main IIFE. Concat
+  // both in source order so the vm context mirrors the browser.
+  const matches = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  expect(matches.length).toBeGreaterThan(0);
+  return matches.map((m) => m[1]).join('\n');
 }
 
 function makeElement() {
@@ -21,7 +24,10 @@ function makeElement() {
     innerHTML: '',
     disabled: false,
     hidden: false,
-    style: { display: '' },
+    style: { display: '', setProperty: () => undefined, removeProperty: () => undefined } as Record<
+      string,
+      unknown
+    >,
     dataset: {} as Record<string, string>,
     classList: {
       add: (name: string) => classes.add(name),
@@ -113,6 +119,7 @@ function createConsoleContext(fetchImpl: FetchImpl) {
   const context = vm.createContext({
     document: {
       body: docBody,
+      documentElement: { dataset: {} as Record<string, string> },
       getElementById: (id: string) => elements.get(id) ?? makeElement(),
       querySelector: () => null,
       querySelectorAll: () => [],
