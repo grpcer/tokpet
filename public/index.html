@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light" />
 <title>Tokpet Console</title>
+<link rel="stylesheet" href="vendor/open-props/open-props.min.css" />
 <style>
   /* HTML5 [hidden] tie-breaks at the same specificity as our author rules
      (e.g. .source-line { display: grid }), so the UA fallback loses and a
@@ -12,38 +13,45 @@
   [hidden] { display: none !important; }
 
   :root {
-    /* Brand */
-    --brand-1: #6e54f0;
-    --brand-2: #ff6a98;
+    color-scheme: light;
+
+    /* Brand — terracotta single accent. Replaced the 2020-SaaS purple/pink
+       gradient with one warm-earth hit that lives well on near-white. The
+       gradient narrows to "tinted accent" instead of "rainbow", and is
+       reserved for ring + primary CTA so it actually carries weight. */
+    --brand-1: #c95a26;
+    --brand-2: #a8431a;
     --brand-grad: linear-gradient(135deg, var(--brand-1), var(--brand-2));
 
-    /* Ink */
-    --ink: #241d3a;
-    --ink-soft: #6a6388;
+    /* Ink — near-black with two soft greys for hierarchy. Was a violet-tinted
+       ink (#241d3a) which dragged the whole UI toward purple; neutral now. */
+    --ink: #0a0a0a;
+    --ink-soft: #525252;
+    --ink-faint: #a3a3a3;
     --on-brand: #ffffff;
     --on-brand-soft: rgba(255, 255, 255, .92);
     --on-brand-muted: rgba(255, 255, 255, .78);
 
-    /* Surfaces — all cool-neutral so dashboard / wizard / cards share one
-       colour temperature. Was a mix of warm (#f4f1ec) page bg and cold
-       (#faf8fe) wizard field, which read as two different products. */
-    --bg: #f5f4fa;
+    /* Surfaces — warm-neutral near-white, single colour temperature across
+       page / card / field. Was cool-violet (#f5f4fa / #e6dff5) which gave
+       the whole console a tinted "online product" feel; the new direction
+       is editorial light (Vercel / Linear / Stripe). */
+    --bg: #fafaf7;
     --card: #ffffff;
-    --line: #e6dff5;
-    --line-strong: #cfc1ec;
-    --field: #faf9fc;
-    --field-strong: #f3f0fa;
-    --ink-faint: #948cb5;
+    --line: #ebebe7;
+    --line-strong: #d4d4d0;
+    --field: #f5f5f1;
+    --field-strong: #ebebe7;
 
-    /* Semantic */
-    --ok: #16a06c;
-    --ok-soft: #e5f8ef;
-    --warn: #c8651f;
-    --warn-soft: #fff0df;
-    --bad: #d8334e;
-    --bad-soft: #ffe9ee;
-    --neutral-soft: #f0ebfb;
-    --neutral-fg: #5b4c8c;
+    /* Semantic — deeper hues so they read on near-white without going pastel. */
+    --ok: #2d7a4d;
+    --ok-soft: #e8f5ee;
+    --warn: #b7711e;
+    --warn-soft: #faf3e6;
+    --bad: #c0392b;
+    --bad-soft: #fbecea;
+    --neutral-soft: #f5f5f1;
+    --neutral-fg: #525252;
 
     /* Spacing (8 grid + 4 trim) */
     --s-1: 4px;
@@ -66,13 +74,12 @@
     --r-xl: 16px;
     --r-pill: 999px;
 
-    /* Elevation — near-black at low alpha (was: heavily-tinted purple shadow
-       that pulled cards off the page). 2-tier semantics: flat (inline cards)
-       vs pop (floating overlays). The old elev-* names map to the new ones. */
-    --elev-flat: 0 1px 2px rgba(16, 12, 32, .04);
-    --elev-pop:  0 2px 4px rgba(16, 12, 32, .06), 0 18px 36px -12px rgba(16, 12, 32, .16);
+    /* Elevation — near-black at low alpha, neutral (no violet tint).
+       2-tier: flat (inline cards) vs pop (floating overlays). */
+    --elev-flat: 0 1px 2px rgba(15, 15, 15, .04);
+    --elev-pop:  0 2px 4px rgba(15, 15, 15, .06), 0 18px 36px -12px rgba(15, 15, 15, .14);
     --elev-1: var(--elev-flat);
-    --elev-2: 0 1px 2px rgba(16, 12, 32, .05), 0 8px 24px -8px rgba(16, 12, 32, .10);
+    --elev-2: 0 1px 2px rgba(15, 15, 15, .05), 0 8px 24px -8px rgba(15, 15, 15, .10);
     --elev-3: var(--elev-pop);
 
     /* Type scale — modular-ish ladder; --fs-display reserved for hero h1. */
@@ -103,9 +110,15 @@
     --dur: .25s;
     --dur-slow: .5s;
 
-    /* Fonts */
-    --font: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", Quicksand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* Fonts — system stack, no web fonts. Lets macOS/iOS hit SF Pro and
+       PingFang SC natively, Windows hit Segoe UI + Microsoft YaHei. This
+       reverted from Geist + Instrument Serif: the editorial serif read as
+       "newspaper" rather than "premium", and Geist's Latin-only glyphs left
+       Chinese fragments to ugly fallback. System stack always pairs cleanly. */
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+            "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --font-display: var(--font);
   }
 
   * { box-sizing: border-box; }
@@ -115,17 +128,20 @@
     font-size: var(--fs-base);
     color: var(--ink);
     background: var(--bg);
+    /* Aurora — three near-invisible terracotta smudges on a warm-white
+       page. .04/.03 alpha so they read as "the screen breathes" rather
+       than coloured blobs. Was a noisy purple+pink wash at .10. */
     background-image:
-      radial-gradient(60% 50% at 12% -5%, rgba(110, 84, 240, .10), transparent 70%),
-      radial-gradient(55% 45% at 105% 12%, rgba(255, 106, 152, .10), transparent 70%),
-      radial-gradient(60% 50% at 50% 110%, rgba(110, 84, 240, .06), transparent 70%);
+      radial-gradient(60% 50% at 12% -5%, rgba(201, 90, 38, .045), transparent 70%),
+      radial-gradient(55% 45% at 105% 12%, rgba(168, 67, 26, .03), transparent 70%),
+      radial-gradient(60% 50% at 50% 110%, rgba(201, 90, 38, .025), transparent 70%);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
   button, input { font: inherit; }
   button { cursor: pointer; }
   a { color: var(--brand-1); }
-  ::selection { background: rgba(110, 84, 240, .2); }
+  ::selection { background: rgba(201, 90, 38, .18); }
 
   :focus-visible {
     outline: 2px solid var(--brand-1);
@@ -147,14 +163,18 @@
   .console {
     background: var(--card);
     border-radius: var(--r-shell);
-    box-shadow: 0 4px 12px -4px rgba(16, 12, 32, .08), 0 24px 56px -16px rgba(16, 12, 32, .18);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(15, 15, 15, .04), 0 24px 56px -24px rgba(15, 15, 15, .08);
     overflow: hidden;
   }
 
   /* ---------------- Hero ---------------- */
 
-  /* Hero — matte near-black with a single 1px top highlight. Brand gradient
-     is reserved for the ring + primary CTA so it actually carries weight. */
+  /* Hero — matte warm-charcoal with a terracotta hairline up top and two
+     near-invisible accent smudges. Mirrors the "dark hero on light page"
+     pattern Vercel/Stripe ship: anchors brand identity without hijacking
+     the whole console. Was violet gradient + lavender highlight, which
+     bled purple into a page that no longer wants any purple at all. */
   .hero {
     position: relative;
     display: grid;
@@ -162,7 +182,7 @@
     gap: var(--s-6);
     align-items: stretch;
     padding: var(--s-7);
-    background: linear-gradient(180deg, #14101F 0%, #1B1530 100%);
+    background: linear-gradient(180deg, #18130E 0%, #211B14 100%);
     color: var(--on-brand);
     overflow: hidden;
   }
@@ -171,7 +191,7 @@
     position: absolute;
     inset: 0 0 auto 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(167, 139, 250, .45), transparent);
+    background: linear-gradient(90deg, transparent, rgba(224, 122, 69, .55), transparent);
     pointer-events: none;
   }
   .hero::after {
@@ -179,8 +199,8 @@
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(60% 80% at 90% 10%, rgba(167, 139, 250, .12), transparent 70%),
-      radial-gradient(55% 70% at 0% 110%, rgba(244, 114, 182, .08), transparent 70%);
+      radial-gradient(60% 80% at 90% 10%, rgba(224, 122, 69, .14), transparent 70%),
+      radial-gradient(55% 70% at 0% 110%, rgba(224, 177, 75, .08), transparent 70%);
     pointer-events: none;
   }
   .hero-copy, .hero-meter { position: relative; z-index: 1; }
@@ -201,9 +221,9 @@
   }
 
   h1 {
-    font-size: var(--fs-display);
-    font-weight: var(--fw-x);
-    line-height: 1.08;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
     margin: 0 0 var(--s-1);
     letter-spacing: -.02em;
   }
@@ -211,7 +231,7 @@
     margin: 0;
     color: var(--on-brand-soft);
     font-size: var(--fs-md);
-    line-height: 1.55;
+    line-height: 1.5;
   }
   .hero-actions {
     display: flex;
@@ -225,12 +245,13 @@
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--s-5);
     align-items: center;
-    background: rgba(255, 255, 255, .14);
-    border: 1px solid rgba(255, 255, 255, .22);
+    /* Was a frosted-glass white card with .14 alpha + blur, which read as
+       "iPad screenshot pasted on a wall" on the new warm-charcoal hero.
+       Now: a flat hairline pane that lets the ring carry the visual weight. */
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid rgba(255, 255, 255, .1);
     border-radius: var(--r-lg);
     padding: var(--s-5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
   .hero-meter > div:last-child { min-width: 0; }
 
@@ -252,8 +273,8 @@
     position: absolute;
     inset: 14px;
     border-radius: 50%;
-    background: rgba(20, 14, 38, .92);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+    background: rgba(24, 19, 14, .94);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
   }
   .ring-value {
     position: relative;
@@ -270,8 +291,8 @@
     color: #fff;
   }
   .ring-value .num {
-    font-size: var(--fs-3xl);
-    font-weight: var(--fw-x);
+    font-size: 34px;
+    font-weight: 700;
     letter-spacing: -.02em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -281,8 +302,8 @@
   }
   .ring-value .cap {
     margin-top: 4px;
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-s);
+    font-size: 10px;
+    font-weight: 600;
     letter-spacing: .14em;
     text-transform: uppercase;
     color: var(--on-brand-muted);
@@ -290,27 +311,30 @@
   }
   .ring-value.is-empty .num {
     font-size: var(--fs-2xl);
-    color: rgba(255, 255, 255, .82);
-    font-weight: var(--fw-s);
+    color: rgba(255, 255, 255, .78);
+    font-weight: 600;
+    letter-spacing: -.01em;
   }
 
   .metric-title {
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-s);
-    letter-spacing: .08em;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .14em;
     text-transform: uppercase;
     color: var(--on-brand-muted);
     margin-bottom: var(--s-2);
   }
   .metric-label {
     font-size: var(--fs-lg);
-    font-weight: var(--fw-b);
-    line-height: 1.25;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -.01em;
   }
   .metric-sub {
     margin-top: var(--s-1);
     font-size: var(--fs-md);
     color: var(--on-brand-soft);
+    font-variant-numeric: tabular-nums;
   }
   .mood {
     display: inline-flex;
@@ -415,19 +439,24 @@
   .icon--sm { width: 16px; height: 16px; flex-basis: 16px; stroke-width: 1.75; }
   .icon--lg { width: 20px; height: 20px; flex-basis: 20px; stroke-width: 1.9; }
 
+  /* Section icon — neutral hairline outline, all sections in one ink colour.
+     Was four coloured chips (terracotta / sage / amber / pink) which gave
+     each panel a different mood; the new direction picks one accent and
+     lets typography carry hierarchy instead of background colour. */
   .icon-bubble {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--r-sm);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: grid;
     place-items: center;
     flex: none;
-    background: var(--neutral-soft);
-    color: var(--brand-1);
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
   }
-  .icon-bubble--ok { background: var(--ok-soft); color: var(--ok); }
-  .icon-bubble--warn { background: var(--warn-soft); color: var(--warn); }
-  .icon-bubble--pink { background: #ffe6ee; color: var(--brand-2); }
+  .icon-bubble--ok,
+  .icon-bubble--warn,
+  .icon-bubble--pink { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 
   /* ---------------- Status strip ---------------- */
 
@@ -511,13 +540,36 @@
   }
   .stack { display: grid; gap: var(--s-5); align-content: start; }
 
-  /* Flat panels — single soft drop shadow on white. The 1px outline is gone
-     so cards don't read as "boxes inside boxes" once provider rows fill them. */
+  /* Flat panels — 1px hairline on white, zero shadow. Editorial flatness
+     á la Vercel/Linear: depth comes from hairlines and whitespace alone,
+     no drop shadow needed. Was a single drop shadow with no border which
+     read as "floating cards"; now panels sit inline like text columns. */
   .panel {
+    position: relative;
     background: var(--card);
     border-radius: var(--r-card);
     padding: var(--s-5);
-    box-shadow: 0 1px 2px rgba(16, 12, 32, .04), 0 8px 24px -16px rgba(16, 12, 32, .12);
+    border: 1px solid var(--line);
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  /* Hover: hairline darkens a step + a near-invisible warm-tinted lift.
+     Not a shadow, not a colour shift — just a sign that the panel is
+     interactive. Inspired by Linear/Vercel dashboard hover. */
+  .panel:hover {
+    border-color: var(--line-strong);
+    box-shadow: 0 1px 2px rgba(15, 15, 15, .03), 0 12px 28px -20px rgba(201, 90, 38, .12);
+  }
+  /* Shimmer skeleton — used by provider rows while data is in flight. */
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--field) 0%, var(--field-strong) 50%, var(--field) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s linear infinite;
+    border-radius: var(--r-xs);
+    color: transparent !important;
   }
   .panel-head {
     display: grid;
@@ -972,8 +1024,8 @@
     margin: 0;
     max-height: 320px;
     overflow: auto;
-    background: #1e1837;
-    color: #e9e4ff;
+    background: #18130e;
+    color: #f4efe6;
     border-radius: var(--r-sm);
     padding: var(--s-4);
     font-family: var(--font-mono);
@@ -996,7 +1048,7 @@
     margin: 0 auto;
     background: var(--card);
     border-radius: var(--r-shell);
-    box-shadow: 0 4px 12px -4px rgba(16, 12, 32, .08), 0 24px 56px -16px rgba(16, 12, 32, .18);
+    box-shadow: 0 4px 12px -4px rgba(15, 15, 15, .08), 0 24px 56px -16px rgba(15, 15, 15, .18);
     overflow: hidden;
   }
   /* Wizard header — calm neutral, lets the form be the visual centre.
@@ -1026,7 +1078,7 @@
     height: 8px;
     border-radius: 50%;
     background: var(--brand-grad);
-    box-shadow: 0 0 0 3px rgba(110, 84, 240, .12);
+    box-shadow: 0 0 0 3px rgba(201, 90, 38, .12);
   }
   .wizard-hd .hero-sub { color: var(--ink-soft); margin-top: var(--s-1); }
   .wizard-hd .btn--ghost {
@@ -1221,12 +1273,12 @@
     font-weight: var(--fw-b);
     color: var(--brand-1);
     background: #fff;
-    border: 1px solid rgba(110, 84, 240, .25);
+    border: 1px solid rgba(201, 90, 38, .25);
     padding: 2px var(--s-2);
     border-radius: var(--r-pill);
     letter-spacing: .04em;
     text-transform: uppercase;
-    box-shadow: 0 2px 6px -2px rgba(110, 84, 240, .25);
+    box-shadow: 0 2px 6px -2px rgba(201, 90, 38, .25);
   }
 
   .option-list { display: grid; gap: var(--s-3); }
@@ -1559,7 +1611,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--s-5);
-    background: rgba(36, 29, 58, .42);
+    background: rgba(15, 15, 15, .48);
     z-index: 40;
     backdrop-filter: blur(2px);
   }
@@ -1578,7 +1630,7 @@
     width: 56px;
     height: 56px;
     margin-bottom: var(--s-3);
-    filter: drop-shadow(0 4px 10px rgba(110, 84, 240, .18));
+    filter: drop-shadow(0 4px 10px rgba(201, 90, 38, .18));
   }
   .dialog h2 { margin: 0 0 var(--s-2); font-size: var(--fs-2xl); }
   .dialog p { margin: 0; color: var(--ink-soft); font-size: var(--fs-base); line-height: 1.55; }
@@ -1698,7 +1750,7 @@
     outline: none;
     box-sizing: border-box;
   }
-  .field-input:focus { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 3px rgba(110, 84, 240, .14); }
+  .field-input:focus { border-color: var(--brand-1); background: var(--card); box-shadow: 0 0 0 3px rgba(201, 90, 38, .14); }
   .field-help { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.45; }
 
   /* Eye toggle for password-style fields (API key). Lives inside a wrapper
