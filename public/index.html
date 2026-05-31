@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="color-scheme" content="light" />
+<meta name="color-scheme" content="light dark" />
 <title>Tokpet Console</title>
+<!-- Sync data-theme before paint to avoid flash-of-wrong-theme. Reads a
+     stored override from localStorage (set by the hero toggle); falls back
+     to the system prefers-color-scheme. Kept inline + first so it executes
+     before the stylesheet links resolve their cascade. -->
+<script>
+  (function () {
+    try {
+      var stored = localStorage.getItem("tokpet-theme");
+      var theme = stored === "light" || stored === "dark"
+        ? stored
+        : (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.theme = theme;
+    } catch (e) { /* localStorage disabled — fall through with light */ }
+  })();
+</script>
 <link rel="stylesheet" href="vendor/open-props/open-props.min.css" />
 <style>
   /* HTML5 [hidden] tie-breaks at the same specificity as our author rules
@@ -13,7 +28,7 @@
   [hidden] { display: none !important; }
 
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
 
     /* Brand — terracotta single accent. Replaced the 2020-SaaS purple/pink
        gradient with one warm-earth hit that lives well on near-white. The
@@ -104,8 +119,11 @@
     --ctl-sm: 32px;
     --ctl-md: 40px;
 
-    /* Motion */
-    --ease: cubic-bezier(.4, 0, .2, 1);
+    /* Motion — easeOutCirc. Front-loaded movement that decelerates into
+       rest reads as "mechanical precision" rather than the symmetric
+       Material standard ease, which feels too leisurely on hover/tween
+       primitives sized for a desktop console. */
+    --ease: cubic-bezier(.22, 1, .36, 1);
     --dur-fast: .15s;
     --dur: .25s;
     --dur-slow: .5s;
@@ -136,8 +154,145 @@
       radial-gradient(55% 45% at 105% 12%, rgba(168, 67, 26, .03), transparent 70%),
       radial-gradient(60% 50% at 50% 110%, rgba(201, 90, 38, .025), transparent 70%);
     -webkit-font-smoothing: antialiased;
+    /* Optical sizing lets SF Pro / system fonts shift weight subtly for
+       display-vs-text rendering. Feature settings turn on SF Pro stylistic
+       set 1/2 + cv11 (slashed zero); unknown features are silently
+       ignored on Segoe / Roboto, so this is safe globally. */
+    font-optical-sizing: auto;
+    font-feature-settings: "ss01", "ss02", "cv11";
     overflow-x: hidden;
   }
+  /* Auto-balanced linebreaks for short editorial headings — supported in
+     all evergreen browsers, silently no-op'd in older ones. */
+  h1, h2, h3, .empty-hero h3, .empty-title { text-wrap: balance; }
+
+  /* ----------------------------------------------------------------
+     Dark mode — applied when [data-theme="dark"] is set on <html>.
+     The inline <head> script syncs the attribute from a stored override
+     (localStorage 'tokpet-theme': 'light' | 'dark') or, if unset, from
+     the system prefers-color-scheme on first load. The hero toggle
+     cycles system → light → dark → system. Brand colour and hero
+     gradient stay the same so identity is preserved; page bg is darker
+     than hero so the hero card naturally floats up.
+     ---------------------------------------------------------------- */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #0a0907;
+    --card: #16130f;
+    --line: #2a2620;
+    --line-strong: #3a3429;
+    --field: #1c1814;
+    --field-strong: #251f19;
+
+    --ink: #f1ecdf;
+    --ink-soft: #b8b0a3;
+    --ink-faint: #6e665a;
+    --neutral-soft: #1c1814;
+    --neutral-fg: #b8b0a3;
+
+    /* Semantic — brighter so they read on near-black without going pastel.
+       Soft tints are dark hue-shifted instead of pale. */
+    --ok: #6fcf97;
+    --ok-soft: #1a2b1f;
+    --warn: #d9a662;
+    --warn-soft: #2c2316;
+    --bad: #e57262;
+    --bad-soft: #2c1916;
+
+    /* Elevation — on dark, depth comes from a brighter inset hairline
+       + deeper drop. Pure-black shadows would feel cold; keep them very
+       dark but warm-neutral. */
+    --elev-flat: 0 1px 2px rgba(0, 0, 0, .35);
+    --elev-pop:  0 2px 4px rgba(0, 0, 0, .3), 0 18px 36px -12px rgba(0, 0, 0, .55);
+    --elev-1: var(--elev-flat);
+    --elev-2: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -8px rgba(0, 0, 0, .45);
+    --elev-3: var(--elev-pop);
+  }
+
+  /* Aurora — brighten so the three smudges stay visible on a darker page. */
+  :root[data-theme="dark"] body {
+    background-image:
+      radial-gradient(60% 50% at 12% -5%, rgba(232, 137, 87, .08), transparent 70%),
+      radial-gradient(55% 45% at 105% 12%, rgba(232, 137, 87, .055), transparent 70%),
+      radial-gradient(60% 50% at 50% 110%, rgba(232, 137, 87, .045), transparent 70%);
+  }
+
+  :root[data-theme="dark"] ::selection { background: rgba(232, 137, 87, .35); }
+
+  /* Console shell — swap the original near-black drop for warmer near-black
+     drops so the rim doesn't go ice-cold. */
+  :root[data-theme="dark"] .console {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 24px 56px -24px rgba(0, 0, 0, .55);
+  }
+
+  /* Panel — the .7 white top highlight is too loud on near-black. Pull it
+     down, and bias the hover drop towards the brand colour so it still glows. */
+  :root[data-theme="dark"] .panel { box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, .04); }
+  :root[data-theme="dark"] .panel:hover {
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, .04),
+      0 1px 2px rgba(0, 0, 0, .25),
+      0 14px 32px -20px rgba(201, 90, 38, .32);
+  }
+
+  /* Soft-light reads gentler than overlay on a dark canvas — keeps the
+     grain visible without making the hero look noisy. */
+  :root[data-theme="dark"] .hero { background-blend-mode: soft-light, normal; }
+
+  /* Ribbon was hard-white; in dark mode match the mode-tile surface. */
+  :root[data-theme="dark"] .mode .ribbon {
+    background: var(--card);
+    border-color: rgba(201, 90, 38, .35);
+  }
+
+  /* Input-toggle hover — original rgba(0,0,0,.04) is invisible on dark. */
+  :root[data-theme="dark"] .field-input-toggle:hover { background: rgba(255, 255, 255, .05); }
+
+  /* Brand logos that ship as hard-coded near-black SVGs (OpenAI / Codex,
+     Cursor, Anthropic) become invisible on the dark card. Invert just
+     those by URL match; brand-coloured logos (Claude terracotta, Gemini,
+     DeepSeek, etc.) are left alone. .92 instead of 1 keeps the result
+     warm-white instead of clinical white. */
+  :root[data-theme="dark"] .logo-img[src*="openai"],
+  :root[data-theme="dark"] .logo-img[src*="cursor"],
+  :root[data-theme="dark"] .logo-img[src*="anthropic"] {
+    filter: invert(.92) brightness(1.05);
+  }
+
+  /* ---------------- Theme toggle (hero top-right) ---------------- */
+  .theme-toggle {
+    position: absolute;
+    top: var(--s-4);
+    right: var(--s-4);
+    z-index: 3;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .22);
+    color: var(--on-brand-muted);
+    border-radius: var(--r-sm);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      transform var(--dur-fast) var(--ease);
+  }
+  .theme-toggle:hover { background: rgba(255, 255, 255, .22); color: #fff; }
+  .theme-toggle:active { transform: scale(.94); }
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   button, input { font: inherit; }
   button { cursor: pointer; }
   a { color: var(--brand-1); }
@@ -182,7 +337,14 @@
     gap: var(--s-6);
     align-items: stretch;
     padding: var(--s-7);
-    background: linear-gradient(180deg, #18130E 0%, #211B14 100%);
+    /* SVG fractal-noise grain blended over the warm-charcoal gradient with
+       overlay mode — turns flat colour into "paper" texture without
+       shifting the perceived hue. 240px tile keeps the file inline and the
+       grain isotropic. Inspired by Apple developer / Stripe hero panels. */
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+      linear-gradient(180deg, #18130E 0%, #211B14 100%);
+    background-blend-mode: overlay, normal;
     color: var(--on-brand);
     overflow: hidden;
   }
@@ -255,6 +417,16 @@
   }
   .hero-meter > div:last-child { min-width: 0; }
 
+  /* Registered custom property so the conic arc tweens via CSS — no rAF
+     plumbing needed, the browser handles the animation curve under
+     prefers-reduced-motion. Number text is tweened in JS because counter()
+     readability across browsers still isn't a sure bet for finance-grade UI. */
+  @property --ring-pct {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 0;
+  }
+
   /* Ring meter — the brand gradient sweeps through the filled arc, the rest
      is a faint track. Inner disc is dark glass so the % reads in pure white
      without any text-shadow crutch. */
@@ -265,8 +437,13 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: conic-gradient(from -90deg, var(--brand-1) 0%, var(--brand-2) 0%, rgba(255, 255, 255, .08) 0%);
-    transition: background var(--dur-slow) var(--ease);
+    background: conic-gradient(
+      from -90deg,
+      var(--brand-1) 0deg,
+      var(--brand-2) calc(var(--ring-pct) * 3.6deg),
+      rgba(255, 255, 255, .08) calc(var(--ring-pct) * 3.6deg)
+    );
+    transition: --ring-pct var(--dur-slow) var(--ease), background var(--dur) var(--ease);
   }
   .ring::after {
     content: "";
@@ -550,14 +727,25 @@
     border-radius: var(--r-card);
     padding: var(--s-5);
     border: 1px solid var(--line);
-    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    /* Inset top highlight — 1px white at .7 alpha simulates the bevel where
+       paper edge meets light. Nearly invisible at rest on a warm-white
+       card, but reads as "real edge" instead of "flat sticker". */
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, .7);
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
   }
-  /* Hover: hairline darkens a step + a near-invisible warm-tinted lift.
-     Not a shadow, not a colour shift — just a sign that the panel is
-     interactive. Inspired by Linear/Vercel dashboard hover. */
+  /* Hover: hairline darkens a step, panel lifts 1px, terracotta-tinted
+     drop-shadow keeps the top highlight. Three subtle signals stacked
+     instead of one obvious one — Linear/Vercel dashboard hover language. */
   .panel:hover {
     border-color: var(--line-strong);
-    box-shadow: 0 1px 2px rgba(15, 15, 15, .03), 0 12px 28px -20px rgba(201, 90, 38, .12);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, .7),
+      0 1px 2px rgba(15, 15, 15, .03),
+      0 14px 32px -22px rgba(201, 90, 38, .14);
+    transform: translateY(-1px);
   }
   /* Shimmer skeleton — used by provider rows while data is in flight. */
   @keyframes shimmer {
@@ -1716,12 +1904,27 @@
     .cat-badge { width: 44px; height: 44px; }
   }
 
+  /* View Transitions — wraps provider list rerenders so add/remove/reorder
+     cross-fades + position-morphs instead of snapping. Each <article class
+     ="provider"> carries an inline view-transition-name keyed by provider
+     id so the browser knows which card moved where. Cosmetic-only updates
+     (usage % ticking every 5s) are filtered out by a signature check
+     in JS; only membership/order changes trigger a transition. Browsers
+     without the API silently fall through to the old snap behaviour. */
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: var(--dur);
+    animation-timing-function: var(--ease);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: .01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: .01ms !important;
     }
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation-duration: .01ms !important; }
   }
 
   /* ---------------- API-key wizard fields ---------------- */
@@ -1879,6 +2082,9 @@
     <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
     <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14 4c4 0 6 2 6 6-1 6-7 10-7 10s-6-4-7-10c0-4 2-6 6-6 1-1 1-1 2-1z"/><circle cx="13" cy="10" r="1.8"/><path d="M9 17l-3 3 1 1 3-3"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
     <!-- Provider marks: single-color glyphs tinted via .source-mark[data-tone] -->
     <symbol id="m-claude" viewBox="0 0 32 32"><path fill="currentColor" d="M16 4l2 6 6 2-6 2-2 6-2-6-6-2 6-2zM6 22l1.2 3 3 1.2-3 1.2L6 30.6 4.8 27.4l-3-1.2 3-1.2zM24 22l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/></symbol>
     <symbol id="m-codex" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 11l-5 5 5 5M20 11l5 5-5 5"/></symbol>
@@ -1931,6 +2137,9 @@
     <div class="dashboard">
       <div class="console">
         <section class="hero">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Theme">
+            <svg aria-hidden="true"><use href="#i-monitor"></use></svg>
+          </button>
           <div class="hero-copy">
             <div class="brand-row">
               <svg class="cat-badge" viewBox="0 0 64 64" aria-hidden="true" style="color:#fff"><use href="#cat"></use></svg>
@@ -2753,31 +2962,67 @@
       moodSub.textContent = "· " + meta.sub;
       mood.title = meta.desc;
     }
+    // Arc tween — set the registered @property --ring-pct; the conic-gradient
+    // in CSS animates the sweep angle for us. Clear any inline background
+    // override left over from the empty state.
     function setRing(pct) {
-      // Two-stop brand gradient sweep, then transparent track. from -90deg
-      // puts the start at 12 o'clock so the arc grows clockwise like a clock.
-      var stop = (pct * 3.6) + "deg";
-      ring.style.background =
-        "conic-gradient(from -90deg, var(--brand-1) 0deg, var(--brand-2) " + stop +
-        ", rgba(255,255,255,.08) " + stop + ")";
+      ring.style.background = "";
+      ring.style.setProperty("--ring-pct", String(pct));
+    }
+    // Number tween — rAF-driven so it works in browsers without @property
+    // counter() support and stays cancellable between renders. Snaps under
+    // prefers-reduced-motion or when source/target match.
+    function tweenNumText(el, from, to, suffix, dur) {
+      if (!el) return;
+      if (el._raf) cancelAnimationFrame(el._raf);
+      var reduced = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduced || from === to || typeof requestAnimationFrame !== "function") {
+        el.textContent = to + suffix;
+        return;
+      }
+      var start = performance.now();
+      function step(t) {
+        var p = Math.min(1, (t - start) / dur);
+        // easeOutCirc — mirrors the CSS --ease curve.
+        var eased = Math.sqrt(1 - Math.pow(1 - p, 2));
+        var v = Math.round(from + (to - from) * eased);
+        el.textContent = v + suffix;
+        if (p < 1) el._raf = requestAnimationFrame(step);
+        else { el._raf = 0; el.textContent = to + suffix; }
+      }
+      el._raf = requestAnimationFrame(step);
     }
 
     var primary = app.snapshot && app.snapshot.primary;
     if (!primary) {
       metric.classList.add("is-empty");
+      metric.removeAttribute("data-pct");
       var hasActive = activeProviders().length;
       metric.innerHTML = '<span class="num">' + (hasActive ? '…' : '—') + '</span><span class="cap">' + (hasActive ? 'fetching' : 'no data') + '</span>';
       label.textContent = hasActive ? "Providers are wired up." : "No data yet.";
       sub.textContent = hasActive ? "Waiting for the first usage sample." : "Add a provider so the cat has something to watch.";
       setMood(hasActive ? "idle" : "empty");
+      // Faint empty-state track. Reset --ring-pct so the next active sweep
+      // tweens from 0 instead of snapping back to the last value.
       ring.style.background = "conic-gradient(from -90deg, rgba(255,255,255,.18) 0deg, rgba(255,255,255,.08) 0deg)";
+      ring.style.setProperty("--ring-pct", "0");
       return;
     }
 
     var provider = providerById(primary.providerId);
     var pct = Math.max(0, Math.min(100, Math.round(primary.usedPct)));
+    var prevPct = parseFloat(metric.getAttribute("data-pct"));
+    var hasPrev = !isNaN(prevPct);
+    metric.setAttribute("data-pct", String(pct));
     metric.classList.remove("is-empty");
-    metric.innerHTML = '<span class="num">' + pct + '%</span><span class="cap">used</span>';
+    // First render shows the target value directly so screen readers / tests
+    // see the correct number without waiting on a frame. Subsequent renders
+    // start at prev and tween to pct.
+    var startVal = hasPrev ? prevPct : pct;
+    metric.innerHTML = '<span class="num">' + startVal + '%</span><span class="cap">used</span>';
+    if (hasPrev && prevPct !== pct) {
+      tweenNumText(metric.querySelector(".num"), prevPct, pct, "%", 500);
+    }
 
     var sp = stateProvider(primary.providerId);
     var win = null;
@@ -2797,9 +3042,25 @@
     setRing(pct);
   }
 
+  var _providersSig = "";
   function renderProviders() {
-    var list = $("providersList");
     var active = activeProviders();
+    // Signature covers identity + order + mode so cosmetic data ticks
+    // (usage % changing) don't trigger a View Transition every 5s.
+    var sig = active.map(function (p) { return p.id + ":" + (p.mode || ""); }).join(";") || "@empty";
+    var prevSig = _providersSig;
+    _providersSig = sig;
+    var animate = prevSig !== "" && prevSig !== sig &&
+      typeof document.startViewTransition === "function" &&
+      document.visibilityState === "visible";
+    if (animate) {
+      document.startViewTransition(function () { renderProvidersInner(active); });
+    } else {
+      renderProvidersInner(active);
+    }
+  }
+  function renderProvidersInner(active) {
+    var list = $("providersList");
     if (!active.length) {
       var detectedAvailable = app.providers.filter(function (p) { return p.available && !p.activated; }).length;
       var sampleChips = app.providers.slice(0, 4).map(function (p) {
@@ -2950,7 +3211,10 @@
         '</div>';
     }
 
-    return '<article class="provider">' +
+    // View-transition-name lets the browser morph card position when the
+    // list reorders. Sanitise the provider id to a valid <custom-ident>.
+    var vtName = "provider-" + String(provider.id).replace(/[^a-z0-9]/gi, "-");
+    return '<article class="provider" style="view-transition-name:' + vtName + '">' +
       '<div class="provider-head">' +
         '<div><div class="source-main">' +
           brandMark(provider.id, provider.displayName) +
@@ -3810,6 +4074,54 @@
       refreshAll(false);
     }
   });
+
+  // -------- Theme toggle --------
+  // 3-state cycle: system → light → dark → system. localStorage 'tokpet-theme'
+  // holds 'light' | 'dark', or is absent to follow the system. The inline
+  // <head> script already applied an initial theme before paint; here we
+  // wire the toggle button and live-sync the icon/label, and listen for
+  // system theme changes so the 'system' state actually follows.
+  (function () {
+    var btn = document.getElementById("themeToggle");
+    if (!btn) return;
+    var mq = window.matchMedia && matchMedia("(prefers-color-scheme: dark)");
+    var STORE_KEY = "tokpet-theme";
+    function readStored() {
+      try {
+        var v = localStorage.getItem(STORE_KEY);
+        return v === "light" || v === "dark" ? v : null;
+      } catch (e) { return null; }
+    }
+    function writeStored(v) {
+      try {
+        if (v === null) localStorage.removeItem(STORE_KEY);
+        else localStorage.setItem(STORE_KEY, v);
+      } catch (e) { /* private mode etc. — keep working in-memory only */ }
+    }
+    function apply() {
+      var stored = readStored();
+      var effective = stored || (mq && mq.matches ? "dark" : "light");
+      document.documentElement.dataset.theme = effective;
+      var iconRef = stored === "light" ? "#i-sun"
+        : stored === "dark" ? "#i-moon"
+        : "#i-monitor";
+      var label = stored === null ? "System" : (stored === "light" ? "Light" : "Dark");
+      var use = btn.querySelector("use");
+      if (use) use.setAttribute("href", iconRef);
+      btn.title = "Theme: " + label + " — click to cycle (System → Light → Dark)";
+      btn.setAttribute("aria-label", "Theme: " + label);
+    }
+    btn.addEventListener("click", function () {
+      var cur = readStored();
+      var next = cur === null ? "light" : cur === "light" ? "dark" : null;
+      writeStored(next);
+      apply();
+    });
+    if (mq && mq.addEventListener) {
+      mq.addEventListener("change", function () { if (readStored() === null) apply(); });
+    }
+    apply();
+  })();
 
   // -------- Boot --------
   refreshAll(false).then(function () {
