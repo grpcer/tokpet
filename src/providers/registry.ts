@@ -7,9 +7,11 @@
 import type { Provider } from '../protocol/provider.js';
 import { deepseekProvider } from './api-key/deepseek/index.js';
 import { claudeProvider } from './subscription/claude/index.js';
+import { codexProvider } from './subscription/codex/index.js';
 
 export const ALL_PROVIDERS: readonly Provider[] = [
   claudeProvider,
+  codexProvider,
   deepseekProvider,
   // Planned slots:
   //   subscription:  codex, openai-plus, cursor, windsurf, …
