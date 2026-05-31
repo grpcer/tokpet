@@ -566,44 +566,37 @@
     align-items: center;
     min-width: 0;
   }
+  /* Logo slots — transparent, no chip background, no border. Each brand SVG
+     ships its own colour fill so the glyph is instantly recognisable. */
   .source-mark {
     width: 40px;
     height: 40px;
-    border-radius: var(--r-sm);
     display: grid;
     place-items: center;
     flex: 0 0 40px;
-    background: var(--neutral-soft);
-    color: var(--brand-1);
+    color: var(--ink);
     font-weight: var(--fw-x);
     font-size: var(--fs-lg);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45);
     position: relative;
   }
-  .source-mark svg { width: 22px; height: 22px; }
-  /* simple-icons official SVG rendered via CSS mask so it picks up the
-     container's `color` (set per-vendor by [data-tone]) and inherits any
-     size override on its parent. Black alpha in the source SVG becomes
-     opaque, so any official single-color logo just works. */
-  .source-mark .logo-glyph,
-  .opt-mark .logo-glyph {
+  .source-mark .logo-img,
+  .opt-mark .logo-img {
     display: block;
-    background-color: currentColor;
-    -webkit-mask: var(--logo) center / contain no-repeat;
-    mask: var(--logo) center / contain no-repeat;
+    object-fit: contain;
   }
-  .source-mark .logo-glyph { width: 22px; height: 22px; }
-  .opt-mark .logo-glyph { width: 30px; height: 30px; }
-  .source-mark--initial { font-family: var(--font); }
-  [data-tone="claude"]     { background: linear-gradient(135deg, #fff1e1, #ffd9b8) !important; color: #b04a12 !important; }
-  [data-tone="codex"]      { background: linear-gradient(135deg, #e6f4ff, #c7e1ff) !important; color: #1d4f9a !important; }
-  [data-tone="openai"]     { background: linear-gradient(135deg, #e6f7ee, #c9eedb) !important; color: #0a7a4a !important; }
-  [data-tone="cursor"]     { background: linear-gradient(135deg, #efeaff, #d8cdff) !important; color: #4a32b2 !important; }
-  [data-tone="windsurf"]   { background: linear-gradient(135deg, #e6f5f1, #c7eadf) !important; color: #0d6f55 !important; }
-  [data-tone="anthropic"]  { background: linear-gradient(135deg, #ffe7d6, #f9c8a4) !important; color: #95371a !important; }
-  [data-tone="gemini"]     { background: linear-gradient(135deg, #e0ecff, #c0d4f8) !important; color: #1b4caf !important; }
-  [data-tone="deepseek"]   { background: linear-gradient(135deg, #e0ecff, #c2d1f5) !important; color: #1a3a8a !important; }
-  [data-tone="openrouter"] { background: linear-gradient(135deg, #f3eafe, #e1cdfb) !important; color: #5a258e !important; }
+  .source-mark .logo-img { width: 32px; height: 32px; }
+  .opt-mark .logo-img    { width: 36px; height: 36px; }
+  .source-mark--xs { width: 18px; height: 18px; flex: 0 0 18px; font-size: 11px; }
+  .source-mark--xs .logo-img { width: 16px; height: 16px; }
+  /* Initial-letter fallback for vendors without a logo file. Subtle neutral
+     bubble (no border) so it sits in the same visual weight as the SVGs. */
+  .source-mark--initial,
+  .opt-mark--initial {
+    font-family: var(--font);
+    background: var(--neutral-soft);
+    color: var(--brand-1);
+    border-radius: var(--r-pill);
+  }
   .name {
     font-weight: var(--fw-x);
     font-size: var(--fs-base);
@@ -982,20 +975,63 @@
   .wizard-hd .hero-sub { color: var(--on-brand-soft); margin-top: var(--s-1); }
   .wizard-body { padding: var(--s-6); }
 
-  .steps { display: flex; gap: var(--s-2); margin-bottom: var(--s-5); }
-  .steps[hidden] { display: none; }
-  .step-dot {
-    height: 6px;
-    flex: 1;
-    border-radius: var(--r-pill);
-    background: var(--line);
-    transition: background var(--dur) var(--ease);
+  /* ----- Single-page wizard sections ----- */
+  .wz-section + .wz-section {
+    margin-top: var(--s-6);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--line);
   }
-  .step-dot.on { background: var(--brand-grad); }
-  .step-dot.current { background: var(--brand-1); }
-
-  .step-head { margin-bottom: var(--s-4); }
-  .step-head h2 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); }
+  .wz-section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    margin-bottom: var(--s-4);
+  }
+  .wz-section-head > div { min-width: 0; }
+  .wz-section-num {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-pill);
+    background: var(--brand-grad);
+    color: var(--on-brand);
+    font-weight: var(--fw-x);
+    font-size: var(--fs-md);
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    line-height: 1;
+    box-shadow: 0 2px 6px -2px rgba(110, 84, 240, .3);
+  }
+  .wz-section-title { font-size: var(--fs-xl); margin: 0 0 var(--s-1); line-height: 1.2; }
+  /* Locked downstream sections dim contents but keep heading visible so the
+     user can preview the structure. Pointer-events off so nothing fires. */
+  .wz-section[data-locked="true"] .modes,
+  .wz-section[data-locked="true"] .option-list,
+  .wz-section[data-locked="true"] #connectCard {
+    opacity: .45;
+    pointer-events: none;
+    filter: grayscale(.3);
+  }
+  .wz-section[data-locked="true"] .wz-section-num {
+    background: var(--line);
+    color: var(--ink-soft);
+    box-shadow: none;
+  }
+  /* Empty placeholder shown when a section has no real content yet. */
+  .wz-empty {
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-4);
+    color: var(--ink-soft);
+    font-size: var(--fs-md);
+    background: var(--field);
+    text-align: center;
+  }
+  /* Update-key flow hides sections 1 & 2; keep connect flush to the top. */
+  .wizard.wizard--key-only #sectionMode,
+  .wizard.wizard--key-only #sectionVendor { display: none; }
+  .wizard.wizard--key-only #sectionConnect { margin-top: 0; padding-top: 0; border-top: 0; }
+  .footer-actions--end { justify-content: flex-end; }
 
   .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
   .mode, .provider-option {
@@ -1007,9 +1043,12 @@
     transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease);
     position: relative;
   }
+  /* 4 行 subgrid：icon / text / tag / example —— 让三张卡的同名行轨道共享高度，
+     描述行数不一样时 tag 和 e.g. 也能横向对齐。 */
   .mode {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 4;
     gap: var(--s-3);
     min-height: 100%;
   }
@@ -1085,17 +1124,14 @@
   .provider-option .opt-mark {
     width: 44px;
     height: 44px;
-    border-radius: var(--r-sm);
     display: grid;
     place-items: center;
     flex: none;
-    background: var(--neutral-soft);
-    color: var(--brand-1);
+    color: var(--ink);
     font-weight: var(--fw-x);
     font-size: var(--fs-lg);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
   }
-  .provider-option .opt-mark svg { width: 24px; height: 24px; }
+  .provider-option .opt-mark .logo-img { width: 36px; height: 36px; }
   .provider-option .opt-body { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
   .provider-option .opt-name { font-weight: var(--fw-x); font-size: var(--fs-base); color: var(--ink); }
   .provider-option .opt-sub { font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.4; }
@@ -1142,22 +1178,17 @@
     background: var(--field);
     border-bottom: 1px solid var(--line);
   }
-  /* connect-card opt-mark didn't inherit the .provider-option centering rules,
-     so .logo-glyph fell to top-left and the whale ended up huddled in a corner.
-     Mirror the same flex/grid centering and rounded-square chrome here. */
+  /* Connect-card logo slot: just centring + size; no chip background or border. */
   .connect-card .ck-hd .opt-mark {
     width: 56px;
     height: 56px;
     font-size: var(--fs-xl);
-    border-radius: var(--r-sm);
     display: grid;
     place-items: center;
     flex: none;
-    background: var(--neutral-soft);
-    color: var(--brand-1);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
+    color: var(--ink);
   }
-  .connect-card .ck-hd .opt-mark svg { width: 30px; height: 30px; }
+  .connect-card .ck-hd .opt-mark .logo-img { width: 48px; height: 48px; }
   .connect-card .ck-title { font-size: var(--fs-xl); font-weight: var(--fw-x); margin: 0 0 2px; letter-spacing: -.01em; }
   .connect-card .ck-sub { font-size: var(--fs-md); color: var(--ink-soft); margin: 0; line-height: 1.5; }
   .connect-card .ck-body { padding: var(--s-5); display: grid; gap: var(--s-4); }
@@ -1928,7 +1959,7 @@
         <header class="wizard-hd">
           <div>
             <h1 id="wizardTitle">Add provider</h1>
-            <p class="hero-sub" id="wizardSub">Three quick steps — Tokpet only reads what's already on this Mac.</p>
+            <p class="hero-sub" id="wizardSub">Pick a method, vendor, and connect — all on one page.</p>
           </div>
           <button class="btn btn--ghost btn--sm" onclick="showDashboard()" aria-label="Close add provider">
             <svg class="icon icon--sm" aria-hidden="true"><use href="#i-x"></use></svg>
@@ -1936,93 +1967,106 @@
           </button>
         </header>
         <div class="wizard-body">
-          <div class="steps" id="wizardSteps">
-            <span class="step-dot" id="dot1"></span>
-            <span class="step-dot" id="dot2"></span>
-            <span class="step-dot" id="dot3"></span>
-          </div>
-
-          <div id="step1">
-            <div class="step-head"><h2>How does this vendor share usage?</h2><p class="hint">Pick the way you already access this provider — Tokpet matches it.</p></div>
-            <div class="modes" id="modes"></div>
-            <div class="footer-actions"><span></span><button class="btn btn--primary" id="next1" disabled onclick="goStep(2)">Continue<svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button></div>
-          </div>
-
-          <div id="step2" hidden>
-            <div class="step-head"><h2 id="step2Title">Pick a vendor</h2><p class="hint">Connected and ready-to-connect vendors are tappable. Planned ones preview the roadmap.</p></div>
-            <div class="option-list" id="providerOptions"></div>
-            <div class="footer-actions"><button class="btn" onclick="goStep(1)">Back</button><button class="btn btn--primary" id="next2" disabled onclick="goStep(3)">Continue<svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button></div>
-          </div>
-
-          <div id="step3" hidden>
-            <div class="step-head"><h2 id="connectTitle">Review &amp; connect</h2><p class="hint">Tokpet tests the credentials before activating, so a broken provider can't get enabled.</p></div>
-            <div class="connect-card">
-              <div class="ck-hd">
-                <div class="opt-mark" id="connectMark" data-tone="">?</div>
+          <!-- Single-page form. Sections gate downstream choices via [data-locked]. -->
+          <div id="wizardForm">
+            <section class="wz-section" id="sectionMode">
+              <div class="wz-section-head">
+                <span class="wz-section-num">1</span>
                 <div>
-                  <h3 class="ck-title" id="connectMethod">Local credential reuse</h3>
-                  <p class="ck-sub" id="connectCopy">Tokpet will reuse credentials already stored on this machine.</p>
+                  <h2 class="wz-section-title">How does this vendor share usage?</h2>
+                  <p class="hint">Pick the way you already access this provider — Tokpet matches it.</p>
                 </div>
               </div>
-              <div class="ck-body">
-                <div class="trust">
-                  <div class="trust-row">
-                    <div class="tic tic--ok"><svg aria-hidden="true"><use href="#i-check"></use></svg></div>
-                    <div>
-                      <div class="tt">What Tokpet reads</div>
-                      <div class="ts" id="connectReadList">Plan windows, used percentage, reset times.</div>
-                    </div>
-                  </div>
-                  <div class="trust-row">
-                    <div class="tic tic--no"><svg aria-hidden="true"><use href="#i-x"></use></svg></div>
-                    <div>
-                      <div class="tt">What Tokpet doesn't do</div>
-                      <div class="ts">No new password prompt. No outbound telemetry. Credentials stay where the vendor put them.</div>
-                    </div>
+              <div class="modes" id="modes"></div>
+            </section>
+
+            <section class="wz-section" id="sectionVendor" data-locked="true">
+              <div class="wz-section-head">
+                <span class="wz-section-num">2</span>
+                <div>
+                  <h2 class="wz-section-title" id="vendorSectionTitle">Pick a vendor</h2>
+                  <p class="hint" id="vendorSectionHint">Pick a method above first.</p>
+                </div>
+              </div>
+              <div class="option-list" id="providerOptions"></div>
+            </section>
+
+            <section class="wz-section" id="sectionConnect" data-locked="true">
+              <div class="wz-section-head">
+                <span class="wz-section-num">3</span>
+                <div>
+                  <h2 class="wz-section-title" id="connectTitle">Review &amp; connect</h2>
+                  <p class="hint" id="connectHint">Pick a vendor above first.</p>
+                </div>
+              </div>
+              <div class="connect-card" id="connectCard" hidden>
+                <div class="ck-hd">
+                  <div class="opt-mark opt-mark--initial" id="connectMark">?</div>
+                  <div>
+                    <h3 class="ck-title" id="connectMethod">Local credential reuse</h3>
+                    <p class="ck-sub" id="connectCopy">Tokpet will reuse credentials already stored on this machine.</p>
                   </div>
                 </div>
-                <div class="ck-fields" id="connectFields" hidden>
-                  <div class="field-group">
-                    <label class="field-label" for="connectApiKey">
-                      <span>API Key</span>
-                      <span class="req">*</span>
-                    </label>
-                    <div class="field-input-wrap">
-                      <input id="connectApiKey" class="field-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" oninput="onConnectFieldInput()">
-                      <button type="button" class="field-input-toggle" id="connectApiKeyToggle" onclick="toggleApiKeyVisibility()" aria-label="Show key" title="Show key">
-                        <svg aria-hidden="true"><use href="#i-eye"></use></svg>
-                      </button>
-                    </div>
-                    <div class="field-help" id="connectApiKeyHelp">Paste the API key from the provider dashboard. Stored locally in <span class="mono">~/.tokpet/config.json</span>.</div>
-                  </div>
-                  <details class="ck-advanced" id="connectAdvanced">
-                    <summary><span>Advanced</span></summary>
-                    <div class="adv-body">
-                      <div class="field-group">
-                        <label class="field-label" for="connectBaseUrl">
-                          <span>Base URL</span>
-                          <span class="opt">optional</span>
-                        </label>
-                        <input id="connectBaseUrl" class="field-input" type="text" autocomplete="off" spellcheck="false" placeholder="https://api.example.com">
-                        <div class="field-help">Leave blank to use the default endpoint.</div>
+                <div class="ck-body">
+                  <div class="trust">
+                    <div class="trust-row">
+                      <div class="tic tic--ok"><svg aria-hidden="true"><use href="#i-check"></use></svg></div>
+                      <div>
+                        <div class="tt">What Tokpet reads</div>
+                        <div class="ts" id="connectReadList">Plan windows, used percentage, reset times.</div>
                       </div>
                     </div>
-                  </details>
+                    <div class="trust-row">
+                      <div class="tic tic--no"><svg aria-hidden="true"><use href="#i-x"></use></svg></div>
+                      <div>
+                        <div class="tt">What Tokpet doesn't do</div>
+                        <div class="ts">No new password prompt. No outbound telemetry. Credentials stay where the vendor put them.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ck-fields" id="connectFields" hidden>
+                    <div class="field-group">
+                      <label class="field-label" for="connectApiKey">
+                        <span>API Key</span>
+                        <span class="req">*</span>
+                      </label>
+                      <div class="field-input-wrap">
+                        <input id="connectApiKey" class="field-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" oninput="onConnectFieldInput()">
+                        <button type="button" class="field-input-toggle" id="connectApiKeyToggle" onclick="toggleApiKeyVisibility()" aria-label="Show key" title="Show key">
+                          <svg aria-hidden="true"><use href="#i-eye"></use></svg>
+                        </button>
+                      </div>
+                      <div class="field-help" id="connectApiKeyHelp">Paste the API key from the provider dashboard. Stored locally in <span class="mono">~/.tokpet/config.json</span>.</div>
+                    </div>
+                    <details class="ck-advanced" id="connectAdvanced">
+                      <summary><span>Advanced</span></summary>
+                      <div class="adv-body">
+                        <div class="field-group">
+                          <label class="field-label" for="connectBaseUrl">
+                            <span>Base URL</span>
+                            <span class="opt">optional</span>
+                          </label>
+                          <input id="connectBaseUrl" class="field-input" type="text" autocomplete="off" spellcheck="false" placeholder="https://api.example.com">
+                          <div class="field-help">Leave blank to use the default endpoint.</div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                  <div class="source-line" id="connectSourceHint" hidden>
+                    <svg aria-hidden="true"><use href="#i-anchor"></use></svg>
+                    <span id="connectSourceText"></span>
+                  </div>
+                  <a class="ck-docs" id="connectDocs" href="#" target="_blank" rel="noopener" hidden>
+                    <svg aria-hidden="true"><use href="#i-book"></use></svg>
+                    <span id="connectDocsLabel">Provider docs</span>
+                  </a>
                 </div>
-                <div class="source-line" id="connectSourceHint" hidden>
-                  <svg aria-hidden="true"><use href="#i-anchor"></use></svg>
-                  <span id="connectSourceText"></span>
-                </div>
-                <a class="ck-docs" id="connectDocs" href="#" target="_blank" rel="noopener" hidden>
-                  <svg aria-hidden="true"><use href="#i-book"></use></svg>
-                  <span id="connectDocsLabel">Provider docs</span>
-                </a>
               </div>
-            </div>
+            </section>
+
             <div class="error-banner" id="connectError" style="display:none"></div>
-            <div class="footer-actions">
-              <button class="btn" id="step3Back" onclick="goStep(2)">Back</button>
-              <button class="btn btn--primary" id="connectBtn" onclick="activateProvider()">
+            <div class="footer-actions footer-actions--end">
+              <button class="btn btn--primary" id="connectBtn" disabled onclick="activateProvider()">
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-zap"></use></svg>
                 <span>Connect</span>
               </button>
@@ -2131,6 +2175,7 @@
     },
     "openai-plus": {
       tone: "openai", mark: "openai",
+      logoUrl: "/brand-logos/openai.svg",
       blurb: "ChatGPT Plus / Team plan limits and rate windows.",
       readList: "Plan tier, remaining messages, rate-limit windows."
     },
@@ -2154,6 +2199,7 @@
     },
     "openai-api": {
       tone: "openai", mark: "openai",
+      logoUrl: "/brand-logos/openai.svg",
       blurb: "OpenAI API credit balance and rate limits.",
       readList: "Hard limit, soft limit, usage so far this month."
     },
@@ -2220,7 +2266,6 @@
     removeId: null,
     reconnectId: null,
     wizardActive: false,
-    skipModeStep: false,
     autoTimer: null,
     refreshing: false,
     online: true
@@ -2585,8 +2630,7 @@
     if (!active.length) {
       var detectedAvailable = app.providers.filter(function (p) { return p.available && !p.activated; }).length;
       var sampleChips = app.providers.slice(0, 4).map(function (p) {
-        var tone = (PROVIDER_META[p.id] || {}).tone;
-        return '<span class="chip">' + brandMarkSmall(p.id, tone) + esc(p.displayName) + '</span>';
+        return '<span class="chip">' + brandMarkSmall(p.id, p.displayName) + esc(p.displayName) + '</span>';
       }).join("");
       list.innerHTML =
         '<div class="empty-hero">' +
@@ -2604,38 +2648,31 @@
     list.innerHTML = active.map(function (p, i) { return renderProviderCard(p, i, active.length); }).join("");
   }
 
-  function brandMarkSmall(providerId, tone) {
+  function brandMarkSmall(providerId, displayName) {
     var meta = PROVIDER_META[providerId] || {};
-    var dataTone = esc(tone || meta.tone || '');
+    var name = displayName || providerId || '';
     if (meta.logoUrl) {
-      return '<span class="source-mark" data-tone="' + dataTone + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none">' +
-             '<span class="logo-glyph" style="width:14px;height:14px;--logo:url(' + esc(meta.logoUrl) + ')"></span>' +
+      return '<span class="source-mark source-mark--xs">' +
+             '<img class="logo-img" src="' + esc(meta.logoUrl) + '" alt="" loading="lazy">' +
              '</span>';
     }
-    var mk = meta.mark;
-    var sym = mk ? '#m-' + mk : '#m-generic';
-    return '<span class="source-mark" data-tone="' + dataTone + '" style="width:18px;height:18px;font-size:10px;border-radius:6px;box-shadow:none"><svg style="width:14px;height:14px"><use href="' + sym + '"></use></svg></span>';
+    var initial = (name || "?").charAt(0).toUpperCase();
+    return '<span class="source-mark source-mark--xs source-mark--initial">' + esc(initial) + '</span>';
   }
 
   function brandMark(providerId, displayName, cls) {
     var meta = PROVIDER_META[providerId] || {};
-    var tone = meta.tone || '';
     var rootCls = cls || "source-mark";
-    // Prefer the official simple-icons SVG copied to public/brand-logos/.
-    // Rendered via CSS mask so the glyph picks up the tone color (a flat
-    // <img> would force the source SVG's black, ignoring [data-tone]).
+    // Brand SVGs in /brand-logos/ now ship their own brand-colour fill, so
+    // render via <img> (no CSS mask) — that preserves multi-colour glyphs
+    // like Gemini's gradient and keeps each vendor instantly recognisable.
     if (meta.logoUrl) {
-      return '<div class="' + rootCls + '" data-tone="' + esc(tone) + '">' +
-             '<span class="logo-glyph" style="--logo:url(' + esc(meta.logoUrl) + ')"></span>' +
+      return '<div class="' + rootCls + '">' +
+             '<img class="logo-img" src="' + esc(meta.logoUrl) + '" alt="" loading="lazy">' +
              '</div>';
     }
-    var mk = meta.mark;
-    if (mk) {
-      var sym = '#m-' + mk;
-      return '<div class="' + rootCls + '" data-tone="' + esc(tone) + '"><svg><use href="' + sym + '"></use></svg></div>';
-    }
     var initial = (displayName || providerId || "?").charAt(0).toUpperCase();
-    return '<div class="' + rootCls + ' ' + rootCls + '--initial" data-tone="' + esc(tone) + '">' + esc(initial) + '</div>';
+    return '<div class="' + rootCls + ' ' + rootCls + '--initial">' + esc(initial) + '</div>';
   }
 
   function providerStatus(provider, sp) {
@@ -2766,8 +2803,9 @@
     '</article>';
   }
 
-  // Open the wizard at step 3 with the current api-key + baseUrl prefilled so
-  // the user can rotate / fix the credential without re-walking the picker.
+  // Open the wizard pointed straight at the connect card, with the existing
+  // api-key + baseUrl prefilled so the user can rotate / fix the credential
+  // without re-walking the picker.
   function startUpdateKey(id) {
     if (!Array.isArray(app.providers)) {
       refreshAll(false).then(function () { startUpdateKey(id); });
@@ -2778,9 +2816,27 @@
     app.mode = p.mode;
     app.provider = id;
     app.wizardActive = true;
-    app.skipModeStep = true; // Back from step 3 just closes the wizard.
     document.body.classList.add("mode-add");
-    goStep(3);
+
+    // Key-only chrome: hide sections 1 & 2 via the modifier class, drop the
+    // step dots and rewrite the header for rotation context.
+    document.querySelector(".wizard").classList.add("wizard--key-only");
+    $("stepDone").setAttribute("hidden", "");
+    $("wizardForm").removeAttribute("hidden");
+    $("wizardTitle").textContent = "Update API key";
+    $("wizardSub").textContent = "Paste a new key for " + p.displayName + " — the existing one stays until this one tests green.";
+
+    renderConnectPanel();
+    $("connectTitle").textContent = "Update " + p.displayName + " key";
+    // updateConnectButton owns disabled state; override the label after it runs
+    // so the rotation flow reads "Save & reconnect" instead of "Reconnect".
+    updateConnectButton();
+    var cBtn = $("connectBtn");
+    if (cBtn) {
+      var span = cBtn.querySelector("span");
+      if (span) span.textContent = "Save & reconnect";
+    }
+
     if (history.pushState) {
       history.pushState({ wizard: true }, "", "#update-key/" + encodeURIComponent(id));
     }
@@ -2802,23 +2858,6 @@
         if (adv) adv.open = true;
       }
     });
-    // Adapt the chrome: this is a rotation, not a first-time wire-up.
-    setTimeout(function () {
-      var label = p.displayName;
-      var wTitle = $("wizardTitle");
-      var wSub = $("wizardSub");
-      var cTitle = $("connectTitle");
-      var cBack = $("step3Back");
-      var cBtn = $("connectBtn");
-      if (wTitle) wTitle.textContent = "Update API key";
-      if (wSub) wSub.textContent = "Paste a new key for " + label + " — the existing one stays until this one tests green.";
-      if (cTitle) cTitle.textContent = "Update " + label + " key";
-      if (cBack) cBack.style.display = "none"; // no step 1/2 to go back to in this flow
-      if (cBtn) {
-        var span = cBtn.querySelector("span");
-        if (span) span.textContent = "Save & reconnect";
-      }
-    }, 0);
   }
 
   // Reorder the activated providers by ±1 step. Persists the new order via
@@ -2988,16 +3027,24 @@
     app.mode = null;
     app.provider = null;
     app.wizardActive = true;
-    app.skipModeStep = false;
+
+    document.body.classList.add("mode-add");
+    document.querySelector(".wizard").classList.remove("wizard--key-only");
+    $("wizardTitle").textContent = "Add provider";
+    $("wizardSub").textContent = "Pick a method, vendor, and connect — all on one page.";
+    $("stepDone").setAttribute("hidden", "");
+    $("wizardForm").removeAttribute("hidden");
 
     renderModes();
-    document.body.classList.add("mode-add");
-    goStep(1);
+    renderProviderOptions();
+    renderConnectPanel();
+    updateConnectButton();
+
     if (history.pushState) {
       history.pushState({ wizard: true }, "", "#add-provider");
     }
     setTimeout(function () {
-      var first = document.querySelector(".wizard .mode:not(:disabled), .wizard .provider-option, .wizard #connectBtn");
+      var first = document.querySelector(".wizard .mode:not(:disabled)");
       if (first) first.focus();
     }, 50);
   }
@@ -3036,6 +3083,8 @@
   function showDashboard() {
     app.wizardActive = false;
     document.body.classList.remove("mode-add");
+    var w = document.querySelector(".wizard");
+    if (w) w.classList.remove("wizard--key-only");
     if (location.hash) {
       history.replaceState({}, "", location.pathname + location.search);
     }
@@ -3079,7 +3128,8 @@
       var iconCls = meta.tone === "ok" ? "mode-icon mode-icon--ok"
         : meta.tone === "warn" ? "mode-icon mode-icon--warn"
         : "mode-icon";
-      return '<button class="mode" type="button"' +
+      var selCls = (app.mode === mode) ? ' sel' : '';
+      return '<button class="mode' + selCls + '" type="button"' +
         ' onclick="pickMode(\'' + esc(mode) + '\', this)">' +
         (meta.recommended && available ? '<span class="ribbon">recommended</span>' : '') +
         '<div class="' + iconCls + '">' + icon(meta.icon || "info", "lg") + '</div>' +
@@ -3091,31 +3141,44 @@
         (meta.example ? '<div class="mode-example">e.g. ' + esc(meta.example) + '</div>' : '') +
         '</button>';
     }).join("");
-    $("next1").disabled = !app.mode;
-    if (app.mode) {
-      var sel = document.querySelector('.mode[onclick*="\'' + app.mode + '\'"]');
-      if (sel) sel.classList.add("sel");
-    }
   }
 
   function pickMode(mode, el) {
+    if (app.mode === mode) return;
     app.mode = mode;
+    app.provider = null; // vendor list belongs to the new mode
     document.querySelectorAll(".mode").forEach(function (n) { n.classList.remove("sel"); });
-    el.classList.add("sel");
-    $("next1").disabled = false;
+    if (el) el.classList.add("sel");
+    renderProviderOptions();
+    renderConnectPanel();
+    updateConnectButton();
+    // Slide section 2 into view so the next choice is visible without scrolling.
+    var vendorSection = $("sectionVendor");
+    if (vendorSection && vendorSection.scrollIntoView) {
+      vendorSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 
   function renderProviderOptions() {
+    var section = $("sectionVendor");
+    var host = $("providerOptions");
+    if (!app.mode) {
+      section.setAttribute("data-locked", "true");
+      $("vendorSectionTitle").textContent = "Pick a vendor";
+      $("vendorSectionHint").textContent = "Pick a method above first.";
+      host.innerHTML = '<div class="wz-empty">Pick a method above to see vendors.</div>';
+      return;
+    }
+    section.removeAttribute("data-locked");
+    $("vendorSectionTitle").textContent = "Pick a " + modeLabel(app.mode).toLowerCase() + " vendor";
+
     var vendors = vendorsForMode(app.mode);
     var actionable = vendors.filter(function (v) { return v.status === "available" || v.status === "connected"; });
-
-    var headerNote = actionable.length
-      ? 'Tap any vendor to ' + (actionable.some(function (v) { return v.status === "available"; }) ? 'connect or reconnect' : 'reconnect') + '. Planned ones below are previews.'
+    $("vendorSectionHint").textContent = actionable.length
+      ? 'Tap any vendor to ' + (actionable.some(function (v) { return v.status === "available"; }) ? 'connect or reconnect' : 'reconnect') + '. Planned ones preview the roadmap.'
       : 'Nothing connectable yet — every vendor in this category is on the roadmap.';
 
-    var html = '<p class="hint" style="margin:0 0 var(--s-3)">' + esc(headerNote) + '</p>';
-
-    html += vendors.map(function (v) {
+    host.innerHTML = vendors.map(function (v) {
       var meta = PROVIDER_META[v.id] || {};
       var blurb = meta.blurb || (modeLabel(v.mode) + ' · ready to connect');
       var pill, attrs;
@@ -3129,7 +3192,8 @@
         pill = '<span class="pill pill--warn">' + esc(v.eta || 'planned') + '</span>';
         attrs = 'disabled aria-disabled="true" title="Not shipped yet — Tokpet will surface this vendor as soon as it lands."';
       }
-      return '<button class="provider-option" type="button" ' + attrs + '>' +
+      var selCls = (app.provider === v.id) ? ' sel' : '';
+      return '<button class="provider-option' + selCls + '" type="button" ' + attrs + '>' +
         brandMark(v.id, v.displayName, "opt-mark") +
         '<div class="opt-body">' +
           '<div class="opt-name">' + esc(v.displayName) + ' ' + pill + '</div>' +
@@ -3139,117 +3203,128 @@
                                 : '<div class="opt-arrow">' + icon("arrow-right", "sm") + '</div>') +
         '</button>';
     }).join("");
-
-    $("providerOptions").innerHTML = html;
-    $("next2").disabled = !app.provider;
-    if (app.provider) {
-      var sel = document.querySelector('.provider-option[onclick*="\'' + app.provider + '\'"]');
-      if (sel) sel.classList.add("sel");
-    }
   }
 
   function pickProvider(id, el) {
+    if (app.provider === id) return;
     app.provider = id;
     document.querySelectorAll(".provider-option").forEach(function (n) { n.classList.remove("sel"); });
-    el.classList.add("sel");
-    $("next2").disabled = false;
+    if (el) el.classList.add("sel");
+    renderConnectPanel();
+    updateConnectButton();
+    var connectSection = $("sectionConnect");
+    if (connectSection && connectSection.scrollIntoView) {
+      connectSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    // For api-key vendors, drop focus into the key field so the user can paste right away.
+    var p = providerById(id);
+    if (p && p.mode === "api-key") {
+      setTimeout(function () {
+        var k = $("connectApiKey");
+        if (k) k.focus();
+      }, 250);
+    }
   }
 
-  function goStep(n) {
-    var allSteps = ["step1", "step2", "step3", "stepDone"];
-    allSteps.forEach(function (id) { $(id).setAttribute("hidden", ""); });
-    if (n === "done") {
-      $("stepDone").removeAttribute("hidden");
-      $("wizardSteps").setAttribute("hidden", "");
-      $("wizardTitle").textContent = "All connected";
-      $("wizardSub").textContent = "Tokpet has everything it can reach on this Mac.";
+  // Populate the connect card from app.provider. Lock the section (and hide
+  // the card) when no vendor is chosen yet.
+  function renderConnectPanel() {
+    var section = $("sectionConnect");
+    var card = $("connectCard");
+    var hintEl = $("connectHint");
+
+    if (!app.provider) {
+      section.setAttribute("data-locked", "true");
+      $("connectTitle").textContent = "Review & connect";
+      hintEl.textContent = app.mode ? "Pick a vendor above first." : "Pick a method, then a vendor.";
+      if (card) card.setAttribute("hidden", "");
+      $("connectError").style.display = "none";
       return;
     }
-    $("step" + n).removeAttribute("hidden");
-    $("wizardTitle").textContent = "Add provider";
-    $("wizardSub").textContent = "Three quick steps — Tokpet only reads what's already on this Mac.";
-    ["dot1", "dot2", "dot3"].forEach(function (id, i) {
-      var el = $(id);
-      el.classList.toggle("on", (i + 1) <= n);
-      el.classList.toggle("current", (i + 1) === n);
-    });
+    section.removeAttribute("data-locked");
 
-    if (app.skipModeStep && app.provider && app.mode) {
-      $("wizardSteps").setAttribute("hidden", "");
+    var p = providerById(app.provider);
+    var pmeta = PROVIDER_META[app.provider] || {};
+    var label = p ? p.displayName : "provider";
+    $("connectTitle").textContent = "Review & connect " + label;
+    hintEl.textContent = "Tokpet tests the credentials before activating, so a broken provider can't get enabled.";
+
+    if (card) card.removeAttribute("hidden");
+
+    // Replace #connectMark in-place with a freshly-rendered brand mark, then
+    // re-stamp the id so subsequent renderConnectPanel calls can find it again.
+    var markHost = $("connectMark");
+    markHost.outerHTML = brandMark(app.provider, label, "opt-mark");
+    var ckHd = $("connectCard").querySelector(".ck-hd");
+    var newMark = ckHd && ckHd.firstElementChild;
+    if (newMark) newMark.id = "connectMark";
+
+    $("connectMethod").textContent = p && p.mode === "subscription" ? "Local credential reuse"
+      : p && p.mode === "api-key" ? "API key on this machine"
+      : "Configured upstream";
+    $("connectCopy").textContent = pmeta.blurb ||
+      (p && p.mode === "subscription"
+        ? "Tokpet will reuse credentials already stored on this machine."
+        : "Tokpet will validate the credentials configured for this provider.");
+
+    $("connectReadList").textContent = pmeta.readList || "Plan windows, used percentage, reset times.";
+
+    var hint = $("connectSourceHint");
+    var hintText = $("connectSourceText");
+    if (pmeta.sourceHint) {
+      hintText.textContent = pmeta.sourceHint;
+      hint.removeAttribute("hidden");
     } else {
-      $("wizardSteps").removeAttribute("hidden");
+      hint.setAttribute("hidden", "");
     }
 
-    if (n === 2) {
-      $("step2Title").textContent = "Pick a " + modeLabel(app.mode).toLowerCase() + " provider";
-      renderProviderOptions();
+    var docs = $("connectDocs");
+    if (pmeta.docsUrl) {
+      docs.href = pmeta.docsUrl;
+      $("connectDocsLabel").textContent = pmeta.docsLabel || "Provider docs";
+      docs.removeAttribute("hidden");
+    } else {
+      docs.setAttribute("hidden", "");
     }
-    if (n === 3) {
-      var p = providerById(app.provider);
-      var pmeta = PROVIDER_META[app.provider] || {};
-      var label = p ? p.displayName : "provider";
-      $("connectTitle").textContent = "Review & connect " + label;
 
-      var markHost = $("connectMark");
-      markHost.outerHTML = brandMark(app.provider, label, "opt-mark").replace('class="opt-mark"', 'class="opt-mark" id="connectMark"');
+    $("connectError").style.display = "none";
 
-      $("connectMethod").textContent = p && p.mode === "subscription" ? "Local credential reuse"
-        : p && p.mode === "api-key" ? "API key on this machine"
-        : "Configured upstream";
-      $("connectCopy").textContent = pmeta.blurb ||
-        (p && p.mode === "subscription"
-          ? "Tokpet will reuse credentials already stored on this machine."
-          : "Tokpet will validate the credentials configured for this provider.");
+    // Toggle api-key fields. Pre-fill baseUrl per-provider so users see the
+    // expected default and don't accidentally point at a stale proxy.
+    var fields = $("connectFields");
+    var keyInput = $("connectApiKey");
+    var baseInput = $("connectBaseUrl");
+    if (p && p.mode === "api-key") {
+      fields.removeAttribute("hidden");
+      keyInput.value = "";
+      baseInput.value = "";
+      baseInput.placeholder = providerBaseUrlPlaceholder(p.id);
+      $("connectAdvanced").open = false;
+      resetApiKeyVisibility(); // re-entry always starts masked
+    } else {
+      fields.setAttribute("hidden", "");
+    }
+  }
 
-      $("connectReadList").textContent = pmeta.readList || "Plan windows, used percentage, reset times.";
-
-      var hint = $("connectSourceHint");
-      var hintText = $("connectSourceText");
-      if (pmeta.sourceHint) {
-        hintText.textContent = pmeta.sourceHint;
-        hint.removeAttribute("hidden");
-      } else {
-        hint.setAttribute("hidden", "");
-      }
-
-      var docs = $("connectDocs");
-      if (pmeta.docsUrl) {
-        docs.href = pmeta.docsUrl;
-        $("connectDocsLabel").textContent = pmeta.docsLabel || "Provider docs";
-        docs.removeAttribute("hidden");
-      } else {
-        docs.setAttribute("hidden", "");
-      }
-
-      $("connectError").style.display = "none";
-      var btn = $("connectBtn");
+  // Compute Connect button enabled state + label from current selection.
+  function updateConnectButton() {
+    var btn = $("connectBtn");
+    if (!btn) return;
+    var p = providerById(app.provider);
+    var span = btn.querySelector("span");
+    btn.removeAttribute("aria-busy");
+    if (!app.provider) {
+      btn.disabled = true;
+      if (span) span.textContent = "Connect";
+      return;
+    }
+    if (p && p.mode === "api-key") {
+      var key = ($("connectApiKey").value || "").trim();
+      btn.disabled = !key;
+    } else {
       btn.disabled = false;
-      btn.removeAttribute("aria-busy");
-      btn.querySelector("span").textContent = p && p.activated ? "Reconnect" : "Connect";
-
-      // Toggle the api-key form. Pre-fill baseUrl per-provider so users see the
-      // expected default and don't accidentally point at a stale proxy.
-      var fields = $("connectFields");
-      var keyInput = $("connectApiKey");
-      var baseInput = $("connectBaseUrl");
-      if (p && p.mode === "api-key") {
-        fields.removeAttribute("hidden");
-        keyInput.value = "";
-        baseInput.value = "";
-        baseInput.placeholder = providerBaseUrlPlaceholder(p.id);
-        $("connectAdvanced").open = false;
-        resetApiKeyVisibility(); // every (re)entry into step 3 starts masked
-        btn.disabled = true; // require API key before activating
-      } else {
-        fields.setAttribute("hidden", "");
-      }
-
-      if (app.skipModeStep && !app.provider) {
-        $("step3Back").style.display = "none";
-      } else {
-        $("step3Back").style.display = "";
-      }
     }
+    if (span) span.textContent = p && p.activated ? "Reconnect" : "Connect";
   }
 
   function providerBaseUrlPlaceholder(id) {
@@ -3258,7 +3333,10 @@
   }
 
   function onConnectFieldInput() {
+    // Don't reuse updateConnectButton — it also rewrites the label, which
+    // would clobber the "Save & reconnect" label set by startUpdateKey.
     var btn = $("connectBtn");
+    if (!btn) return;
     var key = ($("connectApiKey").value || "").trim();
     btn.disabled = !key;
   }
