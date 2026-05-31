@@ -2324,12 +2324,13 @@
     '</div>';
   }
 
-  function errorInfo(error) {
-    if (!error) return { title: "Provider failed.", hint: "Retry or reconnect to clear the error." };
-    if (error.code === "rate-limited") return { title: "Rate limited.", hint: "Wait a few minutes, then refresh." };
-    if (error.code === "auth-expired") return { title: "Login expired.", hint: "Sign in to the provider again, then Reconnect." };
-    if (error.code === "not-configured") return { title: error.message || "Credentials not found.", hint: "Sign in to the provider on this machine, then Reconnect." };
-    return { title: error.message || "Provider failed.", hint: "Retry the request, or Reconnect this provider." };
+  function errorInfo(error, providerName) {
+    var name = providerName || "the provider";
+    if (!error) return { title: "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically." };
+    if (error.code === "rate-limited") return { title: "Rate limited.", hint: "Wait a few minutes; Tokpet will pick up automatically." };
+    if (error.code === "auth-expired") return { title: "Usage tracking paused.", hint: "Use " + name + " once to refresh access; Tokpet will pick up automatically." };
+    if (error.code === "not-configured") return { title: error.message || "Credentials not found.", hint: "Sign in to " + name + " on this machine to activate it." };
+    return { title: error.message || "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically." };
   }
 
   function icon(name, mod) {
@@ -2637,7 +2638,7 @@
       return { pillClass: "", label: "Fetching…", iconName: null, kind: "loading" };
     }
     if (result.kind === "error") {
-      var info = errorInfo(result);
+      var info = errorInfo(result, provider && (provider.displayName || provider.id));
       var bad = result.code === "auth-expired" || result.code === "not-configured";
       return { pillClass: bad ? "pill--bad" : "pill--warn", label: info.title, kind: "error", info: info };
     }
@@ -3301,10 +3302,12 @@
     btn.disabled = true;
     var originalText = btn.textContent;
     btn.textContent = "Connecting…";
+    var pForName = providerById(id);
+    var nameForErr = pForName && (pForName.displayName || pForName.id);
     api("POST", "/api/providers/" + encodeURIComponent(id) + "/activate", collectConnectBody()).then(function (result) {
       btn.removeAttribute("aria-busy");
       if (!result || !result.ok) {
-        var info = errorInfo(result && result.error);
+        var info = errorInfo(result && result.error, nameForErr);
         err.innerHTML = '<strong>' + esc(info.title) + '</strong><span class="hint">' + esc(info.hint) + '</span>';
         err.style.display = "grid";
         btn.disabled = false;
@@ -3353,10 +3356,12 @@
     btn.setAttribute("aria-busy", "true");
     btn.disabled = true;
     btn.textContent = "Reconnecting…";
+    var pForName = providerById(id);
+    var nameForErr = pForName && (pForName.displayName || pForName.id);
     api("POST", "/api/providers/" + encodeURIComponent(id) + "/activate", {}).then(function (result) {
       btn.removeAttribute("aria-busy");
       if (!result || !result.ok) {
-        var info = errorInfo(result && result.error);
+        var info = errorInfo(result && result.error, nameForErr);
         err.innerHTML = '<strong>' + esc(info.title) + '</strong><span class="hint">' + esc(info.hint) + '</span>';
         err.style.display = "grid";
         btn.disabled = false;
