@@ -6,3 +6,8 @@ dist/
 .env.local
 .tokpet/
 .DS_Store
+
+# Local AI assistant guides — kept out of the public repo
+ai.md
+CLAUDE.md
+AGENTS.md

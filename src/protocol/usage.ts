@@ -34,7 +34,7 @@ export interface UsageWindow {
  *
  * Vendors expose one of two shapes; this single interface covers both:
  *   1. Used-vs-total (OpenAI dashboard, monthly quotas): set `used` and `total`.
- *   2. Pre-paid remaining (DeepSeek, 阿里云, 火山): set `remaining` only —
+ *   2. Pre-paid remaining (DeepSeek, Aliyun, Volcengine): set `remaining` only —
  *      upstream reports the wallet balance directly without a "total ever spent."
  * At least one of `used` / `total` / `remaining` must be set.
  */

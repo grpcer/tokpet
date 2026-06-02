@@ -27,7 +27,7 @@ export function computePrimary(stateProviders: readonly StateProvider[]): Primar
       typeof r.balance.total === 'number' &&
       r.balance.total > 0
     ) {
-      // Pre-paid providers (DeepSeek 等) only report `remaining` and have no
+      // Pre-paid providers (DeepSeek, etc.) only report `remaining` and have no
       // meaningful "percent used" — they cannot participate in primary
       // selection and are surfaced only on their own provider card / screen.
       const pct = (r.balance.used / r.balance.total) * 100;
