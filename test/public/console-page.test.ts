@@ -1,19 +1,33 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 const pagePath = join(process.cwd(), 'public', 'index.html');
 
-function scriptFrom(html: string): string {
-  // The page now ships two inline <script> blocks: a tiny head-level theme
-  // bootstrap (sets data-theme before paint) plus the main IIFE. Concat
-  // both in source order so the vm context mirrors the browser.
-  const matches = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-  expect(matches.length).toBeGreaterThan(0);
-  return matches.map((m) => m[1]).join('\n');
+// The console now ships as index.html plus split assets under public/assets/:
+// one stylesheet and several classic global <script src> files (kept classic,
+// not ES modules, because the markup wires ~47 inline onclick/oninput handlers
+// to global functions). Reassemble the sources the way a browser would — inline
+// head scripts first, then external scripts in document order — so the vm
+// context still mirrors the page. `combined` (html + css + js) lets text
+// assertions match content regardless of which file it now lives in.
+async function loadSources() {
+  const html = await readFile(pagePath, 'utf8');
+  const dir = dirname(pagePath);
+  const capture = (re: RegExp): string[] =>
+    [...html.matchAll(re)].map((m) => m[1]).filter((s): s is string => s !== undefined);
+  const inline = capture(/<script>([\s\S]*?)<\/script>/g);
+  const srcs = capture(/<script src="([^"]+)"><\/script>/g);
+  expect(srcs.length).toBeGreaterThan(0);
+  const external = await Promise.all(srcs.map((s) => readFile(join(dir, s), 'utf8')));
+  const js = [...inline, ...external].join('\n');
+  const cssHrefs = capture(/<link rel="stylesheet" href="(assets\/[^"]+)"/g);
+  const css = (await Promise.all(cssHrefs.map((h) => readFile(join(dir, h), 'utf8')))).join('\n');
+  const combined = [html, css, js].join('\n');
+  return { html, css, js, combined };
 }
 
 function makeElement() {
@@ -153,23 +167,23 @@ function jsonResponse(body: unknown, ok = true, status = ok ? 200 : 500) {
 
 describe('Tokpet Console page', () => {
   it('is a console dashboard, not a setup-only page', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    const { combined } = await loadSources();
 
-    expect(html).toContain('Tokpet Console');
-    expect(html).toContain('Providers');
-    expect(html).toContain('Devices');
-    expect(html).toContain('Advanced diagnostics');
-    expect(html).toContain('Add provider');
-    expect(html).toContain('/api/runtime');
+    expect(combined).toContain('Tokpet Console');
+    expect(combined).toContain('Providers');
+    expect(combined).toContain('Devices');
+    expect(combined).toContain('Advanced diagnostics');
+    expect(combined).toContain('Add provider');
+    expect(combined).toContain('/api/runtime');
     // Core actions must be reachable (allow either legacy or new function names).
-    expect(html).toMatch(/openRemove\(|removeProvider\(/);
-    expect(html).toContain('removeDialog');
+    expect(combined).toMatch(/openRemove\(|removeProvider\(/);
+    expect(combined).toContain('removeDialog');
     // No native confirm() prompts; we use modal dialogs.
-    expect(html).not.toContain('confirm(');
+    expect(combined).not.toContain('confirm(');
   });
 
   it('ships a self-contained icon sprite set', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    const { html } = await loadSources();
     for (const id of [
       'i-plus',
       'i-refresh',
@@ -188,50 +202,52 @@ describe('Tokpet Console page', () => {
   });
 
   it('guards against the visible regressions caught in the design review', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    // Assertions now span index.html (SVG mascot), console.css (styles) and the
+    // split JS, so match against the combined source rather than one file.
+    const { combined } = await loadSources();
 
     // Cat mascot must be a friendly cat, not just two eyes — it needs nose + mouth + whiskers.
-    expect(html).toMatch(/#ff6a98/); // nose color appears
-    expect(html).toMatch(/whisker|stroke-linecap="round"[^>]*opacity/i);
+    expect(combined).toMatch(/#ff6a98/); // nose color appears
+    expect(combined).toMatch(/whisker|stroke-linecap="round"[^>]*opacity/i);
 
     // No invalid CSS font weights (system rounded fonts don't support 850/950).
-    expect(html).not.toMatch(/font-weight\s*:\s*850/);
-    expect(html).not.toMatch(/font-weight\s*:\s*950/);
+    expect(combined).not.toMatch(/font-weight\s*:\s*850/);
+    expect(combined).not.toMatch(/font-weight\s*:\s*950/);
 
     // Accessibility: focus-visible outline + reduced-motion media query.
-    expect(html).toMatch(/:focus-visible\s*\{/);
-    expect(html).toMatch(/prefers-reduced-motion/);
+    expect(combined).toMatch(/:focus-visible\s*\{/);
+    expect(combined).toMatch(/prefers-reduced-motion/);
 
     // Status strip "Companion" indicator must be updated from JS (not hard-coded ok green).
-    expect(html).toMatch(/serviceStatus[^]{0,800}?dot--bad/);
+    expect(combined).toMatch(/serviceStatus[^]{0,800}?dot--bad/);
 
     // mDNS pill must be computed from runtime.mdns.status, not statically green.
-    expect(html).toMatch(/mdnsPill|pill--ok|pill--warn/);
+    expect(combined).toMatch(/mdnsPill|pill--ok|pill--warn/);
 
     // Page must be self-refreshing (auto poll on interval).
-    expect(html).toMatch(/setInterval\(/);
+    expect(combined).toMatch(/setInterval\(/);
 
     // ESC closes modal dialogs.
-    expect(html).toMatch(/key\s*===?\s*['"]Escape['"]/);
+    expect(combined).toMatch(/key\s*===?\s*['"]Escape['"]/);
 
     // Provider activation errors render an action-oriented message (title + hint).
-    expect(html).toMatch(/errorInfo\(/);
+    expect(combined).toMatch(/errorInfo\(/);
 
     // Resets time should support relative + absolute representation.
-    expect(html).toMatch(/relativeTime\(/);
-    expect(html).toMatch(/absoluteTime\(/);
+    expect(combined).toMatch(/relativeTime\(/);
+    expect(combined).toMatch(/absoluteTime\(/);
 
     // Copy fallback must not silently lie when navigator.clipboard fails.
-    expect(html).toMatch(/execCommand\(['"]copy['"]\)|Copy failed/);
+    expect(combined).toMatch(/execCommand\(['"]copy['"]\)|Copy failed/);
   });
 
   it('contains syntactically valid inline JavaScript', async () => {
-    const html = await readFile(pagePath, 'utf8');
-    expect(() => new vm.Script(scriptFrom(html))).not.toThrow();
+    const { js } = await loadSources();
+    expect(() => new vm.Script(js)).not.toThrow();
   });
 
   it('renders provider, runtime, and state data from the local APIs', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    const { js } = await loadSources();
     const { context, elements } = createConsoleContext((url: string) => {
       if (url === '/api/providers') {
         return jsonResponse([
@@ -288,7 +304,7 @@ describe('Tokpet Console page', () => {
       });
     });
 
-    new vm.Script(scriptFrom(html)).runInContext(context);
+    new vm.Script(js).runInContext(context);
     for (let i = 0; i < 12; i += 1) await Promise.resolve();
 
     expect(elements.get('providerStatus')?.innerHTML).toContain('1 active');
@@ -314,7 +330,7 @@ describe('Tokpet Console page', () => {
   });
 
   it('keeps the remove action usable when deletion fails', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    const { js } = await loadSources();
     const { context, elements } = createConsoleContext((url: string, init?: unknown) => {
       if (
         url === '/api/providers' &&
@@ -337,7 +353,7 @@ describe('Tokpet Console page', () => {
       return jsonResponse({ ok: false, error: { message: 'busy' } }, false, 503);
     });
 
-    const script = scriptFrom(html);
+    const script = js;
     new vm.Script(
       `${script}
 ;(typeof openRemove === 'function' ? openRemove : removeProvider)('claude');
@@ -351,7 +367,7 @@ removeSelectedProvider();`,
   });
 
   it('does not crash the dashboard on non-JSON local-service responses', async () => {
-    const html = await readFile(pagePath, 'utf8');
+    const { js } = await loadSources();
     const { context, elements } = createConsoleContext((url: string) => {
       if (url === '/api/providers') {
         return jsonResponse([
@@ -372,7 +388,7 @@ removeSelectedProvider();`,
       });
     });
 
-    new vm.Script(scriptFrom(html)).runInContext(context);
+    new vm.Script(js).runInContext(context);
     for (let i = 0; i < 12; i += 1) await Promise.resolve();
 
     expect(elements.get('providerStatus')?.innerHTML).toContain('1 active');
