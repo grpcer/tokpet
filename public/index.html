@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light dark" />
 <title>Tokpet Console</title>
+<!-- SVG favicon: the desk-pet cat mark on a candy chip. Modern browsers
+     render it crisp at every size; no raster fallback is shipped. -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<meta name="theme-color" content="#f7edff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#120b24" media="(prefers-color-scheme: dark)" />
 <!-- Sync data-theme before paint to avoid flash-of-wrong-theme. Reads a
      stored override from localStorage (set by the hero toggle); falls back
      to the system prefers-color-scheme. Kept inline + first so it executes
@@ -53,7 +59,7 @@
        instead of fighting it with clinical grey. */
     --ink: #2c2350;
     --ink-soft: #6b5e9c;
-    --ink-faint: #9a90c4;
+    --ink-faint: #736aa0;
     --on-brand: #ffffff;
     --on-brand-soft: rgba(255, 255, 255, .92);
     --on-brand-muted: rgba(255, 255, 255, .78);
@@ -70,11 +76,11 @@
 
     /* Semantic — candy mint / lemon / coral. Lemon is pushed darker so it
        still clears contrast on near-white; soft tints are pastel candy. */
-    --ok: #16a06c;
+    --ok: #0f7e54;
     --ok-soft: #ddfbef;
-    --warn: #b7711e;
+    --warn: #9a5e12;
     --warn-soft: #fff3d4;
-    --bad: #e05546;
+    --bad: #c63a2c;
     --bad-soft: #ffe6ee;
     --neutral-soft: #f0ecfb;
     --neutral-fg: #6b5e9c;
@@ -171,6 +177,7 @@
       radial-gradient(60% 55% at 50% 116%, rgba(52, 224, 180, .18), transparent 62%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     /* Optical sizing lets SF Pro / system fonts shift weight subtly for
        display-vs-text rendering. Feature settings turn on SF Pro stylistic
        set 1/2 + cv11 (slashed zero); unknown features are silently
@@ -208,7 +215,7 @@
 
     --ink: #efeaff;
     --ink-soft: #b9aee6;
-    --ink-faint: #7d72b0;
+    --ink-faint: #8d82c4;
     --neutral-soft: #281d52;
     --neutral-fg: #b9aee6;
 
@@ -275,6 +282,9 @@
     border-color: rgba(123, 92, 240, .45);
     color: #c7b8ff;
   }
+  /* Featured mark uses solid brand ink, which is too dark to read on the dark
+     neutral-soft fill; lift it to the same bright grape as the ribbon. */
+  :root[data-theme="dark"] .featured-mark { color: #c7b8ff; }
 
   /* Input-toggle hover — light-mode rgba(0,0,0,.04) is invisible on dark. */
   :root[data-theme="dark"] .field-input-toggle:hover { background: rgba(255, 255, 255, .06); }
@@ -330,6 +340,7 @@
      titles). Elements that set their own colour (.btn*, .pill) are unaffected. */
   button { cursor: pointer; color: inherit; }
   a { color: var(--brand-1); }
+  a:not(.btn):not(.name-link):hover { text-decoration: underline; text-underline-offset: 2px; }
   ::selection { background: rgba(123, 92, 240, .18); }
 
   :focus-visible {
@@ -337,6 +348,9 @@
     outline-offset: 2px;
     border-radius: inherit;
   }
+  /* Dark mode: brand-1 outline nearly vanishes on the deep-violet fields, so
+     lift the focus ring to a brighter grape that clears 3:1 on dark surfaces. */
+  :root[data-theme="dark"] :focus-visible { outline-color: #a48cff; }
   .hero :focus-visible,
   .wizard-hd :focus-visible {
     outline-color: #fff;
@@ -418,6 +432,10 @@
     pointer-events: none;
   }
   .hero-copy, .hero-meter { position: relative; z-index: 1; }
+  /* Under the hero's align-items:stretch the copy column is pulled to the
+     meter pane's height; centre the brand/sub/actions stack so it doesn't pile
+     up at the top with dead space below. */
+  .hero-copy { display: flex; flex-direction: column; justify-content: center; }
 
   .brand-row {
     display: flex;
@@ -435,9 +453,9 @@
   }
 
   h1 {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.15;
+    font-size: var(--fs-display);
+    font-weight: var(--fw-x);
+    line-height: 1.12;
     margin: 0 0 var(--s-1);
     letter-spacing: -.02em;
   }
@@ -446,6 +464,7 @@
     color: var(--on-brand-soft);
     font-size: var(--fs-md);
     line-height: 1.5;
+    text-wrap: pretty;
   }
   .hero-actions {
     display: flex;
@@ -576,10 +595,10 @@
     max-width: 100%;
   }
   .ring-value .cap {
-    margin-top: 4px;
+    margin-top: var(--s-1);
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .14em;
+    font-weight: var(--fw-b);
+    letter-spacing: .1em;
     text-transform: uppercase;
     color: var(--candy-lemon);
     text-shadow: none;
@@ -593,8 +612,8 @@
 
   .metric-title {
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .14em;
+    font-weight: var(--fw-s);
+    letter-spacing: .1em;
     text-transform: uppercase;
     color: var(--on-brand-muted);
     margin-bottom: var(--s-2);
@@ -638,6 +657,9 @@
   }
   .mood .mood-name { text-transform: capitalize; font-weight: var(--fw-x); }
   .mood .mood-sub { color: #2c5247; }
+  /* Middot lives in CSS so it sits a balanced distance from the name (the flex
+     gap no longer doubles up with a leading "· " baked into the text). */
+  .mood .mood-sub::before { content: "·"; margin-right: .35em; }
 
   /* ---------------- Buttons ---------------- */
 
@@ -666,7 +688,7 @@
       transform var(--dur-fast) var(--ease),
       box-shadow var(--dur) var(--ease);
   }
-  .btn:hover { background: var(--field); border-color: var(--brand-1); transform: translateY(-2px); box-shadow: 0 5px 0 -1px rgba(123, 92, 240, .18), 0 10px 20px -8px rgba(91, 63, 214, .36); }
+  .btn:not(:disabled):not([disabled]):hover { background: var(--field); border-color: var(--brand-1); transform: translateY(-2px); box-shadow: 0 5px 0 -1px rgba(123, 92, 240, .18), 0 10px 20px -8px rgba(91, 63, 214, .36); }
   .btn:active { transform: translateY(1px); box-shadow: 0 1px 0 -1px rgba(123, 92, 240, .14); }
   .btn:disabled, .btn[disabled] { opacity: .55; cursor: not-allowed; }
   .btn[aria-busy="true"] { pointer-events: none; }
@@ -758,13 +780,14 @@
   .status {
     position: relative;
     min-width: 0;
-    padding: var(--s-3) var(--s-4) var(--s-3) var(--s-5);
+    padding: var(--s-4) var(--s-4) var(--s-4) var(--s-5);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    justify-content: center;
+    gap: var(--s-1);
     cursor: default;
     background: var(--card);
-    border-radius: var(--r-sm);
+    border-radius: var(--r-md);
     box-shadow: var(--elev-1);
     overflow: hidden;
   }
@@ -795,7 +818,7 @@
     align-items: center;
     gap: var(--s-2);
     font-size: var(--fs-md);
-    font-weight: var(--fw-x);
+    font-weight: var(--fw-b);
     color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
@@ -809,8 +832,9 @@
   }
   .status .sub {
     font-size: var(--fs-xs);
-    color: var(--ink-faint);
+    color: var(--ink-soft);
     font-weight: var(--fw-s);
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -846,7 +870,7 @@
 
   .content {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     gap: var(--s-5);
     padding: var(--s-6);
     align-items: start;
@@ -855,13 +879,15 @@
 
   /* Toy panels — big-radius candy cards with a chunky grape drop-shadow and a
      white top bevel, so each section reads as a glossy moulded tile rather
-     than a flat sheet. The hairline stays for definition on the candy page. */
+     than a flat sheet. The drop-shadow alone defines each edge — no resting
+     hairline — so panels share the status cards' borderless container language;
+     the transparent border only lights up on hover. */
   .panel {
     position: relative;
     background: var(--card);
     border-radius: var(--r-card);
     padding: var(--s-5);
-    border: 1px solid var(--line);
+    border: 1px solid transparent;
     box-shadow: var(--elev-1);
     transition:
       border-color var(--dur) var(--ease),
@@ -946,11 +972,13 @@
   .provider-head-right { display: flex; align-items: center; gap: var(--s-2); flex: none; }
   .order-controls { display: inline-flex; align-items: center; gap: 2px; }
   .order-controls .order-btn {
-    padding: 4px 6px;
-    line-height: 1;
+    width: var(--ctl-sm);
+    height: var(--ctl-sm);
+    padding: 0;
     min-width: auto;
+    color: var(--brand-1);
   }
-  .order-controls .order-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+  .order-controls .order-btn[disabled] { opacity: 0.3; box-shadow: none; cursor: not-allowed; }
   .order-controls .order-btn svg { width: 14px; height: 14px; }
 
   .source-main {
@@ -1015,15 +1043,16 @@
     margin-top: 2px;
     line-height: 1.4;
     min-width: 0;
+    font-variant-numeric: tabular-nums;
   }
   .featured-mark {
     display: inline-flex;
     align-items: center;
     gap: var(--s-1);
     font-size: var(--fs-xs);
-    color: var(--brand-1);
+    color: var(--brand-2);
     background: var(--neutral-soft);
-    padding: 1px var(--s-2);
+    padding: 3px var(--s-2);
     border-radius: var(--r-pill);
     font-weight: var(--fw-s);
     letter-spacing: .04em;
@@ -1084,11 +1113,11 @@
      by JS is never overridden here. */
   .bar {
     grid-column: 1 / -1;
-    height: 10px;
+    height: 12px;
     border-radius: var(--r-pill);
     background: var(--field-strong);
     overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(91, 63, 214, .18);
+    box-shadow: inset 0 1px 3px rgba(91, 63, 214, .22);
   }
   .fill {
     height: 100%;
@@ -1115,7 +1144,10 @@
     grid-column: 1 / -1;
     font-size: var(--fs-sm);
     color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
   }
+  /* Absolute reset timestamp shown in parentheses after the relative one. */
+  .window-meta .abs { opacity: .7; }
 
   .provider-actions {
     display: flex;
@@ -2038,7 +2070,7 @@
     .hero-meter { grid-template-columns: 1fr; text-align: center; }
     .ring { margin: 0 auto; }
     aside.stack { grid-template-columns: 1fr; }
-    .status { flex-basis: calc(50% - var(--s-1)); }
+    .status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 560px) {
     .page { padding: var(--s-4) var(--s-3); }
@@ -2515,7 +2547,7 @@
             </div>
           </details>
 
-          <details class="panel" id="diagPanel" style="margin-top:var(--s-4)">
+          <details class="panel" id="diagPanel" style="margin-top:var(--s-5)">
             <summary>
               <div class="panel-title">
                 <div class="icon-bubble"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-diagnostics"></use></svg></div>
@@ -2959,7 +2991,14 @@
     var sym = CURRENCY_SYMBOLS[currency] || "";
     var n = Number(amount);
     if (!Number.isFinite(n)) n = 0;
-    var formatted = n.toFixed(2);
+    // Locale-aware thousands grouping with a fixed 2 decimals; fall back to
+    // toFixed where Intl is unavailable.
+    var formatted;
+    try {
+      formatted = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    } catch (e) {
+      formatted = n.toFixed(2);
+    }
     return { sym: sym, num: formatted, ccy: currency };
   }
   function renderBalanceBlock(balance) {
@@ -2971,20 +3010,24 @@
       '<div class="balance-row">' +
         '<span class="balance-label">Remaining</span>' +
         '<span class="' + amtCls + '">' +
-          (f.sym ? esc(f.sym) : '') + esc(f.num) +
-          (f.ccy ? ' <span class="ccy">' + esc(f.ccy) + '</span>' : '') +
+          (f.sym
+            ? esc(f.sym) + esc(f.num)
+            : esc(f.num) + (f.ccy ? ' <span class="ccy">' + esc(f.ccy) + '</span>' : '')) +
         '</span>' +
       '</div>' +
     '</div>';
   }
 
+  // `title`/`hint` drive the full error banner; `short` is a terse status word
+  // for the uppercase status pill, so the pill never repeats the banner's whole
+  // sentence (which would also overflow the narrow pill).
   function errorInfo(error, providerName) {
     var name = providerName || "the provider";
-    if (!error) return { title: "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically." };
-    if (error.code === "rate-limited") return { title: "Rate limited.", hint: "Wait a few minutes; Tokpet will pick up automatically." };
-    if (error.code === "auth-expired") return { title: "Usage tracking paused.", hint: "Use " + name + " once to refresh access; Tokpet will pick up automatically." };
-    if (error.code === "not-configured") return { title: error.message || "Credentials not found.", hint: "Sign in to " + name + " on this machine to activate it." };
-    return { title: error.message || "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically." };
+    if (!error) return { title: "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically.", short: "Error" };
+    if (error.code === "rate-limited") return { title: "Rate limited.", hint: "Wait a few minutes; Tokpet will pick up automatically.", short: "Rate limited" };
+    if (error.code === "auth-expired") return { title: "Usage tracking paused.", hint: "Use " + name + " once to refresh access; Tokpet will pick up automatically.", short: "Paused" };
+    if (error.code === "not-configured") return { title: error.message || "Credentials not found.", hint: "Sign in to " + name + " on this machine to activate it.", short: "Not connected" };
+    return { title: error.message || "Provider failed.", hint: "Retry the request; Tokpet will pick up automatically.", short: "Error" };
   }
 
   function icon(name, mod) {
@@ -3185,7 +3228,7 @@
     function setMood(key) {
       var meta = MOOD_LEGEND[key] || MOOD_LEGEND.idle;
       moodName.textContent = key;
-      moodSub.textContent = "· " + meta.sub;
+      moodSub.textContent = meta.sub;
       mood.title = meta.desc;
     }
     // Arc tween — set the registered @property --ring-pct; the conic-gradient
@@ -3343,7 +3386,7 @@
     if (result.kind === "error") {
       var info = errorInfo(result, provider && (provider.displayName || provider.id));
       var bad = result.code === "auth-expired" || result.code === "not-configured";
-      return { pillClass: bad ? "pill--bad" : "pill--warn", label: info.title, kind: "error", info: info };
+      return { pillClass: bad ? "pill--bad" : "pill--warn", label: info.short, kind: "error", info: info };
     }
     // Pre-paid wallet: balance.remaining <= 0 overrides the source-based pill
     // so users see the empty state without scrolling past the freshness chrome.
@@ -3393,10 +3436,10 @@
             (isPrimary ? '<span class="featured-mark">' + icon("pet", "sm") + 'Featured</span>' : '') +
           '</div>' +
           '<div class="window-pct">' + pct + '%</div>' +
-          '<div class="bar"><div class="fill ' + fillClass(pct) + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="bar"><div class="fill ' + fillClass(pct) + '" style="width:' + (pct > 0 ? 'max(' + pct + '%, 10px)' : '0') + '"></div></div>' +
           (w.resetsAt
             ? '<div class="window-meta">Resets ' + esc(relativeTime(w.resetsAt) || "soon") +
-              ' <span title="' + esc(absoluteTime(w.resetsAt)) + '" style="opacity:.7">(' + esc(absoluteTime(w.resetsAt)) + ')</span></div>'
+              ' <span class="abs" title="' + esc(absoluteTime(w.resetsAt)) + '">(' + esc(absoluteTime(w.resetsAt)) + ')</span></div>'
             : '') +
           '</div>';
       }).join("") + '</div>';
