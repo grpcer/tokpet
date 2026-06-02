@@ -1,0 +1,3076 @@
+/* HTML5 [hidden] tie-breaks at the same specificity as our author rules
+   (e.g. .source-line { display: grid }), so the UA fallback loses and a
+   supposedly-hidden node still renders. Force it to win. */
+[hidden] {
+  display: none !important;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* Brand — candy "desk-pet game machine" (Variant C). A grape-violet to
+     bubblegum-pink gradient powers the XP ring + primary CTA, the one place
+     the rainbow earns its keep. Solid brand stays grape so single-colour
+     accents (links, focus, marks) read as one identity, not a wash. */
+  --brand-1: #7b5cf0;
+  --brand-2: #5b3fd6;
+  --brand-grad: linear-gradient(135deg, #7b5cf0, #ff6fae);
+
+  /* Candy family — exposed as a small palette so panels / icons / fills can
+     reach for a second or third hue without re-deriving it each time. */
+  --candy-grape: #7b5cf0;
+  --candy-grape-deep: #5b3fd6;
+  --candy-bubble: #ff6fae;
+  --candy-bubble-deep: #ff4f97;
+  --candy-sky: #39c6ff;
+  --candy-mint: #34e0b4;
+  --candy-lemon: #ffd23f;
+  --candy-tangelo: #ff9a4d;
+
+  /* Ink — deep grape-tinted near-black so text sits in the candy world
+     instead of fighting it with clinical grey. */
+  --ink: #2c2350;
+  --ink-soft: #6b5e9c;
+  --ink-faint: #736aa0;
+  --on-brand: #ffffff;
+  --on-brand-soft: rgba(255, 255, 255, 0.92);
+  --on-brand-muted: rgba(255, 255, 255, 0.78);
+
+  /* Surfaces — candy paper. Page is a pale lilac the body paints over with
+     a radial candy wash; cards stay pure white so content pops, fields are
+     a faint grape tint that reads as "soft toy plastic". */
+  --bg: #f7edff;
+  --card: #ffffff;
+  --line: rgba(123, 92, 240, 0.1);
+  --line-strong: rgba(123, 92, 240, 0.16);
+  --field: #f6f1ff;
+  --field-strong: #ece5fb;
+
+  /* Semantic — candy mint / lemon / coral. Lemon is pushed darker so it
+     still clears contrast on near-white; soft tints are pastel candy. */
+  --ok: #0f7e54;
+  --ok-soft: #ddfbef;
+  --warn: #9a5e12;
+  --warn-soft: #fff3d4;
+  --bad: #c63a2c;
+  --bad-soft: #ffe6ee;
+  --neutral-soft: #f0ecfb;
+  --neutral-fg: #6b5e9c;
+
+  /* Spacing (8 grid + 4 trim) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+
+  /* Radius — 3-tier system: ctrl / card / shell. Big toy rounds for the
+     candy game-machine look. Old names are aliases sized to keep medium
+     elements (buttons, toasts, icon bubbles) chunky without ballooning. */
+  --r-ctrl: 16px; /* buttons, inputs, pills, small chips */
+  --r-card: 22px; /* panels, provider cards, mode tiles, connect-card */
+  --r-shell: 30px; /* console / wizard-shell / modals */
+  --r-xs: 12px;
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 22px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Elevation — chunky candy "toy" shadows: a soft grape drop plus an inset
+     white top bevel so surfaces read as glossy plastic, not flat paper.
+     2-tier: flat (inline cards) vs pop (floating overlays). */
+  --elev-flat: 0 2px 0 -1px rgba(255, 255, 255, 0.9) inset, 0 8px 22px -12px rgba(91, 63, 214, 0.3);
+  --elev-pop: 0 2px 4px rgba(91, 63, 214, 0.12), 0 22px 48px -16px rgba(91, 63, 214, 0.42);
+  --elev-1: var(--elev-flat);
+  --elev-2: 0 1px 2px rgba(91, 63, 214, 0.1), 0 12px 28px -12px rgba(91, 63, 214, 0.26);
+  --elev-3: var(--elev-pop);
+
+  /* Type scale — modular-ish ladder; --fs-display reserved for hero h1. */
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-base: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
+  --fs-3xl: 28px;
+  --fs-display: 32px;
+
+  /* Weights (system rounded supports 400/500/600/700/800) */
+  --fw: 400;
+  --fw-m: 500;
+  --fw-s: 600;
+  --fw-b: 700;
+  --fw-x: 800;
+
+  /* Controls */
+  --ctl-sm: 32px;
+  --ctl-md: 40px;
+
+  /* Motion — easeOutCirc. Front-loaded movement that decelerates into
+     rest reads as "mechanical precision" rather than the symmetric
+     Material standard ease, which feels too leisurely on hover/tween
+     primitives sized for a desktop console. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.15s;
+  --dur: 0.25s;
+  --dur-slow: 0.5s;
+
+  /* Fonts — system stack, no web fonts. Lets macOS/iOS hit SF Pro and
+     PingFang SC natively, Windows hit Segoe UI + Microsoft YaHei. This
+     reverted from Geist + Instrument Serif: the editorial serif read as
+     "newspaper" rather than "premium", and Geist's Latin-only glyphs left
+     Chinese fragments to ugly fallback. System stack always pairs cleanly. */
+  --font:
+    'SF Pro Rounded', 'Hiragino Maru Gothic ProN', 'Segoe UI Rounded', -apple-system,
+    BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: var(--font);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+body {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  color: var(--ink);
+  background: var(--bg);
+  /* Candy wash — three soft radial gels (pink / cyan / mint) bloom from the
+     corners over a pale lilac base, so the page itself feels like the inside
+     of a toy. Heavier than the old aurora because the candy direction wants
+     atmosphere, but still capped so cards stay legible. */
+  background-image:
+    radial-gradient(60% 50% at 12% -6%, rgba(255, 111, 174, 0.26), transparent 62%),
+    radial-gradient(55% 48% at 106% 8%, rgba(57, 198, 255, 0.22), transparent 60%),
+    radial-gradient(60% 55% at 50% 116%, rgba(52, 224, 180, 0.18), transparent 62%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Optical sizing lets SF Pro / system fonts shift weight subtly for
+     display-vs-text rendering. Feature settings turn on SF Pro stylistic
+     set 1/2 + cv11 (slashed zero); unknown features are silently
+     ignored on Segoe / Roboto, so this is safe globally. */
+  font-optical-sizing: auto;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+  overflow-x: hidden;
+}
+/* Auto-balanced linebreaks for short editorial headings — supported in
+   all evergreen browsers, silently no-op'd in older ones. */
+h1,
+h2,
+h3,
+.empty-hero h3,
+.empty-title {
+  text-wrap: balance;
+}
+
+/* ----------------------------------------------------------------
+   Dark mode — applied when [data-theme="dark"] is set on <html>.
+   The inline <head> script syncs the attribute from a stored override
+   (localStorage 'tokpet-theme': 'light' | 'dark') or, if unset, from
+   the system prefers-color-scheme on first load. The hero toggle
+   cycles system → light → dark → system. Brand colour and hero
+   gradient stay the same so identity is preserved; page bg is darker
+   than hero so the hero card naturally floats up.
+   ---------------------------------------------------------------- */
+/* Dark candy — a "night-mode arcade" reskin. The page goes deep grape-black
+   and surfaces become saturated dark-violet plastic, while the candy accents
+   (mint / lemon / coral / grape) brighten into neon. Brand gradient and the
+   hero screen stay as-is so identity carries across themes. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #120b24;
+  --card: #1f1640;
+  --line: rgba(180, 150, 255, 0.14);
+  --line-strong: rgba(180, 150, 255, 0.24);
+  --field: #281d52;
+  --field-strong: #322463;
+
+  --ink: #efeaff;
+  --ink-soft: #b9aee6;
+  --ink-faint: #8d82c4;
+  --neutral-soft: #281d52;
+  --neutral-fg: #b9aee6;
+
+  /* Semantic — neon candy on the dark-violet canvas; soft tints are deep
+     hue-matched fills, not pale pastels. */
+  --ok: #4ce0b0;
+  --ok-soft: #16352b;
+  --warn: #ffce5c;
+  --warn-soft: #352a14;
+  --bad: #ff8a76;
+  --bad-soft: #3a1a22;
+
+  /* Elevation — depth from a bright inset rim + a deep drop so the toy
+     surfaces still feel moulded on the dark page. */
+  --elev-flat: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+  --elev-pop: 0 2px 6px rgba(0, 0, 0, 0.5), 0 22px 48px -16px rgba(0, 0, 0, 0.75);
+  --elev-1: var(--elev-flat);
+  --elev-2: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 28px -12px rgba(0, 0, 0, 0.6);
+  --elev-3: var(--elev-pop);
+}
+
+/* Candy wash — neon corner gels glowing on the dark grape page. */
+:root[data-theme='dark'] body {
+  background-image:
+    radial-gradient(60% 50% at 12% -6%, rgba(255, 111, 174, 0.22), transparent 62%),
+    radial-gradient(55% 48% at 106% 8%, rgba(57, 198, 255, 0.2), transparent 60%),
+    radial-gradient(60% 55% at 50% 116%, rgba(123, 92, 240, 0.26), transparent 62%);
+}
+
+:root[data-theme='dark'] ::selection {
+  background: rgba(255, 111, 174, 0.4);
+}
+
+/* Console shell — a darker glossy toy body; the white rim drops to a faint
+   violet sheen so it reads as plastic, not paper. */
+:root[data-theme='dark'] .console {
+  background: linear-gradient(180deg, #1f1640 0%, #181030 100%);
+  border-color: rgba(180, 150, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 1px rgba(0, 0, 0, 0.4),
+    0 26px 60px -26px rgba(0, 0, 0, 0.8);
+}
+
+/* Panel — the white top bevel is too loud on dark violet; pull it down and
+   bias the hover glow toward the brand colour so the tile still lifts. */
+:root[data-theme='dark'] .panel {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+:root[data-theme='dark'] .panel:hover {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 18px 36px -16px rgba(123, 92, 240, 0.5);
+}
+
+/* Status cards want a touch more lift on the dark page. */
+:root[data-theme='dark'] .status {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 20px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* Soft-light reads gentler than overlay on a dark canvas — keeps the hero's
+   grain visible without making the screen look noisy. The hero screen is
+   already dark in both themes, so its own colours are left untouched. */
+:root[data-theme='dark'] .hero {
+  background-blend-mode: soft-light, normal, normal, normal;
+}
+
+/* Ribbon was hard-white; in dark mode match the mode-tile surface. */
+:root[data-theme='dark'] .mode .ribbon {
+  background: var(--card);
+  border-color: rgba(123, 92, 240, 0.45);
+  color: #c7b8ff;
+}
+/* Featured mark uses solid brand ink, which is too dark to read on the dark
+   neutral-soft fill; lift it to the same bright grape as the ribbon. */
+:root[data-theme='dark'] .featured-mark {
+  color: #c7b8ff;
+}
+
+/* Input-toggle hover — light-mode rgba(0,0,0,.04) is invisible on dark. */
+:root[data-theme='dark'] .field-input-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Brand logos that ship as hard-coded near-black SVGs (OpenAI / Codex,
+   Cursor, Anthropic) become invisible on the dark card. Invert just
+   those by URL match; brand-coloured logos (Claude terracotta, Gemini,
+   DeepSeek, etc.) are left alone. .92 instead of 1 keeps the result
+   warm-white instead of clinical white. */
+:root[data-theme='dark'] .logo-img[src*='openai'],
+:root[data-theme='dark'] .logo-img[src*='cursor'],
+:root[data-theme='dark'] .logo-img[src*='anthropic'] {
+  filter: invert(0.92) brightness(1.05);
+}
+
+/* ---------------- Theme toggle (hero top-right) ---------------- */
+.theme-toggle {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--s-4);
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--on-brand-muted);
+  border-radius: var(--r-sm);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.theme-toggle:active {
+  transform: scale(0.94);
+}
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button,
+input {
+  font: inherit;
+}
+/* color: inherit — without it, a bare <button> falls back to the UA default
+   text colour, which resolves to white under `color-scheme: light dark` on a
+   dark OS and becomes unreadable on our light cards (e.g. the wizard .mode
+   titles). Elements that set their own colour (.btn*, .pill) are unaffected. */
+button {
+  cursor: pointer;
+  color: inherit;
+}
+a {
+  color: var(--brand-1);
+}
+a:not(.btn):not(.name-link):hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+::selection {
+  background: rgba(123, 92, 240, 0.18);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-1);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+/* Dark mode: brand-1 outline nearly vanishes on the deep-violet fields, so
+   lift the focus ring to a brighter grape that clears 3:1 on dark surfaces. */
+:root[data-theme='dark'] :focus-visible {
+  outline-color: #a48cff;
+}
+.hero :focus-visible,
+.wizard-hd :focus-visible {
+  outline-color: #fff;
+}
+
+.page {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--s-7);
+}
+
+/* Game-machine shell — a glossy candy console body. Chunky grape toy drop
+   lifts it off the page; a white inner rim + faint grape hairline gives the
+   "moulded plastic" edge. */
+.console {
+  background: linear-gradient(180deg, #ffffff 0%, #fbf6ff 100%);
+  border-radius: var(--r-shell);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 0 1px rgba(123, 92, 240, 0.06),
+    0 26px 60px -26px rgba(91, 63, 214, 0.45);
+  overflow: hidden;
+}
+
+/* ---------------- Hero ---------------- */
+
+/* Hero — the game-machine "screen". A deep grape panel that glows from the
+   corners (cyan top-right, bubblegum bottom-left) with a faint scanline
+   overlay, so it reads as a lit toy display floating on the candy page.
+   Grain texture is kept for tactility; corner neon + scanline are painted
+   by the ::before / ::after pseudo-elements below. */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) 400px;
+  gap: var(--s-6);
+  align-items: stretch;
+  padding: var(--s-7);
+  border-radius: var(--r-card);
+  /* SVG fractal-noise grain blended over the deep-grape gradient with
+     overlay mode — keeps the screen tactile without shifting hue. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.30'/%3E%3C/svg%3E")
+      0 0 / 240px 240px,
+    radial-gradient(120% 140% at 100% 0%, rgba(57, 198, 255, 0.28), transparent 55%),
+    radial-gradient(120% 130% at 0% 100%, rgba(255, 111, 174, 0.3), transparent 55%),
+    linear-gradient(150deg, #1d1738 0%, #2a2056 100%);
+  background-blend-mode: overlay, normal, normal, normal;
+  color: var(--on-brand);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 20px 50px -22px rgba(29, 23, 56, 0.9);
+  overflow: hidden;
+}
+/* Soft sweeping highlight — a tilted radial smear on the upper-left, the
+   glossy "light catching the screen" cue. */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -10%;
+  width: 60%;
+  height: 120%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.14), transparent);
+  transform: rotate(20deg);
+  pointer-events: none;
+}
+/* Scanline texture — faint horizontal CRT lines blended over the glow so the
+   screen feels like a real toy display. */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-card);
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.035) 0 2px,
+    transparent 2px 5px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  pointer-events: none;
+}
+.hero-copy,
+.hero-meter {
+  position: relative;
+  z-index: 1;
+}
+/* Under the hero's align-items:stretch the copy column is pulled to the
+   meter pane's height; centre the brand/sub/actions stack so it doesn't pile
+   up at the top with dead space below. */
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.brand-row > div:last-child {
+  min-width: 0;
+}
+
+.cat-badge {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+
+h1 {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-x);
+  line-height: 1.12;
+  margin: 0 0 var(--s-1);
+  letter-spacing: -0.02em;
+}
+.hero-sub {
+  margin: 0;
+  color: var(--on-brand-soft);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.hero-actions {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  margin-top: var(--s-5);
+}
+
+.hero-meter {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: center;
+  /* Inset glass pane on the screen — a faint white film with a hairline so
+     the XP ring + mood read as a "stats window" inside the toy display. */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+.hero-meter > div:last-child {
+  min-width: 0;
+}
+
+/* ---------------- Desk-pet cat (hero decoration) ---------------- */
+/* A juicy gel orange-and-white cat perched at the ring, the mascot of the
+   candy machine. Pure decoration — no JS binds to it. It sits in front of
+   the ring's lower arc. Idle animations only nudge the default (already
+   fully visible) frame so headless screenshots never come up blank. */
+.hero-cat {
+  position: absolute;
+  left: 92px;
+  bottom: 4px;
+  width: 96px;
+  height: 92px;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.4));
+  animation: cat-bob 3.4s ease-in-out infinite;
+}
+.hero-cat svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+@keyframes cat-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.hero-cat .cat-tail {
+  transform-box: fill-box;
+  transform-origin: bottom left;
+  animation: cat-tail 2.6s ease-in-out infinite;
+}
+@keyframes cat-tail {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+.hero-cat .cat-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cat-blink 4.6s ease-in-out infinite;
+}
+@keyframes cat-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+@media (max-width: 720px) {
+  .hero-cat {
+    left: auto;
+    right: 16px;
+    bottom: 8px;
+  }
+}
+
+/* Registered custom property so the conic arc tweens via CSS — no rAF
+   plumbing needed, the browser handles the animation curve under
+   prefers-reduced-motion. Number text is tweened in JS because counter()
+   readability across browsers still isn't a sure bet for finance-grade UI. */
+@property --ring-pct {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/* Ring meter — an XP gauge. A warm candy arc (lemon → tangelo) sweeps the
+   filled portion, the rest is a faint white track on the dark screen. The
+   conic mechanism + @property --ring-pct is untouched (JS drives the angle);
+   only the colours, the dark-grape inner disc, and the neon drop-shadow
+   changed. Inner disc reads the % in pure white without a text-shadow. */
+.ring {
+  position: relative;
+  width: 144px;
+  height: 144px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    from -90deg,
+    #ffd23f 0deg,
+    #ff9a4d calc(var(--ring-pct) * 3.6deg),
+    rgba(255, 255, 255, 0.1) calc(var(--ring-pct) * 3.6deg)
+  );
+  filter: drop-shadow(0 0 14px rgba(255, 154, 77, 0.35));
+  transition:
+    --ring-pct var(--dur-slow) var(--ease),
+    background var(--dur) var(--ease);
+}
+.ring::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: radial-gradient(120% 120% at 50% 0%, #2a2056 0%, #1d1738 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.ring-value {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0 var(--s-2);
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  color: #fff;
+}
+.ring-value .num {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ring-value .cap {
+  margin-top: var(--s-1);
+  font-size: 10px;
+  font-weight: var(--fw-b);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--candy-lemon);
+  text-shadow: none;
+}
+.ring-value.is-empty .num {
+  font-size: var(--fs-2xl);
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.metric-title {
+  font-size: 10px;
+  font-weight: var(--fw-s);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-brand-muted);
+  margin-bottom: var(--s-2);
+}
+.metric-label {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.metric-sub {
+  margin-top: var(--s-1);
+  font-size: var(--fs-md);
+  color: var(--on-brand-soft);
+  font-variant-numeric: tabular-nums;
+}
+/* Mood capsule — a candy mint pill ("well-fed · purring"), the pet's status
+   badge glowing on the dark screen. Dark grape ink keeps it legible. */
+.mood {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding: 5px var(--s-3) 5px var(--s-2);
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #b6ffe6, var(--candy-mint));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #1d3a30;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-b);
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 6px 16px -6px rgba(52, 224, 180, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.mood[title] {
+  cursor: help;
+}
+.mood .mood-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1d3a30;
+  box-shadow: 0 0 0 3px rgba(29, 58, 48, 0.18);
+}
+.mood .mood-name {
+  text-transform: capitalize;
+  font-weight: var(--fw-x);
+}
+.mood .mood-sub {
+  color: #2c5247;
+}
+/* Middot lives in CSS so it sits a balanced distance from the name (the flex
+   gap no longer doubles up with a leading "· " baked into the text). */
+.mood .mood-sub::before {
+  content: '·';
+  margin-right: 0.35em;
+}
+
+/* ---------------- Buttons ---------------- */
+
+/* Buttons — chunky candy pills. A solid bottom-edge shadow gives the 3D
+   "press me" toy look; active state sinks into the edge. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: var(--ctl-md);
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-b);
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow:
+    0 3px 0 -1px rgba(123, 92, 240, 0.14),
+    0 6px 14px -8px rgba(91, 63, 214, 0.3);
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.btn:not(:disabled):not([disabled]):hover {
+  background: var(--field);
+  border-color: var(--brand-1);
+  transform: translateY(-2px);
+  box-shadow:
+    0 5px 0 -1px rgba(123, 92, 240, 0.18),
+    0 10px 20px -8px rgba(91, 63, 214, 0.36);
+}
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 -1px rgba(123, 92, 240, 0.14);
+}
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn[aria-busy='true'] {
+  pointer-events: none;
+}
+
+.btn--primary {
+  background: var(--brand-grad);
+  color: #fff;
+  border-color: transparent;
+  box-shadow:
+    0 5px 0 -1px var(--candy-grape-deep),
+    0 12px 22px -8px rgba(123, 92, 240, 0.6);
+}
+.btn--primary:hover {
+  background: var(--brand-grad);
+  color: #fff;
+  filter: brightness(1.06);
+  border-color: transparent;
+  box-shadow:
+    0 7px 0 -1px var(--candy-grape-deep),
+    0 16px 28px -8px rgba(123, 92, 240, 0.7);
+}
+.btn--primary:active {
+  box-shadow: 0 2px 0 -1px var(--candy-grape-deep);
+}
+/* On the dark hero, a candy-lemon CTA reads as the cat's "feed me" button —
+   warm and unmissable against the deep-grape screen. */
+.hero .btn--primary {
+  background: linear-gradient(180deg, #ffe27a, var(--candy-lemon));
+  color: #3a1d52;
+  border-color: transparent;
+  box-shadow:
+    0 6px 0 -1px #d99e1f,
+    0 14px 24px -8px rgba(255, 210, 63, 0.7);
+}
+.hero .btn--primary:hover {
+  background: linear-gradient(180deg, #ffe27a, var(--candy-lemon));
+  color: #3a1d52;
+  filter: brightness(1.04);
+  box-shadow:
+    0 8px 0 -1px #d99e1f,
+    0 18px 30px -8px rgba(255, 210, 63, 0.8);
+}
+.hero .btn--primary:active {
+  box-shadow: 0 2px 0 -1px #d99e1f;
+}
+
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+.btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
+
+.btn--sm {
+  height: var(--ctl-sm);
+  padding: 0 var(--s-4);
+  font-size: var(--fs-md);
+  border-radius: var(--r-pill);
+}
+
+.btn--icon {
+  width: var(--ctl-sm);
+  height: var(--ctl-sm);
+  padding: 0;
+  color: var(--brand-1);
+}
+
+.btn--danger:hover {
+  background: var(--bad-soft);
+  border-color: var(--bad);
+  color: var(--bad);
+}
+.btn--danger {
+  color: var(--bad);
+}
+
+.btn .spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------- Icons ---------------- */
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon--sm {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+  stroke-width: 1.75;
+}
+.icon--lg {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+  stroke-width: 1.9;
+}
+
+/* Section icon — a glossy candy chip. Each panel gets its own gradient hue
+   (modifier classes for devices / network / tips) so the dashboard reads
+   like a row of toy buttons; the bare bubble defaults to grape→bubble for
+   providers / diagnostics. White glyph, soft coloured glow underneath. */
+.icon-bubble {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-xs);
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: #fff;
+  border: 0;
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  box-shadow:
+    0 5px 12px -4px rgba(123, 92, 240, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.icon-bubble--ok {
+  background: linear-gradient(150deg, var(--candy-sky), var(--candy-mint));
+  box-shadow:
+    0 5px 12px -4px rgba(57, 198, 255, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.icon-bubble--warn {
+  background: linear-gradient(150deg, var(--candy-bubble), var(--candy-tangelo));
+  box-shadow:
+    0 5px 12px -4px rgba(255, 111, 174, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.icon-bubble--pink {
+  background: linear-gradient(150deg, var(--candy-mint), var(--candy-sky));
+  box-shadow:
+    0 5px 12px -4px rgba(52, 224, 180, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* ---------------- Status strip ---------------- */
+
+/* Status strip — the machine's 4 status lamps. A row of equal candy cards,
+   each with a coloured LED + a left colour-bar so the dashboard reads like
+   a toy's instrument panel. */
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-6);
+  background: transparent;
+}
+.status {
+  position: relative;
+  min-width: 0;
+  padding: var(--s-4) var(--s-4) var(--s-4) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-1);
+  cursor: default;
+  background: var(--card);
+  border-radius: var(--r-md);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+/* Left colour-bar — keyed off the status dot's hue via the cell's own dot. */
+.status::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 5px;
+  background: var(--candy-grape);
+}
+.status:nth-child(1)::before {
+  background: var(--candy-mint);
+}
+.status:nth-child(2)::before {
+  background: var(--candy-sky);
+}
+.status:nth-child(3)::before {
+  background: var(--candy-mint);
+}
+.status:nth-child(4)::before {
+  background: var(--candy-grape);
+}
+.status .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  font-weight: var(--fw-b);
+}
+.status .value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-b);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Reserve room on the left so the leading status dot's pulsing halo isn't
+     clipped by this row's overflow:hidden (needed for the text ellipsis).
+     The negative margin cancels the padding, so the dot stays visually
+     aligned with the label above it. */
+  padding-left: 14px;
+  margin-left: -14px;
+}
+.status .sub {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  font-weight: var(--fw-s);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 900px) {
+  .status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 500px) {
+  .status-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Status LED — a glowing lamp. Each colour carries a soft halo; the healthy
+   (ok) lamp also pulses like a live indicator. */
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  box-shadow: 0 0 0 4px rgba(154, 144, 196, 0.18);
+  flex: none;
+}
+.dot--ok {
+  background: var(--ok);
+  box-shadow:
+    0 0 0 4px rgba(22, 160, 108, 0.2),
+    0 0 8px rgba(22, 160, 108, 0.5);
+  animation: pulse 2.2s var(--ease) infinite;
+}
+.dot--warn {
+  background: var(--warn);
+  box-shadow:
+    0 0 0 4px rgba(183, 113, 30, 0.2),
+    0 0 8px rgba(255, 154, 77, 0.5);
+}
+.dot--bad {
+  background: var(--bad);
+  box-shadow:
+    0 0 0 4px rgba(224, 85, 70, 0.2),
+    0 0 8px rgba(224, 85, 70, 0.5);
+}
+@keyframes pulse {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(22, 160, 108, 0.55),
+      0 0 8px rgba(22, 160, 108, 0.5);
+  }
+  70% {
+    box-shadow:
+      0 0 0 9px rgba(22, 160, 108, 0),
+      0 0 8px rgba(22, 160, 108, 0.5);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(22, 160, 108, 0),
+      0 0 8px rgba(22, 160, 108, 0.5);
+  }
+}
+
+/* ---------------- Content layout ---------------- */
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--s-5);
+  padding: var(--s-6);
+  align-items: start;
+}
+.stack {
+  display: grid;
+  gap: var(--s-5);
+  align-content: start;
+}
+
+/* Toy panels — big-radius candy cards with a chunky grape drop-shadow and a
+   white top bevel, so each section reads as a glossy moulded tile rather
+   than a flat sheet. The drop-shadow alone defines each edge — no resting
+   hairline — so panels share the status cards' borderless container language;
+   the transparent border only lights up on hover. */
+.panel {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+  border: 1px solid transparent;
+  box-shadow: var(--elev-1);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+/* Hover: the grape drop deepens and the tile lifts, the toy "pick me up" cue. */
+.panel:hover {
+  border-color: var(--line-strong);
+  box-shadow:
+    inset 0 2px 0 -1px rgba(255, 255, 255, 0.9),
+    0 2px 4px rgba(91, 63, 214, 0.12),
+    0 18px 36px -16px rgba(123, 92, 240, 0.34);
+  transform: translateY(-2px);
+}
+/* Shimmer skeleton — used by provider rows while data is in flight. */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--field) 0%, var(--field-strong) 50%, var(--field) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: var(--r-xs);
+  color: transparent !important;
+}
+.panel-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  align-items: center;
+  margin-bottom: var(--s-4);
+}
+.panel-title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.panel h2 {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-x);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+}
+.hint {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Rows inside a panel — flat list, divided by hairlines instead of boxed. */
+.rows {
+  display: grid;
+  gap: 0;
+}
+.rows > * + * {
+  border-top: 1px solid var(--line);
+}
+
+/* ---------------- Provider card ---------------- */
+
+.provider,
+.device {
+  padding: var(--s-4) 0;
+  background: transparent;
+}
+.rows > .provider:first-child,
+.rows > .device:first-child {
+  padding-top: var(--s-3);
+}
+.rows > .provider:last-child,
+.rows > .device:last-child {
+  padding-bottom: var(--s-3);
+}
+
+.provider-head,
+.device-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.provider-head > div:first-child,
+.device-head > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+.provider-head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
+}
+.order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.order-controls .order-btn {
+  width: var(--ctl-sm);
+  height: var(--ctl-sm);
+  padding: 0;
+  min-width: auto;
+  color: var(--brand-1);
+}
+.order-controls .order-btn[disabled] {
+  opacity: 0.3;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.order-controls .order-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.source-main {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  min-width: 0;
+}
+/* Logo slots — transparent, no chip background, no border. Each brand SVG
+   ships its own colour fill so the glyph is instantly recognisable. */
+.source-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  color: var(--ink);
+  font-weight: var(--fw-x);
+  font-size: var(--fs-lg);
+  position: relative;
+}
+.source-mark .logo-img,
+.opt-mark .logo-img {
+  display: block;
+  object-fit: contain;
+}
+.source-mark .logo-img {
+  width: 28px;
+  height: 28px;
+}
+.opt-mark .logo-img {
+  width: 24px;
+  height: 24px;
+}
+.source-mark--xs {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 11px;
+}
+.source-mark--xs .logo-img {
+  width: 16px;
+  height: 16px;
+}
+/* Initial-letter fallback for vendors without a logo file. Subtle neutral
+   bubble (no border) so it sits in the same visual weight as the SVGs. */
+.source-mark--initial,
+.opt-mark--initial {
+  font-family: var(--font);
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  color: #fff;
+  border-radius: var(--r-pill);
+  box-shadow:
+    0 4px 10px -4px rgba(123, 92, 240, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.name {
+  font-weight: var(--fw-x);
+  font-size: var(--fs-base);
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.name-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.name-link:hover {
+  border-bottom-color: var(--brand-1);
+  color: var(--brand-1);
+}
+.meta {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  margin-top: 2px;
+  line-height: 1.4;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.featured-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--fs-xs);
+  color: var(--brand-2);
+  background: var(--neutral-soft);
+  padding: 3px var(--s-2);
+  border-radius: var(--r-pill);
+  font-weight: var(--fw-s);
+  letter-spacing: 0.04em;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 3px var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-b);
+  background: var(--neutral-soft);
+  color: var(--neutral-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.pill--ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.pill--warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.pill--bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+/* Metadata pill — no background, lighter weight. For freshness / cache age
+   and similar info that isn't a state warning. */
+.pill--meta {
+  background: transparent;
+  color: var(--ink-faint);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: var(--fw-m);
+  padding: 0;
+}
+.pill .dot {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+.pill .dot--ok {
+  box-shadow: 0 0 6px var(--candy-mint);
+}
+
+.usage {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.window-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--s-3);
+  row-gap: var(--s-1);
+  align-items: center;
+  font-size: var(--fs-base);
+}
+.window-label {
+  font-weight: var(--fw-s);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.window-pct {
+  font-weight: var(--fw-x);
+  font-variant-numeric: tabular-nums;
+}
+/* HP / XP bar — a candy capsule track. The fill is a glossy grape gel with a
+   segmented highlight overlay so it reads like a game health bar; warn/bad
+   swap to lemon/coral via the JS-driven fillClass. The inline width:NN% set
+   by JS is never overridden here. */
+.bar {
+  grid-column: 1 / -1;
+  height: 12px;
+  border-radius: var(--r-pill);
+  background: var(--field-strong);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(91, 63, 214, 0.22);
+}
+.fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  position: relative;
+  /* Grape gel by default — "% used" isn't health, so green is misleading;
+     warn/bad mark the real high-water lines. */
+  background: linear-gradient(90deg, #9a7bff, var(--candy-grape));
+  box-shadow:
+    0 0 8px -1px rgba(123, 92, 240, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition:
+    width var(--dur-slow) var(--ease),
+    background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+/* Segmented gloss — repeating notches give the bar its HP-meter look. */
+.fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-pill);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.28) 0 2px,
+    transparent 2px 9px
+  );
+  opacity: 0.5;
+}
+.fill--warn {
+  background: linear-gradient(90deg, #ffe27a, var(--candy-tangelo));
+  box-shadow:
+    0 0 8px -1px rgba(255, 154, 77, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.fill--bad {
+  background: linear-gradient(90deg, #ff9d8c, var(--bad));
+  box-shadow:
+    0 0 8px -1px rgba(224, 85, 70, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.window-meta {
+  grid-column: 1 / -1;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+/* Absolute reset timestamp shown in parentheses after the relative one. */
+.window-meta .abs {
+  opacity: 0.7;
+}
+
+.provider-actions {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.provider-actions .spacer {
+  flex: 1;
+}
+/* Remove button: icon-only, neutral at rest, red only on hover. */
+.provider-actions .btn--remove {
+  margin-left: auto;
+  color: var(--ink-faint);
+  border-color: transparent;
+  background: transparent;
+}
+.provider-actions .btn--remove:hover {
+  color: var(--bad);
+  background: var(--bad-soft);
+  border-color: transparent;
+}
+@media (max-width: 560px) {
+  .provider-actions .btn--remove {
+    margin-left: 0;
+  }
+}
+
+/* ---------------- Empty / error ---------------- */
+
+.empty {
+  background: var(--field);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+  color: var(--ink-soft);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+}
+.empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 5px 12px -4px rgba(123, 92, 240, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.empty-title {
+  color: var(--ink);
+  font-weight: var(--fw-b);
+  margin-bottom: 2px;
+}
+
+.empty-hero {
+  background: transparent;
+  padding: var(--s-6) var(--s-5);
+  text-align: center;
+  display: grid;
+  gap: var(--s-4);
+  justify-items: center;
+}
+.empty-hero .illus {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 8px 18px -6px rgba(123, 92, 240, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+.empty-hero .illus svg {
+  width: 32px;
+  height: 32px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.empty-hero h3 {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-x);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.empty-hero p {
+  margin: 0;
+  max-width: 380px;
+  color: var(--ink-soft);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+}
+.empty-hero .empty-actions {
+  display: inline-flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.empty-hero .chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  justify-content: center;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--neutral-soft);
+  color: var(--neutral-fg);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-s);
+  border: 1px solid transparent;
+}
+.chip svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.error-banner {
+  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+  background: var(--bad-soft);
+  color: var(--bad);
+  border-radius: var(--r-sm);
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  display: grid;
+  gap: var(--s-1);
+}
+.error-banner strong {
+  color: var(--bad);
+  font-weight: var(--fw-x);
+}
+.error-banner .hint {
+  color: var(--bad);
+  opacity: 0.8;
+  font-size: var(--fs-md);
+}
+
+/* ---------------- Network ---------------- */
+
+.net-section {
+  display: grid;
+  gap: var(--s-3);
+}
+.net-section + .net-section {
+  margin-top: var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.net-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.net-section-head h3 {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-x);
+  margin: 0;
+}
+.net-section-head p {
+  margin: 2px 0 0;
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+}
+.url-list {
+  display: grid;
+  gap: var(--s-2);
+}
+.url-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--s-2);
+  align-items: start;
+}
+.url-line code {
+  display: block;
+  color: var(--ink);
+  background: var(--field-strong);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-ctrl);
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  min-height: var(--ctl-sm);
+  display: flex;
+  align-items: center;
+}
+.url-line .btn--icon {
+  align-self: start;
+}
+
+/* ---------------- Devices ---------------- */
+
+.device-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+details.dev-detail {
+  margin-top: var(--s-2);
+}
+details.dev-detail summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+details.dev-detail summary::-webkit-details-marker {
+  display: none;
+}
+details.dev-detail summary::after {
+  content: '▸';
+  font-size: 10px;
+  transition: transform var(--dur) var(--ease);
+}
+details.dev-detail[open] summary::after {
+  transform: rotate(90deg);
+}
+details.dev-detail .dl {
+  margin: var(--s-2) 0 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+details.dev-detail .dl dt {
+  font-weight: var(--fw-s);
+}
+details.dev-detail .dl dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  word-break: break-all;
+}
+
+/* ---------------- Diagnostics ---------------- */
+
+.diagnostics {
+  padding: 0 var(--s-6) var(--s-6);
+}
+details.panel {
+  padding: 0;
+  overflow: hidden;
+}
+details.panel summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  cursor: pointer;
+  gap: var(--s-3);
+  transition: background var(--dur) var(--ease);
+}
+/* A faint brand wash, not the solid --field used by the .tip cards inside —
+   keeps the hovered header visually distinct from the step cards below it. */
+details.panel summary:hover {
+  background: color-mix(in srgb, var(--brand-1) 9%, transparent);
+}
+details.panel summary::-webkit-details-marker {
+  display: none;
+}
+details.panel summary::after {
+  content: '▾';
+  font-size: var(--fs-base);
+  color: var(--ink-soft);
+  transition: transform var(--dur) var(--ease);
+  flex: none;
+}
+details.panel[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.diag-body {
+  padding: 0 var(--s-5) var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+}
+.diag-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+  align-items: center;
+}
+.diag-meta .kv {
+  display: flex;
+  gap: var(--s-2);
+  align-items: baseline;
+}
+.diag-meta .kv .k {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: var(--fw-s);
+}
+.diag-meta .kv .v {
+  font-weight: var(--fw-b);
+  font-variant-numeric: tabular-nums;
+}
+
+.diag-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+}
+
+pre {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  /* Deep-grape code block — matches the hero screen so raw /state JSON reads
+     as another lit panel of the toy console. */
+  background: #1d1738;
+  color: #efeaff;
+  border-radius: var(--r-sm);
+  padding: var(--s-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  scrollbar-width: thin;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ---------------- Wizard ---------------- */
+
+.wizard {
+  display: none;
+}
+body.mode-add .dashboard {
+  display: none;
+}
+body.mode-add .wizard {
+  display: block;
+}
+
+.wizard-shell {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: var(--r-shell);
+  box-shadow:
+    0 4px 12px -4px rgba(15, 15, 15, 0.08),
+    0 24px 56px -16px rgba(15, 15, 15, 0.18);
+  overflow: hidden;
+}
+/* Wizard header — calm neutral, lets the form be the visual centre.
+   A tiny brand-coloured dot before the title is the only accent. */
+.wizard-hd {
+  padding: var(--s-5) var(--s-6);
+  color: var(--ink);
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.wizard-hd > div {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.wizard-hd h1 {
+  font-size: var(--fs-2xl);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.wizard-hd h1::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-grad);
+  box-shadow: 0 0 0 3px rgba(123, 92, 240, 0.12);
+}
+.wizard-hd .hero-sub {
+  color: var(--ink-soft);
+  margin-top: var(--s-1);
+}
+.wizard-hd .btn--ghost {
+  background: var(--field);
+  color: var(--ink-soft);
+  border-color: var(--line);
+  backdrop-filter: none;
+}
+.wizard-hd .btn--ghost:hover {
+  background: var(--field-strong);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.wizard-body {
+  padding: var(--s-6);
+}
+
+/* ----- Single-page wizard sections ----- */
+.wz-section + .wz-section {
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.wz-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+.wz-section-head > div {
+  min-width: 0;
+}
+.wz-section-num {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-pill);
+  background: var(--brand-grad);
+  color: var(--on-brand);
+  font-weight: var(--fw-x);
+  font-size: var(--fs-md);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  line-height: 1;
+  box-shadow: 0 4px 10px -4px rgba(123, 92, 240, 0.7);
+}
+.wz-section-title {
+  font-size: var(--fs-xl);
+  margin: 0 0 var(--s-1);
+  line-height: 1.2;
+}
+/* Locked downstream sections dim contents but keep heading visible so the
+   user can preview the structure. Pointer-events off so nothing fires.
+   Transition makes the unlock feel intentional instead of a hard cut. */
+.wz-section .modes,
+.wz-section .option-list,
+.wz-section #connectCard {
+  transition:
+    opacity 0.25s var(--ease),
+    filter 0.25s var(--ease);
+}
+.wz-section[data-locked='true'] .modes,
+.wz-section[data-locked='true'] .option-list,
+.wz-section[data-locked='true'] #connectCard {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.3);
+}
+.wz-section-num {
+  transition:
+    background 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+.wz-section[data-locked='true'] .wz-section-num {
+  background: var(--field-strong);
+  color: var(--ink-faint);
+  box-shadow: none;
+}
+/* Empty placeholder shown when a section has no real content yet. */
+.wz-empty {
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  color: var(--ink-faint);
+  font-size: var(--fs-md);
+  background: var(--field);
+  text-align: center;
+}
+/* Update-key flow hides sections 1 & 2; keep connect flush to the top.
+   The wizard header also shrinks because rotating a key is a light task. */
+.wizard.wizard--key-only #sectionMode,
+.wizard.wizard--key-only #sectionVendor {
+  display: none;
+}
+.wizard.wizard--key-only #sectionConnect {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.wizard.wizard--key-only .wizard-hd {
+  padding: var(--s-4) var(--s-6);
+}
+.wizard.wizard--key-only .wizard-hd h1 {
+  font-size: var(--fs-xl);
+}
+.footer-actions--end {
+  justify-content: flex-end;
+}
+
+/* Keyboard chip shown alongside a button to surface its shortcut. */
+.kbd-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--fw-s);
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--field-strong);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  margin-left: 2px;
+}
+
+/* In-flight submit lock — disables interaction in the rest of the wizard
+   while activateProvider awaits the network round-trip; the Connect btn
+   itself stays clickable but its aria-busy already blocks re-click. */
+#wizardForm.is-submitting > section {
+  opacity: 0.55;
+  pointer-events: none;
+  filter: saturate(0.85);
+}
+#wizardForm.is-submitting #connectBtn {
+  pointer-events: auto;
+}
+
+/* Inline confirm bar (replaces window.confirm for destructive in-flow
+   state resets like switching mode after typing an API key). */
+.wz-confirm {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  border-radius: var(--r-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  animation: confirmIn 0.2s var(--ease);
+}
+.wz-confirm-msg {
+  color: var(--warn);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-s);
+}
+.wz-confirm-actions {
+  display: flex;
+  gap: var(--s-2);
+}
+@keyframes confirmIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-3);
+}
+.mode,
+.provider-option {
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  background: var(--field);
+  text-align: left;
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease);
+  position: relative;
+}
+/* 4-row subgrid: icon / text / tag / example — lets the three cards share the
+   same row tracks, so tag and e.g. stay horizontally aligned even when the
+   description spans a different number of lines. */
+.mode {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 4;
+  gap: var(--s-3);
+  min-height: 100%;
+}
+.mode:hover:not(:disabled),
+.provider-option:hover:not(:disabled):not([aria-disabled='true']) {
+  border-color: var(--brand-1);
+  background: var(--card);
+}
+.mode.sel,
+.provider-option.sel {
+  border-color: var(--brand-1);
+  background: var(--card);
+  box-shadow:
+    inset 3px 0 0 var(--brand-1),
+    0 8px 20px -10px rgba(123, 92, 240, 0.4);
+}
+.mode:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.mode .mode-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex: none;
+  box-shadow:
+    0 5px 12px -4px rgba(123, 92, 240, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.mode .mode-icon--ok {
+  background: linear-gradient(150deg, var(--candy-sky), var(--candy-mint));
+  color: #fff;
+  box-shadow:
+    0 5px 12px -4px rgba(52, 224, 180, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.mode .mode-icon--warn {
+  background: linear-gradient(150deg, var(--candy-bubble), var(--candy-tangelo));
+  color: #fff;
+  box-shadow:
+    0 5px 12px -4px rgba(255, 154, 77, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.mode .mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mode .mode-title {
+  font-weight: var(--fw-x);
+  font-size: var(--fs-lg);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+.mode .mode-desc {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+.mode .mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-s);
+  color: var(--brand-1);
+  background: var(--neutral-soft);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-pill);
+  align-self: flex-start;
+  white-space: nowrap;
+  max-width: 100%;
+  line-height: 1.2;
+}
+.mode .mode-tag.tag--ok {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.mode .mode-tag.tag--muted {
+  color: var(--ink-soft);
+  background: var(--field-strong);
+}
+.mode:disabled .mode-tag {
+  color: var(--ink-soft);
+  background: var(--field-strong);
+}
+.mode .mode-example {
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  line-height: 1.5;
+  margin-top: auto;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+.mode .ribbon {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  font-size: 10px;
+  font-weight: var(--fw-b);
+  color: var(--brand-1);
+  background: #fff;
+  border: 1px solid rgba(123, 92, 240, 0.25);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px -2px rgba(123, 92, 240, 0.25);
+}
+
+.option-list {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.provider-option {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3) var(--s-3);
+  padding: var(--s-3) var(--s-4);
+}
+.provider-option .opt-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--ink);
+  font-weight: var(--fw-x);
+  font-size: var(--fs-lg);
+}
+.provider-option .opt-mark .logo-img {
+  width: 24px;
+  height: 24px;
+}
+.provider-option .opt-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.provider-option .opt-name {
+  font-weight: var(--fw-x);
+  font-size: var(--fs-base);
+  color: var(--ink);
+}
+.provider-option .opt-sub {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.provider-option .opt-arrow {
+  color: var(--ink-faint);
+  display: grid;
+  place-items: center;
+  transition:
+    transform var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.provider-option:hover .opt-arrow,
+.provider-option.sel .opt-arrow {
+  color: var(--brand-1);
+  transform: translateX(4px);
+}
+.provider-option:disabled,
+.provider-option[aria-disabled='true'] {
+  opacity: 0.62;
+  cursor: not-allowed;
+  background: var(--field);
+}
+.provider-option:disabled:hover,
+.provider-option[aria-disabled='true']:hover {
+  border-color: var(--line);
+  transform: none;
+  box-shadow: none;
+}
+.provider-option .opt-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* Connect card — flat, lives on top of the wizard's white bg with a soft
+   tinted band as the header so the trust details have visual grounding
+   without resorting to a box outline. */
+.connect-card {
+  border-radius: var(--r-card);
+  background: var(--field);
+  overflow: hidden;
+}
+.connect-card .ck-hd {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-5);
+  background: transparent;
+}
+/* Connect-card logo slot: just centring + size; no chip background or border. */
+.connect-card .ck-hd .opt-mark {
+  width: 56px;
+  height: 56px;
+  font-size: var(--fs-xl);
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--ink);
+}
+.connect-card .ck-hd .opt-mark .logo-img {
+  width: 48px;
+  height: 48px;
+}
+.connect-card .ck-title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-x);
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+.connect-card .ck-sub {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+.connect-card .ck-body {
+  padding: var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+  background: var(--card);
+}
+
+.trust {
+  display: grid;
+  gap: var(--s-2);
+}
+.trust-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: flex-start;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+}
+.trust-row .tic {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  margin-top: 1px;
+}
+.trust-row .tic--ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.trust-row .tic--no {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.trust-row .tic svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.trust-row .tt {
+  color: var(--ink);
+  font-weight: var(--fw-s);
+}
+.trust-row .ts {
+  color: var(--ink-soft);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.source-line {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-3) var(--s-4);
+  background: var(--field-strong);
+  border-radius: var(--r-ctrl);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.source-line svg {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-1);
+  margin-top: 1px;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ck-docs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--brand-1);
+  text-decoration: none;
+  font-weight: var(--fw-s);
+  font-size: var(--fs-md);
+  align-self: start;
+}
+.ck-docs:hover {
+  text-decoration: underline;
+}
+.ck-docs svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.wizard-done {
+  text-align: center;
+  padding: var(--s-5) var(--s-2);
+  display: grid;
+  gap: var(--s-4);
+  justify-items: center;
+}
+.wizard-done .illus {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--ok-soft);
+  color: var(--ok);
+  display: grid;
+  place-items: center;
+}
+.wizard-done .illus svg {
+  width: 56px;
+  height: 56px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wizard-done h2 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+}
+.wizard-done p {
+  margin: 0;
+  color: var(--ink-soft);
+  max-width: 420px;
+  line-height: 1.55;
+}
+
+/* ---------------- Tips / Help ---------------- */
+
+/* Pull the steps' gutter in (the shared .diag-body uses a wide gutter for the
+   diagnostics JSON) so each step number lines up with the header icon above,
+   and the cards sit closer to full width like the header band. */
+#tipsPanel .diag-body {
+  padding-left: var(--s-2);
+  padding-right: var(--s-2);
+}
+.tips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-3);
+}
+.tip {
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  background: var(--field);
+  /* Hairline keeps each step card's outline crisp even when the panel header
+     is hovered — otherwise the header's tint and the cards' tint merge. */
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: flex-start;
+}
+.tip-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, var(--candy-grape), var(--candy-bubble));
+  color: #fff;
+  font-weight: var(--fw-x);
+  font-size: var(--fs-sm);
+  display: grid;
+  place-items: center;
+  margin-top: 2px;
+  box-shadow: 0 4px 10px -4px rgba(123, 92, 240, 0.7);
+}
+/* Walk the 3 setup steps through the candy palette like a level progression. */
+.tip:nth-child(2) .tip-num {
+  background: linear-gradient(150deg, var(--candy-sky), var(--candy-mint));
+  box-shadow: 0 4px 10px -4px rgba(57, 198, 255, 0.7);
+}
+.tip:nth-child(3) .tip-num {
+  background: linear-gradient(150deg, var(--candy-bubble), var(--candy-tangelo));
+  box-shadow: 0 4px 10px -4px rgba(255, 111, 174, 0.7);
+}
+.tip-body {
+  display: grid;
+  gap: 4px;
+}
+.tip-title {
+  font-weight: var(--fw-b);
+  color: var(--ink);
+  font-size: var(--fs-base);
+}
+.tip-text {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.tip-text a {
+  color: var(--brand-1);
+  text-decoration: none;
+}
+.tip-text a:hover {
+  text-decoration: underline;
+}
+
+/* ---------------- Network actions ---------------- */
+
+.net-section-head .btn {
+  flex: none;
+}
+.url-line.url-line--actions {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--s-2);
+}
+
+/* ---------------- Tabs (diagnostics) ---------------- */
+
+.tabs {
+  display: inline-flex;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 3px;
+  gap: 2px;
+}
+.tabs button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  font-weight: var(--fw-s);
+  padding: 4px var(--s-3);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.tabs button.on {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--elev-1);
+}
+.tabs button:hover:not(.on) {
+  color: var(--ink);
+}
+
+/* ---------------- Toasts ---------------- */
+
+.toast-stack {
+  position: fixed;
+  right: var(--s-5);
+  bottom: var(--s-5);
+  display: grid;
+  gap: var(--s-2);
+  z-index: 50;
+  pointer-events: none;
+  max-width: calc(100vw - var(--s-7));
+}
+@media (max-width: 560px) {
+  .toast-stack {
+    right: var(--s-3);
+    left: var(--s-3);
+    bottom: var(--s-3);
+    justify-items: stretch;
+  }
+  .toast {
+    min-width: 0;
+  }
+}
+.toast {
+  pointer-events: auto;
+  border-radius: var(--r-sm);
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-s);
+  box-shadow: var(--elev-2);
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 240px;
+  animation: toastIn 0.25s var(--ease);
+}
+.toast--ok {
+  background: var(--ok-soft);
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+  color: var(--ok);
+}
+.toast--warn {
+  background: var(--warn-soft);
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+  color: var(--warn);
+}
+.toast--bad {
+  background: var(--bad-soft);
+  border-color: color-mix(in srgb, var(--bad) 40%, transparent);
+  color: var(--bad);
+}
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 0.65;
+  padding: 0 var(--s-1);
+  font-size: var(--fs-lg);
+  line-height: 1;
+}
+.toast-close:hover {
+  opacity: 1;
+}
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------- Modal ---------------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5);
+  background: rgba(15, 15, 15, 0.48);
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+.modal.on {
+  display: flex;
+  animation: fadeIn 0.2s var(--ease);
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.dialog {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--elev-3);
+  padding: var(--s-6);
+}
+.dialog-cat {
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--s-3);
+  filter: drop-shadow(0 4px 12px rgba(123, 92, 240, 0.3));
+}
+.dialog h2 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--fs-2xl);
+}
+.dialog p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+}
+
+/* ---------------- Connection banner ---------------- */
+.conn-banner {
+  display: none;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-weight: var(--fw-s);
+  border-bottom: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+}
+.conn-banner.on {
+  display: flex;
+}
+.conn-banner .btn {
+  margin-left: auto;
+}
+
+/* ---------------- Loading skeleton ---------------- */
+.skel {
+  background: linear-gradient(90deg, var(--line) 0%, var(--field) 50%, var(--line) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--r-sm);
+  animation: shimmer 1.3s linear infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 1100px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  aside.stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--s-5);
+  }
+}
+@media (max-width: 900px) {
+  .page {
+    padding: var(--s-5);
+  }
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-meter {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .ring {
+    width: 128px;
+    height: 128px;
+  }
+  .modes {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .hero-meter {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .ring {
+    margin: 0 auto;
+  }
+  aside.stack {
+    grid-template-columns: 1fr;
+  }
+  .status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .page {
+    padding: var(--s-4) var(--s-3);
+  }
+  .console {
+    border-radius: var(--r-lg);
+  }
+  .hero {
+    padding: var(--s-5);
+  }
+  .brand-row {
+    gap: var(--s-3);
+  }
+  .cat-badge {
+    width: 40px;
+    height: 40px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .hero-sub {
+    font-size: var(--fs-md);
+  }
+  .hero-actions {
+    gap: var(--s-2);
+  }
+  .status-strip {
+    padding: var(--s-3) var(--s-3);
+  }
+  .status {
+    flex-basis: 100%;
+  }
+  .content {
+    padding: var(--s-4) var(--s-3);
+    gap: var(--s-4);
+  }
+  .panel {
+    padding: var(--s-4);
+    border-radius: var(--r-md);
+  }
+  .provider-head,
+  .device-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .provider-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .provider-actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+  .provider-actions .btn--danger {
+    grid-column: 1 / -1;
+  }
+  .panel-head {
+    grid-template-columns: 1fr;
+    gap: var(--s-3);
+  }
+  .panel-head .btn {
+    justify-self: start;
+  }
+  .diagnostics {
+    padding: 0 var(--s-3) var(--s-4);
+  }
+  .diag-body {
+    padding: 0 var(--s-4) var(--s-4);
+  }
+  .wizard-body {
+    padding: var(--s-5);
+  }
+}
+@media (max-width: 360px) {
+  h1 {
+    font-size: 22px;
+  }
+  .ring {
+    width: 108px;
+    height: 108px;
+  }
+  .ring-value {
+    font-size: var(--fs-2xl);
+  }
+  .ring-value.is-empty {
+    font-size: var(--fs-base);
+  }
+  .metric-label {
+    font-size: var(--fs-base);
+  }
+  .cat-badge {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* View Transitions — wraps provider list rerenders so add/remove/reorder
+   cross-fades + position-morphs instead of snapping. Each <article class
+   ="provider"> carries an inline view-transition-name keyed by provider
+   id so the browser knows which card moved where. Cosmetic-only updates
+   (usage % ticking every 5s) are filtered out by a signature check
+   in JS; only membership/order changes trigger a transition. Browsers
+   without the API silently fall through to the old snap behaviour. */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: var(--dur);
+  animation-timing-function: var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------- API-key wizard fields ---------------- */
+.ck-fields {
+  display: grid;
+  gap: var(--s-3);
+}
+.field-group {
+  display: grid;
+  gap: var(--s-2);
+}
+.field-label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-s);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.field-label .req {
+  color: var(--bad);
+}
+.field-label .opt {
+  color: var(--ink-faint);
+  font-weight: var(--fw-m);
+  font-size: var(--fs-xs);
+}
+.field-input {
+  width: 100%;
+  height: var(--ctl-md);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-strong);
+  background: var(--field);
+  color: var(--ink);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  outline: none;
+  box-sizing: border-box;
+}
+.field-input:focus {
+  border-color: var(--brand-1);
+  background: var(--card);
+  box-shadow: 0 0 0 3px rgba(123, 92, 240, 0.14);
+}
+.field-help {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/* Eye toggle for password-style fields (API key). Lives inside a wrapper
+   so the icon sits inside the input's right edge without breaking the
+   :focus ring on the input. */
+.field-input-wrap {
+  position: relative;
+}
+.field-input-wrap .field-input {
+  padding-right: 44px;
+}
+.field-input-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-xs, 6px);
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0;
+}
+.field-input-toggle:hover {
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.04);
+}
+.field-input-toggle:focus {
+  outline: 2px solid var(--brand-1);
+  outline-offset: 1px;
+}
+.field-input-toggle svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.field-input-toggle.is-on {
+  color: var(--brand-1);
+}
+.field-help a {
+  color: var(--brand-1);
+}
+details.ck-advanced {
+  border-radius: var(--r-ctrl);
+  background: var(--field-strong);
+  padding: var(--s-3) var(--s-4);
+}
+details.ck-advanced[open] {
+  background: var(--card);
+}
+details.ck-advanced summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-s);
+  color: var(--brand-1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+details.ck-advanced summary::-webkit-details-marker {
+  display: none;
+}
+details.ck-advanced summary::after {
+  content: '▸';
+  font-size: 10px;
+  transition: transform var(--dur) var(--ease);
+}
+details.ck-advanced[open] summary::after {
+  transform: rotate(90deg);
+}
+details.ck-advanced .adv-body {
+  margin-top: var(--s-3);
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* ---------------- Provider card: pre-paid balance block ---------------- */
+.balance-block {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  background: var(--field);
+  border-radius: var(--r-sm);
+  margin-top: var(--s-3);
+}
+.balance-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.balance-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: var(--fw-s);
+}
+.balance-amount {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-x);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.balance-amount .ccy {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  font-weight: var(--fw-s);
+  margin-left: var(--s-1);
+}
+.balance-amount.is-empty {
+  color: var(--bad);
+}
+.balance-block.is-empty {
+  background: var(--bad-soft);
+  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+}
+.balance-block.is-empty .balance-label {
+  color: var(--bad);
+}
