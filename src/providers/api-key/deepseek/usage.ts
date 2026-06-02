@@ -49,7 +49,8 @@ function normalizeCurrency(raw: string | undefined): UsageBalance['currency'] {
   if (up && (ALLOWED_CURRENCIES as Set<string>).has(up)) {
     return up as UsageBalance['currency'];
   }
-  // DeepSeek 国内主账户默认 CNY；未知币种保守归一到 CNY 而不是丢错。
+  // DeepSeek's domestic main account defaults to CNY; normalize unknown
+  // currencies conservatively to CNY instead of throwing.
   return 'CNY';
 }
 
