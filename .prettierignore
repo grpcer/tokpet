@@ -2,6 +2,8 @@ dist
 node_modules
 coverage
 package-lock.json
+# Vendored third-party assets (e.g. minified open-props) — keep verbatim
+public/vendor
 LICENSE
 NOTICE
 CODE_OF_CONDUCT.md
