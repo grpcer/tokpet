@@ -34,16 +34,16 @@ The only public stability guarantee is the `/state` JSON schema — see [`src/pr
 
 ```bash
 brew install grpcer/tokpet/tokpet
-brew services start tokpet     # runs in the background, restarts on login
-tokpet open                    # configure providers in your browser
+brew services start tokpet     # first start opens the setup page automatically;
+                               # runs in the background and restarts on login
 ```
 
 **npm**
 
 ```bash
 npm install -g tokpet
-tokpet service install         # background launchd service, restarts on login
-tokpet open
+tokpet service install         # first start opens the setup page automatically;
+                               # background launchd service, restarts on login
 ```
 
 Either way, Tokpet opens a setup page where you pick how a provider exposes

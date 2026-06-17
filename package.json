@@ -1,6 +1,6 @@
 {
   "name": "tokpet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop pet that surfaces your real-time AI usage / quota / balance across providers.",
   "type": "module",
   "main": "dist/index.js",

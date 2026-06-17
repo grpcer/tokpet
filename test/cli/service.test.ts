@@ -28,8 +28,8 @@ describe('renderPlist', () => {
       /<key>StandardErrorPath<\/key>\s*<string>\/home\/u\/\.tokpet\/logs\/tokpet\.log<\/string>/,
     );
   });
-  it('sets TOKPET_NO_OPEN so a background start never pops a browser', () => {
-    expect(xml).toContain('<key>TOKPET_NO_OPEN</key>');
+  it('does not force TOKPET_NO_OPEN so first-run auto-open stays enabled', () => {
+    expect(xml).not.toContain('TOKPET_NO_OPEN');
   });
   it('escapes XML metacharacters in interpolated paths', () => {
     const escaped = renderPlist({
