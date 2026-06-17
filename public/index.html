@@ -309,6 +309,13 @@
         <button class="btn btn--sm" onclick="refreshAll()">Retry</button>
       </div>
 
+      <!-- Update banner (shown when a newer tokpet is available on npm) -->
+      <div class="update-banner" id="updateBanner" role="status">
+        <svg class="icon" aria-hidden="true"><use href="#i-warn"></use></svg>
+        <span id="updateBannerText"></span>
+        <button class="btn btn--sm" id="updateDismiss" onclick="dismissUpdate()">Dismiss</button>
+      </div>
+
       <div class="dashboard">
         <div class="console">
           <section class="hero">

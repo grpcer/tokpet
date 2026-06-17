@@ -1,11 +1,24 @@
 // -------- Render --------
 function renderDashboard() {
+  renderUpdateBanner();
   renderStatus();
   renderNow();
   renderProviders();
   renderDevices();
   renderNetwork();
   renderDiagnostics();
+}
+
+function renderUpdateBanner() {
+  var banner = $('updateBanner');
+  if (!banner) return;
+  var info = app.runtime && app.runtime.update;
+  var show = !!(info && info.available && info.latest && !app.updateDismissed);
+  if (show) {
+    $('updateBannerText').innerHTML =
+      'Tokpet ' + esc(info.latest) + ' is available. Update with <code>brew upgrade tokpet</code>.';
+  }
+  banner.classList.toggle('on', show);
 }
 
 function renderStatus() {

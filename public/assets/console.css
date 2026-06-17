@@ -2714,6 +2714,30 @@ body.mode-add .wizard {
   margin-left: auto;
 }
 
+/* ---------------- Update banner ---------------- */
+.update-banner {
+  display: none;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: var(--fw-s);
+  border-bottom: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+}
+.update-banner.on {
+  display: flex;
+}
+.update-banner code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  padding: 0 var(--s-1);
+  border-radius: 4px;
+}
+.update-banner .btn {
+  margin-left: auto;
+}
+
 /* ---------------- Loading skeleton ---------------- */
 .skel {
   background: linear-gradient(90deg, var(--line) 0%, var(--field) 50%, var(--line) 100%);

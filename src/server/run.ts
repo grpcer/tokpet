@@ -12,6 +12,7 @@ import { loadConfig, orderedProviderIds } from '../config/store.js';
 import { openBrowser } from './open-browser.js';
 import { publishMdns } from './mdns.js';
 import { createRuntimeState, markMdnsPublished } from './runtime.js';
+import { startUpdateChecks } from './update-check.js';
 
 export const DEFAULT_PORT = 4717;
 
@@ -50,6 +51,8 @@ export async function runServer(port: number = resolvePort()): Promise<void> {
   }
 
   await startServer(agg, port, runtime);
+  // Background "is there a newer tokpet?" poll; the console surfaces the hint.
+  startUpdateChecks();
   const mdns = publishMdns(port, {
     onStatus: () => markMdnsPublished(runtime),
   });

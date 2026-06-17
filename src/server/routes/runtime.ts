@@ -3,6 +3,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { RuntimeState } from '../runtime.js';
 import { deviceStatus, lanStateUrls } from '../runtime.js';
+import { getUpdateInfo } from '../update-check.js';
 
 function isLoopback(ip: string | undefined): boolean {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
@@ -17,6 +18,7 @@ export function registerRuntimeRoutes(app: FastifyInstance, runtime: RuntimeStat
     const now = new Date();
     return {
       ok: true,
+      update: getUpdateInfo(),
       service: {
         status: 'running',
         startedAt: runtime.startedAt.toISOString(),
