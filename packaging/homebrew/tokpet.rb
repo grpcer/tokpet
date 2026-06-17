@@ -1,8 +1,8 @@
 class Tokpet < Formula
   desc "Desktop pet that surfaces real-time AI usage/quota/balance across providers"
   homepage "https://github.com/grpcer/tokpet"
-  url "https://registry.npmjs.org/tokpet/-/tokpet-0.1.0.tgz"
-  sha256 "9ee0b150ce10859b70433c7f40478280e8f7f748f0f5cbc9f315a021cd5e60e4"
+  url "https://registry.npmjs.org/tokpet/-/tokpet-0.1.1.tgz"
+  sha256 "6a7698b077543667d4f23dcf44344904e5bdade68506bbe8bee8fc0d8b305917"
   license "Apache-2.0"
 
   depends_on "node"
@@ -21,8 +21,10 @@ class Tokpet < Formula
 
   def caveats
     <<~EOS
-      Start the service and configure providers:
+      Start the service:
         brew services start tokpet
+
+      On first start it opens the setup page automatically. To reopen it later:
         tokpet open   # or visit http://localhost:4717
     EOS
   end
