@@ -34,6 +34,10 @@ Start the service (`npm run dev` below, or `npx tokpet` once published). Tokpet 
 
 The setup and configuration API is bound to loopback only; `GET /state` stays reachable on your LAN so the device (or any client) can poll it.
 
+## Troubleshooting
+
+Device stuck on "open the console to add a provider", or not showing up after you move it to a new network? See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
 ## Develop
 
 ```bash
