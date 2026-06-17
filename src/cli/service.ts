@@ -54,11 +54,6 @@ export function renderPlist(p: PlistParams): string {
   <string>${logPath}</string>
   <key>StandardErrorPath</key>
   <string>${logPath}</string>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>TOKPET_NO_OPEN</key>
-    <string>1</string>
-  </dict>
 </dict>
 </plist>
 `;
