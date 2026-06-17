@@ -2,7 +2,7 @@ class Tokpet < Formula
   desc "Desktop pet that surfaces real-time AI usage/quota/balance across providers"
   homepage "https://github.com/grpcer/tokpet"
   url "https://registry.npmjs.org/tokpet/-/tokpet-0.1.0.tgz"
-  sha256 "REPLACE_WITH_TARBALL_SHA256_ON_RELEASE"
+  sha256 "9ee0b150ce10859b70433c7f40478280e8f7f748f0f5cbc9f315a021cd5e60e4"
   license "Apache-2.0"
 
   depends_on "node"
