@@ -1,0 +1,33 @@
+class Tokpet < Formula
+  desc "Desktop pet that surfaces real-time AI usage/quota/balance across providers"
+  homepage "https://github.com/grpcer/tokpet"
+  url "https://registry.npmjs.org/tokpet/-/tokpet-0.1.0.tgz"
+  sha256 "REPLACE_WITH_TARBALL_SHA256_ON_RELEASE"
+  license "Apache-2.0"
+
+  depends_on "node"
+
+  def install
+    system "npm", "install", *std_npm_args
+    bin.install_symlink Dir["#{libexec}/bin/*"]
+  end
+
+  service do
+    run [opt_bin/"tokpet", "start"]
+    keep_alive true
+    log_path var/"log/tokpet.log"
+    error_log_path var/"log/tokpet.log"
+  end
+
+  def caveats
+    <<~EOS
+      Start the service and configure providers:
+        brew services start tokpet
+        tokpet open   # or visit http://localhost:4717
+    EOS
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/tokpet --version")
+  end
+end
