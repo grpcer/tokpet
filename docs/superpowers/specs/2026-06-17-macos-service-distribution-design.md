@@ -39,15 +39,15 @@ a fallback for users who already have Node.
 Today `src/index.ts` is a single entry point that immediately starts the server. It becomes a
 thin argv dispatcher. The first positional token selects a subcommand; no token defaults to `start`.
 
-| Command | Behavior |
-| --- | --- |
-| `tokpet` / `tokpet start` | Run the server in the foreground. This is what `launchd`/`brew services` exec. |
-| `tokpet open` | Open `http://localhost:4717` in the default browser (reuses `openBrowser`). If the service is not reachable, print a friendly hint to start it first. |
-| `tokpet service install` | (npm users) Write a `launchd` LaunchAgent and load it. |
-| `tokpet service uninstall` | (npm users) Unload and remove the LaunchAgent. |
-| `tokpet service status` | (npm users) Report whether the agent is loaded/running. |
-| `tokpet --version` | Print the version from `package.json`. |
-| `tokpet --help` | Print usage. |
+| Command                    | Behavior                                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tokpet` / `tokpet start`  | Run the server in the foreground. This is what `launchd`/`brew services` exec.                                                                        |
+| `tokpet open`              | Open `http://localhost:4717` in the default browser (reuses `openBrowser`). If the service is not reachable, print a friendly hint to start it first. |
+| `tokpet service install`   | (npm users) Write a `launchd` LaunchAgent and load it.                                                                                                |
+| `tokpet service uninstall` | (npm users) Unload and remove the LaunchAgent.                                                                                                        |
+| `tokpet service status`    | (npm users) Report whether the agent is loaded/running.                                                                                               |
+| `tokpet --version`         | Print the version from `package.json`.                                                                                                                |
+| `tokpet --help`            | Print usage.                                                                                                                                          |
 
 `brew` users do not need `tokpet service …`; `brew services` manages the agent for them. The
 subcommand exists for the npm install path.
@@ -150,18 +150,18 @@ User flow: `brew install grpcer/tokpet/tokpet` → `brew services start tokpet` 
 
 ## File-level change plan
 
-| Path | Change |
-| --- | --- |
-| `src/index.ts` | Replace direct-start body with argv dispatch over subcommands. |
-| `src/server/run.ts` | New: `runServer()` lifted from current `main()`; apply the `isTTY` open rule. |
-| `src/cli/service.ts` | New: plist generation + `launchctl` install/uninstall/status. |
-| `src/cli/open.ts` | New: `open` command (liveness probe + `openBrowser`). |
-| `package.json` | Add `prepublishOnly` + `publishConfig`. |
-| `packaging/homebrew/tokpet.rb` | New: formula source of truth (sha256 placeholder). |
-| `README.md` | Rewrite "Setup" for end-user brew/npm install + background service; keep the develop section. |
-| `RELEASE.md` | New: maintainer release + formula-bump + tap-push checklist. |
-| `ai.md` | Add the new CLI subcommands to the Commands section. |
-| `test/cli/service.test.ts` | New: unit tests for plist content and resolved paths. |
+| Path                           | Change                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `src/index.ts`                 | Replace direct-start body with argv dispatch over subcommands.                                |
+| `src/server/run.ts`            | New: `runServer()` lifted from current `main()`; apply the `isTTY` open rule.                 |
+| `src/cli/service.ts`           | New: plist generation + `launchctl` install/uninstall/status.                                 |
+| `src/cli/open.ts`              | New: `open` command (liveness probe + `openBrowser`).                                         |
+| `package.json`                 | Add `prepublishOnly` + `publishConfig`.                                                       |
+| `packaging/homebrew/tokpet.rb` | New: formula source of truth (sha256 placeholder).                                            |
+| `README.md`                    | Rewrite "Setup" for end-user brew/npm install + background service; keep the develop section. |
+| `RELEASE.md`                   | New: maintainer release + formula-bump + tap-push checklist.                                  |
+| `ai.md`                        | Add the new CLI subcommands to the Commands section.                                          |
+| `test/cli/service.test.ts`     | New: unit tests for plist content and resolved paths.                                         |
 
 ## Testing
 

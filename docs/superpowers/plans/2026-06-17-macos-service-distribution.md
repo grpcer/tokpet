@@ -15,7 +15,7 @@
 - **No new runtime dependencies** — argv parsing is hand-written.
 - Every source file starts with `// SPDX-License-Identifier: Apache-2.0`.
 - **English only** in everything committed (code, comments, docs, commit messages).
-- Comments explain *why*, not *what*; match surrounding style.
+- Comments explain _why_, not _what_; match surrounding style.
 - Conventional Commits (`<type>(<scope>): <summary>`).
 - PR gate must stay green: `npm run typecheck && npm run lint && npm run test`.
 - Do **not** change the `/state` JSON schema or any provider behavior.
@@ -23,30 +23,32 @@
 
 ## File Structure
 
-| Path | Responsibility |
-| --- | --- |
-| `src/index.ts` (modify) | Bin entry; argv dispatch only. |
-| `src/cli/commands.ts` (create) | Pure argv → command resolver. |
-| `src/server/run.ts` (create) | `runServer()` + port resolution + isTTY browser rule. |
-| `src/cli/service.ts` (create) | launchd plist rendering (pure) + install/uninstall/status. |
-| `src/cli/open.ts` (create) | `open` command (liveness probe + browser). |
-| `package.json` (modify) | `prepublishOnly` + `publishConfig`. |
-| `packaging/homebrew/tokpet.rb` (create) | Formula source of truth (synced to tap on release). |
-| `README.md` (modify) | End-user Setup (brew + npm), keep Develop section. |
-| `RELEASE.md` (create) | Maintainer release + formula-bump + tap-push checklist. |
-| `ai.md` (modify) | Add CLI subcommands to Commands. |
-| `test/cli/commands.test.ts` (create) | Unit tests for the resolver. |
-| `test/cli/service.test.ts` (create) | Unit tests for plist content + paths. |
+| Path                                    | Responsibility                                             |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `src/index.ts` (modify)                 | Bin entry; argv dispatch only.                             |
+| `src/cli/commands.ts` (create)          | Pure argv → command resolver.                              |
+| `src/server/run.ts` (create)            | `runServer()` + port resolution + isTTY browser rule.      |
+| `src/cli/service.ts` (create)           | launchd plist rendering (pure) + install/uninstall/status. |
+| `src/cli/open.ts` (create)              | `open` command (liveness probe + browser).                 |
+| `package.json` (modify)                 | `prepublishOnly` + `publishConfig`.                        |
+| `packaging/homebrew/tokpet.rb` (create) | Formula source of truth (synced to tap on release).        |
+| `README.md` (modify)                    | End-user Setup (brew + npm), keep Develop section.         |
+| `RELEASE.md` (create)                   | Maintainer release + formula-bump + tap-push checklist.    |
+| `ai.md` (modify)                        | Add CLI subcommands to Commands.                           |
+| `test/cli/commands.test.ts` (create)    | Unit tests for the resolver.                               |
+| `test/cli/service.test.ts` (create)     | Unit tests for plist content + paths.                      |
 
 ---
 
 ### Task 1: CLI command resolver
 
 **Files:**
+
 - Create: `src/cli/commands.ts`
 - Test: `test/cli/commands.test.ts`
 
 **Interfaces:**
+
 - Produces: `type Command` (discriminated union) and `resolveCommand(argv: readonly string[]): Command`.
 
 - [ ] **Step 1: Write the failing test**
@@ -62,13 +64,17 @@ describe('resolveCommand', () => {
   it('maps open', () => expect(resolveCommand(['open'])).toEqual({ kind: 'open' }));
   it('maps service actions', () => {
     expect(resolveCommand(['service', 'install'])).toEqual({ kind: 'service', action: 'install' });
-    expect(resolveCommand(['service', 'uninstall'])).toEqual({ kind: 'service', action: 'uninstall' });
+    expect(resolveCommand(['service', 'uninstall'])).toEqual({
+      kind: 'service',
+      action: 'uninstall',
+    });
     expect(resolveCommand(['service', 'status'])).toEqual({ kind: 'service', action: 'status' });
   });
   it('rejects an unknown service action as help+error', () => {
     expect(resolveCommand(['service', 'frobnicate']).kind).toBe('help');
   });
-  it('maps version flags', () => expect(resolveCommand(['--version'])).toEqual({ kind: 'version' }));
+  it('maps version flags', () =>
+    expect(resolveCommand(['--version'])).toEqual({ kind: 'version' }));
   it('unknown command falls to help with an error', () => {
     const c = resolveCommand(['wat']);
     expect(c).toMatchObject({ kind: 'help' });
@@ -125,10 +131,12 @@ Run: `npx vitest run test/cli/commands.test.ts` → PASS.
 ### Task 2: Extract `runServer` into `src/server/run.ts`
 
 **Files:**
+
 - Create: `src/server/run.ts`
 - (Body is lifted verbatim from the current `src/index.ts` `main()`.)
 
 **Interfaces:**
+
 - Produces: `DEFAULT_PORT: number`, `resolvePort(): number`, `runServer(port?: number): Promise<void>`.
 - Consumes: existing `startServer`, `publishMdns`, `createRuntimeState`, `markMdnsPublished`, `loadConfig`, `orderedProviderIds`, `findProvider`, `Aggregator`, `openBrowser`.
 
@@ -203,10 +211,12 @@ export async function runServer(port: number = resolvePort()): Promise<void> {
 ### Task 3: launchd service module
 
 **Files:**
+
 - Create: `src/cli/service.ts`
 - Test: `test/cli/service.test.ts`
 
 **Interfaces:**
+
 - Produces: `AGENT_LABEL: string`, `PlistParams`, `renderPlist(p: PlistParams): string`, `plistPath(home?: string): string`, `logFilePath(home?: string): string`, `resolveEntryScript(): string`, `installService(): Promise<void>`, `uninstallService(): Promise<void>`, `serviceStatus(): Promise<void>`.
 
 - [ ] **Step 1: Write the failing test**
@@ -234,8 +244,12 @@ describe('renderPlist', () => {
     expect(xml).toMatch(/<key>KeepAlive<\/key>\s*<true\/>/);
   });
   it('routes stdout and stderr to the log path', () => {
-    expect(xml).toMatch(/<key>StandardOutPath<\/key>\s*<string>\/home\/u\/\.tokpet\/logs\/tokpet\.log<\/string>/);
-    expect(xml).toMatch(/<key>StandardErrorPath<\/key>\s*<string>\/home\/u\/\.tokpet\/logs\/tokpet\.log<\/string>/);
+    expect(xml).toMatch(
+      /<key>StandardOutPath<\/key>\s*<string>\/home\/u\/\.tokpet\/logs\/tokpet\.log<\/string>/,
+    );
+    expect(xml).toMatch(
+      /<key>StandardErrorPath<\/key>\s*<string>\/home\/u\/\.tokpet\/logs\/tokpet\.log<\/string>/,
+    );
   });
   it('sets TOKPET_NO_OPEN so a background start never pops a browser', () => {
     expect(xml).toContain('<key>TOKPET_NO_OPEN</key>');
@@ -385,9 +399,11 @@ export async function serviceStatus(): Promise<void> {
 ### Task 4: `open` command
 
 **Files:**
+
 - Create: `src/cli/open.ts`
 
 **Interfaces:**
+
 - Produces: `openConsole(port?: number): Promise<void>`.
 - Consumes: `openBrowser` from `src/server/open-browser.js`, `resolvePort` from `src/server/run.js`.
 
@@ -433,9 +449,11 @@ export async function openConsole(port: number = resolvePort()): Promise<void> {
 ### Task 5: Wire up the dispatcher in `src/index.ts`
 
 **Files:**
+
 - Modify: `src/index.ts` (replace the whole file)
 
 **Interfaces:**
+
 - Consumes: `resolveCommand` (Task 1), `runServer` (Task 2), `installService`/`uninstallService`/`serviceStatus` (Task 3), `openConsole` (Task 4).
 
 - [ ] **Step 1: Replace the file**
@@ -520,6 +538,7 @@ Run: `TOKPET_NO_OPEN=1 PORT=4799 node --import tsx src/index.ts start &` then `c
 ### Task 6: npm publish configuration
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Add the publish fields**
@@ -540,6 +559,7 @@ Add to `scripts`: `"prepublishOnly": "npm run build"`. Add a top-level key:
 ### Task 7: Homebrew formula
 
 **Files:**
+
 - Create: `packaging/homebrew/tokpet.rb`
 
 - [ ] **Step 1: Write the formula**
@@ -588,11 +608,12 @@ end
 ### Task 8: README Setup rewrite
 
 **Files:**
+
 - Modify: `README.md` (the "Setup" section; keep "Develop" and everything else)
 
 - [ ] **Step 1: Replace the Setup section body** with end-user instructions:
 
-```markdown
+````markdown
 ## Install
 
 **Homebrew (recommended)**
@@ -602,6 +623,7 @@ brew install grpcer/tokpet/tokpet
 brew services start tokpet     # runs in the background, restarts on login
 tokpet open                    # configure providers in your browser
 ```
+````
 
 **npm**
 
@@ -621,12 +643,13 @@ reachable on your LAN so the device (or any client) can poll it.
 
 Manage the service:
 
-| | Homebrew | npm |
-| --- | --- | --- |
-| start | `brew services start tokpet` | `tokpet service install` |
-| stop  | `brew services stop tokpet`  | `tokpet service uninstall` |
-| status | `brew services info tokpet` | `tokpet service status` |
-```
+|        | Homebrew                     | npm                        |
+| ------ | ---------------------------- | -------------------------- |
+| start  | `brew services start tokpet` | `tokpet service install`   |
+| stop   | `brew services stop tokpet`  | `tokpet service uninstall` |
+| status | `brew services info tokpet`  | `tokpet service status`    |
+
+````
 
 - [ ] **Step 2: Keep the existing "Develop" section** (`npm run dev`, build & run). It stays valid.
 - [ ] **Step 3: Commit** — `docs(readme): document brew/npm install and the background service`
@@ -657,7 +680,7 @@ published before the Homebrew formula is bumped.
    `cp packaging/homebrew/tokpet.rb <tap>/Formula/tokpet.rb` then commit + push the tap.
 7. Verify end to end:
    `brew install grpcer/tokpet/tokpet && brew services start tokpet && tokpet open`.
-```
+````
 
 - [ ] **Step 2: Commit** — `docs: add release checklist`
 
@@ -666,11 +689,12 @@ published before the Homebrew formula is bumped.
 ### Task 10: ai.md Commands
 
 **Files:**
+
 - Modify: `ai.md` (the "Commands" section)
 
 - [ ] **Step 1: Add a CLI subcommands block** after the existing npm-script list:
 
-```markdown
+````markdown
 Once built/installed, the CLI exposes subcommands:
 
 ```bash
@@ -681,8 +705,10 @@ tokpet service uninstall     # remove it
 tokpet service status        # show launchd status
 tokpet --version | --help
 ```
+````
 
 Homebrew users manage the lifecycle with `brew services start|stop tokpet`.
+
 ```
 
 - [ ] **Step 2: Commit** — `docs(ai): document the tokpet CLI subcommands`
@@ -698,3 +724,4 @@ Homebrew users manage the lifecycle with `brew services start|stop tokpet`.
 **Type consistency:** `Command` union (T1) is consumed by the `switch` in T5 with matching `kind`/`action` values. `resolvePort` (T2) is reused by T4. `renderPlist`/`AGENT_LABEL`/`plistPath`/`logFilePath` (T3) match their test usage. `runServer()` (T2) is called arg-less in T5.
 
 **Verification gate:** After all tasks, `npm run typecheck && npm run lint && npm run test` must be green, plus the two smoke tests in Task 5.
+```
