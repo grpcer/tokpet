@@ -439,6 +439,11 @@ function setOnline(online) {
   $('connBanner').classList.toggle('on', !online);
 }
 
+function dismissUpdate() {
+  app.updateDismissed = true;
+  $('updateBanner').classList.remove('on');
+}
+
 function setRefreshing(busy) {
   app.refreshing = busy;
   var b = $('refreshBtn');
