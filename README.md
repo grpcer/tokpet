@@ -28,11 +28,39 @@ Each provider implements the `Provider` interface in [`src/protocol/provider.ts`
 
 The only public stability guarantee is the `/state` JSON schema — see [`src/protocol/state.ts`](src/protocol/state.ts).
 
-## Setup
+## Install
 
-Start the service (`npm run dev` below, or `npx tokpet` once published). Tokpet opens a setup page in your browser: pick how the provider exposes usage (subscription / API key / relay), choose a provider, and hit **Test** — on success it activates automatically and starts appearing in `GET /state`. Your choices are saved to `~/.tokpet/config.json` and restored on the next launch.
+**Homebrew (recommended)**
 
-The setup and configuration API is bound to loopback only; `GET /state` stays reachable on your LAN so the device (or any client) can poll it.
+```bash
+brew install grpcer/tokpet/tokpet
+brew services start tokpet     # runs in the background, restarts on login
+tokpet open                    # configure providers in your browser
+```
+
+**npm**
+
+```bash
+npm install -g tokpet
+tokpet service install         # background launchd service, restarts on login
+tokpet open
+```
+
+Either way, Tokpet opens a setup page where you pick how a provider exposes
+usage (subscription / API key / relay), choose a provider, and hit **Test** —
+on success it activates and starts appearing in `GET /state`. Choices are saved
+to `~/.tokpet/config.json` and restored on the next launch.
+
+The setup/configuration API is bound to loopback only; `GET /state` stays
+reachable on your LAN so the device (or any client) can poll it.
+
+Manage the service:
+
+|        | Homebrew                     | npm                        |
+| ------ | ---------------------------- | -------------------------- |
+| start  | `brew services start tokpet` | `tokpet service install`   |
+| stop   | `brew services stop tokpet`  | `tokpet service uninstall` |
+| status | `brew services info tokpet`  | `tokpet service status`    |
 
 ## Troubleshooting
 
