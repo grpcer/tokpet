@@ -7,3 +7,6 @@ public/vendor
 LICENSE
 NOTICE
 CODE_OF_CONDUCT.md
+# ESP-IDF firmware project — managed by its own (C/CMake) toolchain, not by
+# the companion's JS/Prettier formatting.
+firmware
