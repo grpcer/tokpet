@@ -1,0 +1,4 @@
+## CST820 is part of the CST816 family; use the espressif/esp_lcd_touch_cst816s driver (address 0x15)
+## Fetched from the ESP component registry on first build; set https_proxy if your network blocks it.
+dependencies:
+  espressif/esp_lcd_touch_cst816s: "^1"

@@ -7,6 +7,15 @@ dist/
 .tokpet/
 .DS_Store
 
+# ESP-IDF firmware build artifacts (firmware/). Source, sdkconfig.defaults, and
+# dependencies.lock are tracked; build output, fetched components, the generated
+# sdkconfig, and editor caches are not.
+firmware/**/build/
+firmware/**/managed_components/
+firmware/**/.cache/
+firmware/**/sdkconfig
+firmware/**/sdkconfig.old
+
 # Local AI assistant guides — kept out of the public repo
 ai.md
 CLAUDE.md

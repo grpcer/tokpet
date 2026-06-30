@@ -1,0 +1,2 @@
+dependencies:
+  espressif/esp_lcd_co5300: "^1"

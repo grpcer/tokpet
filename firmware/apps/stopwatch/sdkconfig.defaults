@@ -1,0 +1,37 @@
+# Tokpet - default sdkconfig (StopWatch board)
+# M5Stack StopWatch: ESP32-S3R8 + 16MB Flash + 8MB Octal PSRAM + CO5300 round AMOLED
+
+# --- Target chip ----------------------------------------------------
+CONFIG_IDF_TARGET="esp32s3"
+
+# --- Flash 16MB -----------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
+
+# --- PSRAM 8MB Octal (AP_3v3) ---------------------------------------
+# OCT mode must be enabled to use the full octal bandwidth; otherwise it only runs at quad speed
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+
+# --- Console over native USB-Serial-JTAG ----------------------------
+# The StopWatch has no UART bridge; flashing and serial logs both go over native USB (/dev/cu.usbmodem1120x)
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# --- Custom partition table (reserves OTA and file storage for 16MB Flash) ---
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# --- FreeRTOS tick = 1kHz (prepares for smooth LVGL animation) ------
+CONFIG_FREERTOS_HZ=1000
+
+# --- LVGL UI fonts (take effect once LVGL is wired up from Task 5) ---
+# 14 is the LVGL default font size (used by tag/status/spinner countdown); declared explicitly so a future change to the LVGL default does not turn it off.
+CONFIG_LV_FONT_MONTSERRAT_14=y
+CONFIG_LV_FONT_MONTSERRAT_16=y
+CONFIG_LV_FONT_MONTSERRAT_28=y
+CONFIG_LV_FONT_MONTSERRAT_36=y
+CONFIG_LV_FONT_MONTSERRAT_48=y
+
+# --- Tokpet state refresh (takes effect once the shared tokpet_client is wired up from Task 7) ---
+CONFIG_TOKPET_STATE_REFRESH_MS=5000
