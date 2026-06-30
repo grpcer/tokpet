@@ -1,0 +1,4 @@
+## esp_lvgl_port 2.x -> pulls in LVGL v9 (1.x is LVGL v8)
+## Fetched from the ESP component registry on first build; set https_proxy if your network blocks it.
+dependencies:
+  espressif/esp_lvgl_port: "^2"
