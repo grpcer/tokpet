@@ -1,0 +1,14 @@
+menu "Tokpet client"
+
+config TOKPET_STATE_REFRESH_MS
+    int "Tokpet state refresh interval (ms)"
+    default 5000
+    range 1000 3600000
+    help
+        How often the firmware polls companion `/state`. The companion
+        runs on the same LAN, so 1–5s is comfortable and lets newly-added
+        providers from the console show up on the device almost
+        immediately. Increase only if you are seeing actual CPU / battery
+        pressure.
+
+endmenu

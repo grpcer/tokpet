@@ -1,0 +1,9 @@
+# Tokpet custom partition table (16MB Flash)
+# Layout: app 4MB (factory) + 2x4MB OTA slots + 2MB SPIFFS, with the remainder left as headroom
+# Name,    Type, SubType,  Offset,  Size,     Flags
+nvs,       data, nvs,      ,        0x6000,
+phy_init,  data, phy,      ,        0x1000,
+factory,   app,  factory,  ,        0x400000,
+ota_0,     app,  ota_0,    ,        0x400000,
+ota_1,     app,  ota_1,    ,        0x400000,
+storage,   data, spiffs,   ,        0x200000,
