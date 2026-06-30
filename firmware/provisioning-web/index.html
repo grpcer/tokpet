@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Tokpet · Wi-Fi Setup</title>
+<!--
+  Tokpet device-served Wi-Fi provisioning page (SoftAP captive portal).
+  Self-contained: system fonts, pure CSS, vanilla JS — embeds into ESP32 firmware flash.
+  The three functions marked `=== DEVICE API ===` are mocked here so the page runs in a
+  plain browser. On-device, replace them with real fetch() calls to http://192.168.4.1.
+  Tip: type a password containing "fail" to preview the failure screen.
+-->
+<style>
+  :root{
+    --brand-1:#6e54f0; --brand-2:#ff6a98;
+    --ink:#241d3a; --ink-soft:#7a7396;
+    --bg:#f4f1ec; --card:#ffffff; --line:#ece7f6; --field:#faf8fe;
+    --ok-1:#1fb37a; --ok-2:#10a59a;
+    --bad-1:#ff7a59; --bad-2:#f2486e;
+    --r:22px;
+    --font:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",Quicksand,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--font);color:var(--ink);background:var(--bg);
+    background-image:
+      radial-gradient(60% 50% at 12% -5%, rgba(110,84,240,.18), transparent 70%),
+      radial-gradient(55% 45% at 105% 12%, rgba(255,106,152,.18), transparent 70%),
+      radial-gradient(60% 50% at 50% 110%, rgba(110,84,240,.10), transparent 70%);
+    min-height:100%;display:flex;align-items:center;justify-content:center;
+    padding:20px;-webkit-font-smoothing:antialiased;
+  }
+  .app{
+    width:100%;max-width:392px;background:var(--card);border-radius:var(--r);
+    box-shadow:0 22px 60px -16px rgba(58,38,120,.32),0 4px 14px rgba(58,38,120,.08);
+    overflow:hidden;animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+
+  .hd{position:relative;padding:24px 22px 20px;text-align:center;color:#fff;overflow:hidden;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-2));transition:background .55s ease}
+  .hd::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% -25%,rgba(255,255,255,.28),transparent 60%);pointer-events:none}
+  .hd .name{font-weight:800;font-size:19px;letter-spacing:.3px;margin-top:4px;position:relative}
+  .hd .tag{font-size:12.5px;opacity:.95;margin-top:3px;font-weight:500;position:relative}
+  .app[data-mood="ok"] .hd{background:linear-gradient(135deg,var(--ok-1),var(--ok-2))}
+  .app[data-mood="bad"] .hd{background:linear-gradient(135deg,var(--bad-1),var(--bad-2))}
+
+  /* ===== Cat mascot (inline SVG) ===== */
+  svg.cat{width:88px;height:auto;display:inline-block;vertical-align:middle;filter:drop-shadow(0 5px 12px rgba(110,84,240,.16))}
+  svg.cat.mini{width:54px;filter:none}
+  .hd svg.cat{display:block;margin:0 auto 2px;position:relative}
+  .center svg.cat{margin-bottom:2px}
+  .empty svg.cat{width:66px;filter:drop-shadow(0 4px 9px rgba(110,84,240,.14))}
+  svg.cat.busy{animation:wiggle 1.25s ease-in-out infinite;transform-origin:50% 72%}
+  @keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+  svg.cat.happy,svg.cat.sad{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .body{padding:20px 18px 22px}
+  .screen{display:none;animation:fade .42s ease both}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .lbl{font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--ink-soft);text-transform:uppercase;padding:0 4px 11px}
+
+  .net{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:var(--field);
+    border:1.5px solid transparent;cursor:pointer;margin-bottom:8px;transition:.18s;animation:slidein .42s ease both}
+  .net:hover{background:#f3eefd;transform:translateX(2px)}
+  .net:active{transform:scale(.99)}
+  .net .nm{flex:1;font-size:14.5px;font-weight:600}
+  @keyframes slidein{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+  .skel{display:flex;align-items:center;gap:12px;padding:14px;border-radius:15px;background:var(--field);margin-bottom:8px}
+  .skel .sk-dot{width:15px;height:15px;border-radius:50%;background:#e9e3f5;flex:none}
+  .skel .sk-line{height:11px;border-radius:6px;background:linear-gradient(90deg,#e9e3f5 25%,#f6f2fd 50%,#e9e3f5 75%);background-size:200% 100%;animation:shimmer 1.15s linear infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+
+  .sig{display:flex;align-items:flex-end;gap:2px;height:14px;flex:none}
+  .sig i{width:3px;border-radius:2px;background:var(--brand-1);opacity:.22}
+  .sig i:nth-child(1){height:5px}.sig i:nth-child(2){height:8px}.sig i:nth-child(3){height:11px}.sig i:nth-child(4){height:14px}
+  .sig[data-l="1"] i:nth-child(-n+1),.sig[data-l="2"] i:nth-child(-n+2),.sig[data-l="3"] i:nth-child(-n+3),.sig[data-l="4"] i:nth-child(-n+4){opacity:1}
+  .lock{width:13px;height:13px;color:var(--ink-soft);opacity:.7;flex:none}
+
+  .tools{display:flex;justify-content:space-between;align-items:center;padding:10px 6px 2px}
+  .link{background:none;border:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--brand-1);cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:6px 4px}
+  .link:hover{opacity:.78}
+  .link svg{width:14px;height:14px}
+  .link.spin svg{animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .selnet{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-soft);padding:2px 4px 12px}
+  .selnet b{color:var(--ink);font-weight:700}
+  .pw{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:14px;padding:0 6px 0 14px;background:var(--field);transition:.18s}
+  .pw:focus-within{border-color:var(--brand-1);background:#fff;box-shadow:0 0 0 4px rgba(110,84,240,.11)}
+  .pw input{flex:1;border:none;outline:none;background:none;font-family:inherit;font-size:15px;color:var(--ink);padding:13px 0}
+  .pw + .pw{margin-top:10px}
+  .eye{cursor:pointer;color:var(--ink-soft);padding:8px;display:flex;border:none;background:none}
+  .eye:hover{color:var(--brand-1)}
+  .eye svg{width:19px;height:19px}
+  .hint{font-size:12px;color:var(--ink-soft);padding:9px 4px 0;min-height:18px}
+
+  .btn{display:block;width:100%;text-align:center;border:none;cursor:pointer;font-family:inherit;font-weight:700;
+    font-size:15px;color:#fff;padding:14px;border-radius:15px;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));
+    box-shadow:0 9px 20px -7px rgba(110,84,240,.62);transition:.18s;margin-top:15px}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 13px 24px -7px rgba(110,84,240,.7)}
+  .btn:active{transform:translateY(0)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+  .btn.sub{background:none;color:var(--brand-1);box-shadow:none;margin-top:8px;font-size:13.5px;font-weight:600}
+  .btn.sub:hover{transform:none;background:var(--field)}
+
+  .center{text-align:center;padding:14px 10px 6px}
+  .center h2{font-size:18.5px;margin-top:14px}
+  .center p{color:var(--ink-soft);font-size:13.5px;margin-top:7px;line-height:1.55}
+  .center .quiet{color:#a89fc0;font-size:12.5px;margin-top:12px}
+  .bar{height:6px;border-radius:6px;background:#ece7f6;overflow:hidden;margin-top:22px}
+  .bar i{display:block;height:100%;width:42%;border-radius:6px;background:linear-gradient(90deg,var(--brand-1),var(--brand-2));animation:indet 1.4s cubic-bezier(.5,0,.3,1) infinite}
+  @keyframes indet{0%{margin-left:-42%}100%{margin-left:100%}}
+
+  .celebrate{position:relative;display:inline-block}
+  .celebrate .dot{position:absolute;top:46%;left:50%;width:9px;height:9px;border-radius:50%;opacity:0;transform:translate(-50%,-50%)}
+  .celebrate svg.cat{position:relative;z-index:1}
+  .screen.on .celebrate .dot{animation:burst .9s ease-out both}
+  @keyframes burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.1)}}
+
+  .empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:18px 10px 8px}
+  .empty p{margin-top:10px;line-height:1.5}
+</style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="hd">
+      <span id="hdCat"></span>
+      <div class="name" id="hdName">Tokpet</div>
+      <div class="tag" id="hdTag">Let's get your pet online</div>
+    </div>
+    <div class="body">
+
+      <!-- ① SCAN -->
+      <section class="screen on" id="scScan">
+        <div class="lbl" id="scanLbl">Choose your Wi-Fi</div>
+        <div id="netList"></div>
+        <div class="tools">
+          <button class="link" id="btnRescan" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+            Rescan
+          </button>
+          <button class="link" id="btnOther" type="button">Other network</button>
+        </div>
+      </section>
+
+      <!-- ② PASSWORD -->
+      <section class="screen" id="scPass">
+        <div class="lbl">Enter password</div>
+        <div class="selnet" id="selRow">for <b id="selName">Home-5G</b></div>
+        <div class="pw" id="ssidWrap" style="display:none">
+          <input id="ssidInput" type="text" placeholder="Network name" autocomplete="off" />
+        </div>
+        <div class="pw">
+          <input id="pwInput" type="password" placeholder="Wi-Fi password" autocomplete="off" />
+          <button class="eye" id="btnEye" type="button" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="hint" id="pwHint"></div>
+        <button class="btn" id="btnConnect" type="button">Connect</button>
+        <button class="btn sub" id="btnBack" type="button">← Choose another network</button>
+      </section>
+
+      <!-- ③ CONNECTING -->
+      <section class="screen" id="scConn">
+        <div class="center">
+          <span id="connCat"></span>
+          <h2 id="connTitle">Joining Home-5G</h2>
+          <p>Asking your pet to hop onto<br>your home network…</p>
+          <div class="bar"><i></i></div>
+        </div>
+      </section>
+
+      <!-- ④ CONNECTED -->
+      <section class="screen" id="scDone">
+        <div class="center">
+          <span class="celebrate">
+            <span class="dot" style="--tx:-52px;--ty:-26px;background:#ffd24a"></span>
+            <span class="dot" style="--tx:50px;--ty:-30px;background:#5ad6b4"></span>
+            <span class="dot" style="--tx:-44px;--ty:24px;background:#ff6a98"></span>
+            <span class="dot" style="--tx:48px;--ty:28px;background:#6e54f0"></span>
+            <span class="dot" style="--tx:0px;--ty:-58px;background:#ff9f5a"></span>
+            <span class="dot" style="--tx:-64px;--ty:-2px;background:#5ad6b4"></span>
+            <span class="dot" style="--tx:64px;--ty:2px;background:#ffd24a"></span>
+            <span class="dot" style="--tx:6px;--ty:56px;background:#6e54f0"></span>
+            <span id="doneCat"></span>
+          </span>
+          <h2 id="doneTitle">Connected to Home-5G</h2>
+          <p>You can switch your phone back to<br>your home Wi-Fi now.</p>
+          <p class="quiet">Your pet will find the desktop app on its own.</p>
+        </div>
+      </section>
+
+      <!-- ⑤ FAILED -->
+      <section class="screen" id="scFail">
+        <div class="center">
+          <span id="failCat"></span>
+          <h2 id="failTitle">Couldn't join Home-5G</h2>
+          <p id="failReason">The password might be wrong, or the<br>network is out of range.</p>
+        </div>
+        <button class="btn" id="btnRetry" type="button">Try again</button>
+        <button class="btn sub" id="btnFailBack" type="button">← Choose another network</button>
+      </section>
+
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // =========================================================================
+  // === DEVICE API ==========================================================
+  // Served from the device, these call the firmware HTTP API. Opened directly
+  // from a desktop browser, they fall back to mock data for UI iteration.
+  // =========================================================================
+  var MOCK = [
+    {ssid:"Home-5G",      level:4, secure:true},
+    {ssid:"Living-Room",  level:3, secure:true},
+    {ssid:"CMCC-8a2f",    level:2, secure:true},
+    {ssid:"CoffeeBar",    level:1, secure:false}
+  ];
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms)});}
+  var USE_MOCK = location.protocol === "file:" || location.hostname === "" || location.hostname === "localhost";
+  async function api(path, options){
+    var res = await fetch(path, options || {});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    return res.json();
+  }
+
+  // GET /api/scan  -> [{ssid, level(0-4), secure}]
+  async function scanNetworks(){
+    if(!USE_MOCK) return api("/api/scan");
+    await wait(1100); return MOCK.slice();
+  }
+
+  // POST /api/connect {ssid, password} -> ack
+  var _attempt = null;
+  async function requestConnect(ssid, password){
+    if(!USE_MOCK){
+      return api("/api/connect", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ssid:ssid, password:password})
+      });
+    }
+    await wait(350); _attempt = {ssid:ssid, password:password}; return {ok:true};
+  }
+
+  // GET /api/status -> {state:"connecting"|"connected"|"failed", reason?}
+  var _polls = 0;
+  async function pollStatus(){
+    if(!USE_MOCK) return api("/api/status");
+    await wait(700); _polls++;
+    if(_polls < 3) return {state:"connecting"};
+    var bad = (_attempt.password||"").toLowerCase().indexOf("fail") !== -1 || (_attempt.password||"").length < 8;
+    return bad ? {state:"failed", reason:"wrong-password"} : {state:"connected"};
+  }
+  // =========================================================================
+
+  // ===== Cat mascot, inline SVG, expression by mood =====
+  function catSVG(mood, white){
+    var face  = white ? "#ffffff" : "#e7dffb";
+    var feat  = white ? "rgba(36,26,66,.62)" : "#3b2f5e";
+    var blush = white ? "rgba(255,128,164,.95)" : "#ff90b4";
+    var eyes, mouth;
+    if(mood==="happy"){
+      eyes='<path d="M30 50 Q37.5 42 45 50" fill="none" stroke="'+feat+'" stroke-width="3.4" stroke-linecap="round"/>'
+          +'<path d="M55 50 Q62.5 42 70 50" fill="none" stroke="'+feat+'" stroke-width="3.4" stroke-linecap="round"/>';
+      mouth='<path d="M41 60 Q50 69 59 60" fill="none" stroke="'+feat+'" stroke-width="2.8" stroke-linecap="round"/>';
+    }else if(mood==="busy"){
+      eyes='<rect x="32" y="49" width="11" height="3.4" rx="1.7" fill="'+feat+'"/>'
+          +'<rect x="57" y="49" width="11" height="3.4" rx="1.7" fill="'+feat+'"/>';
+      mouth='<path d="M45 60 Q50 63 55 60" fill="none" stroke="'+feat+'" stroke-width="2.6" stroke-linecap="round"/>';
+    }else{ // neutral / sad keep round eyes so they're clearly eyes
+      eyes='<ellipse cx="37.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/>'
+          +'<ellipse cx="62.5" cy="51" rx="4.4" ry="5.6" fill="'+feat+'"/>'
+          +'<circle cx="39.2" cy="49" r="1.5" fill="#fff"/><circle cx="64.2" cy="49" r="1.5" fill="#fff"/>';
+      mouth = (mood==="sad")
+        ? '<path d="M43 65 Q50 59 57 65" fill="none" stroke="'+feat+'" stroke-width="2.8" stroke-linecap="round"/>'
+        : '<path d="M44 60 Q50 64.5 56 60" fill="none" stroke="'+feat+'" stroke-width="2.6" stroke-linecap="round"/>';
+    }
+    var cls='cat'+(mood?(' '+mood):'')+(white?' mini':'');
+    return '<svg class="'+cls+'" viewBox="0 0 100 92" xmlns="http://www.w3.org/2000/svg">'
+      +'<path d="M27 34 L32 7 L48 28 Z" fill="'+face+'"/>'
+      +'<path d="M73 34 L68 7 L52 28 Z" fill="'+face+'"/>'
+      +'<ellipse cx="50" cy="54" rx="33" ry="30" fill="'+face+'"/>'
+      +'<ellipse cx="29" cy="60" rx="6" ry="3.7" fill="'+blush+'" opacity="'+(mood==="happy"?".9":".5")+'"/>'
+      +'<ellipse cx="71" cy="60" rx="6" ry="3.7" fill="'+blush+'" opacity="'+(mood==="happy"?".9":".5")+'"/>'
+      +eyes
+      +'<path d="M47 56 L53 56 L50 59.5 Z" fill="'+blush+'"/>'
+      +mouth
+      +'<g stroke="'+feat+'" stroke-width="1.5" stroke-linecap="round" opacity=".5">'
+      +'<line x1="13" y1="55" x2="26" y2="56"/><line x1="13" y1="61" x2="26" y2="60"/>'
+      +'<line x1="87" y1="55" x2="74" y2="56"/><line x1="87" y1="61" x2="74" y2="60"/></g>'
+      +'</svg>';
+  }
+
+  var $ = function(id){return document.getElementById(id)};
+  var app=$("app");
+  var screens={scan:$("scScan"),pass:$("scPass"),conn:$("scConn"),done:$("scDone"),fail:$("scFail")};
+  var selected=null, manualMode=false;
+
+  var REASONS={
+    "wrong-password":"That password didn't work.<br>Double-check it and try again.",
+    "not-found":"Couldn't find that network.<br>It may be out of range.",
+    "timeout":"The network didn't respond in time.<br>Give it another go.",
+    "scan-failed":"Couldn't scan nearby networks.<br>Try again, or enter the network name.",
+    "bad-request":"The setup form was incomplete.<br>Choose a network and try again.",
+    "save-failed":"Tokpet joined Wi-Fi but couldn't save it.<br>Restart the device and try again.",
+    "generic":"Something interrupted setup.<br>Please try again."
+  };
+
+  function header(mood,name,tag){
+    app.setAttribute("data-mood",mood||"");
+    $("hdName").textContent=name; $("hdTag").textContent=tag;
+  }
+  function show(name){
+    for(var k in screens) screens[k].classList.remove("on");
+    screens[name].classList.add("on");
+  }
+
+  var lockSVG='<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+
+  function skeletons(n){
+    var h=""; for(var i=0;i<n;i++) h+='<div class="skel"><span class="sk-dot"></span><span class="sk-line" style="flex:1"></span></div>';
+    return h;
+  }
+
+  function renderList(nets){
+    var list=$("netList"); list.innerHTML="";
+    if(!nets.length){
+      list.innerHTML='<div class="empty">'+catSVG("sad",false)+'<p>No networks found nearby.<br>Move closer to your router, then rescan.</p></div>';
+      return;
+    }
+    nets.forEach(function(n,i){
+      var row=document.createElement("div");
+      row.className="net"; row.style.animationDelay=(i*55)+"ms";
+      var bars='<span class="sig" data-l="'+n.level+'"><i></i><i></i><i></i><i></i></span>';
+      row.innerHTML='<span class="nm">'+n.ssid+'</span>'+(n.secure?lockSVG:'')+bars;
+      row.addEventListener("click",function(){ selected=n; manualMode=false; openPass(); });
+      list.appendChild(row);
+    });
+  }
+
+  function renderScanFailure(){
+    $("netList").innerHTML='<div class="empty">'+catSVG("sad",false)+'<p>Couldn\'t scan nearby networks.<br>Try again, or enter the network name.</p></div>';
+  }
+
+  function showFailure(ssid, reason){
+    $("failTitle").textContent=ssid ? ("Couldn't join "+ssid) : "Couldn't connect";
+    $("failReason").innerHTML=REASONS[reason]||REASONS["generic"];
+    header("bad","Hmm…","Couldn't connect");
+    show("fail");
+  }
+
+  async function doScan(){
+    var btn=$("btnRescan"); btn.classList.add("spin");
+    $("scanLbl").textContent="Scanning nearby networks…";
+    $("netList").innerHTML=skeletons(3);
+    header("", "Tokpet", "Let's get your pet online");
+    show("scan");
+    try{
+      var nets=await scanNetworks();
+      $("scanLbl").textContent="Choose your Wi-Fi";
+      renderList(nets);
+    }catch(e){
+      $("scanLbl").textContent="Scan failed";
+      renderScanFailure();
+    }finally{
+      btn.classList.remove("spin");
+    }
+  }
+
+  function openPass(){
+    header("", "Tokpet", "Almost there");
+    if(manualMode){
+      $("selRow").style.display="none"; $("ssidWrap").style.display="flex"; $("ssidInput").value="";
+    }else{
+      $("selRow").style.display="flex"; $("ssidWrap").style.display="none"; $("selName").textContent=selected.ssid;
+    }
+    $("pwInput").value=""; $("pwHint").textContent=""; $("btnConnect").disabled=false;
+    show("pass");
+    setTimeout(function(){ (manualMode?$("ssidInput"):$("pwInput")).focus(); },120);
+  }
+
+  async function doConnect(){
+    var ssid = manualMode ? $("ssidInput").value.trim() : selected.ssid;
+    var pw = $("pwInput").value;
+    if(manualMode && !ssid){ $("pwHint").textContent="Enter a network name first."; return; }
+    if(!pw){ $("pwHint").textContent="Enter the Wi-Fi password."; return; }
+    $("btnConnect").disabled=true;
+    $("connTitle").textContent="Joining "+ssid;
+    header("", "Tokpet", "Connecting…");
+    show("conn");
+    _polls=0;
+    try{
+      await requestConnect(ssid,pw);
+    }catch(e){
+      $("btnConnect").disabled=false;
+      showFailure(ssid,"generic");
+      return;
+    }
+    var st;
+    try{
+      do{ st=await pollStatus(); }while(st.state==="connecting");
+    }catch(e){
+      $("btnConnect").disabled=false;
+      showFailure(ssid,"generic");
+      return;
+    }
+    if(st.state==="connected"){
+      $("doneTitle").textContent="Connected to "+ssid;
+      header("ok","You're all set!","Tokpet is online");
+      show("done");
+    }else{
+      $("btnConnect").disabled=false;
+      showFailure(ssid,st.reason||"timeout");
+    }
+  }
+
+  // paint the cats
+  $("hdCat").innerHTML   = catSVG("",     true);
+  $("connCat").innerHTML = catSVG("busy", false);
+  $("doneCat").innerHTML = catSVG("happy",false);
+  $("failCat").innerHTML = catSVG("sad",  false);
+
+  // events
+  $("btnRescan").addEventListener("click",doScan);
+  $("btnOther").addEventListener("click",function(){ manualMode=true; selected=null; openPass(); });
+  $("btnBack").addEventListener("click",doScan);
+  $("btnConnect").addEventListener("click",doConnect);
+  $("btnRetry").addEventListener("click",function(){ openPass(); });
+  $("btnFailBack").addEventListener("click",doScan);
+  $("pwInput").addEventListener("keydown",function(e){ if(e.key==="Enter") doConnect(); });
+  $("btnEye").addEventListener("click",function(){
+    var i=$("pwInput"); i.type = i.type==="password" ? "text" : "password"; i.focus();
+  });
+
+  doScan();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Claude spark logo, taken from the stopwatch-halo-cat-demo.html visual final (12 symmetric rays + center circle,
+     6 long 6 short alternating), Claude brand orange #d97757. Transparent background, baked to RGB565A8 by gen_logo.py. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g fill="#d97757">
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(0 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(30 50 50)"/>
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(60 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(90 50 50)"/>
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(120 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(150 50 50)"/>
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(180 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(210 50 50)"/>
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(240 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(270 50 50)"/>
+    <rect x="46.5" y="4" width="7" height="24" rx="3.5" transform="rotate(300 50 50)"/>
+    <rect x="47" y="12" width="6" height="16" rx="3" transform="rotate(330 50 50)"/>
+    <circle cx="50" cy="50" r="7"/>
+  </g>
+</svg>
